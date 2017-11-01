@@ -1,0 +1,10 @@
+[package]
+name = "derive-kernel"
+version = "0.1.0"
+authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { version = "0.1", features = ["unstable"] }

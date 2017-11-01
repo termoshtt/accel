@@ -7,4 +7,11 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 proc-macro = true
 
 [dependencies]
+synom = "*"
+futures-await-quote = "0.4"
 proc-macro2 = { version = "0.1", features = ["unstable"] }
+
+[dependencies.futures-await-syn]
+version = "*"
+features = ["full", "fold", "parsing", "printing"]
+default-features = false

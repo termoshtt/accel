@@ -13,5 +13,5 @@ proc-macro2 = { version = "0.1", features = ["unstable"] }
 
 [dependencies.futures-await-syn]
 version = "*"
-features = ["full", "fold", "parsing", "printing"]
+features = ["full", "fold", "parsing", "printing", "extra-traits"]
 default-features = false

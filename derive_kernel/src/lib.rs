@@ -7,19 +7,15 @@ extern crate proc_macro;
 #[macro_use]
 extern crate futures_await_quote as quote;
 extern crate futures_await_syn as syn;
-#[macro_use]
 extern crate synom;
 
-use proc_macro2::Span;
 use proc_macro::TokenStream;
-use quote::{Tokens, ToTokens};
 use syn::*;
-use syn::delimited::Delimited;
-use syn::fold::Folder;
 
 #[proc_macro_attribute]
-pub fn kernel(_attribute: TokenStream, function: TokenStream) -> TokenStream {
+pub fn kernel(kernel_attr: TokenStream, function: TokenStream) -> TokenStream {
     let Item { attrs, node } = syn::parse(function).unwrap();
+    println!("{:?}", kernel_attr.to_string());
     let ItemFn {
         ident,
         vis,
@@ -44,23 +40,14 @@ pub fn kernel(_attribute: TokenStream, function: TokenStream) -> TokenStream {
         *decl
     };
     let where_clause = &generics.where_clause;
-    assert!(!variadic, "variadic functions cannot be kernel");
-    let (output, rarrow_token) = match output {
-        FunctionRetTy::Ty(t, rarrow_token) => (t, rarrow_token),
-        FunctionRetTy::Default => {
-            (
-                TyTup {
-                    tys: Default::default(),
-                    lone_comma: Default::default(),
-                    paren_token: Default::default(),
-                }.into(),
-                Default::default(),
-            )
-        }
-    };
-
     let output = quote!{};
 
-    // println!("{}", output);
+    println!(
+        "{}",
+        quote!{ 
+        inputs = #inputs;
+        block = #block;
+    }
+    );
     output.into()
 }

@@ -4,8 +4,10 @@ extern crate derive_kernel;
 
 use derive_kernel::kernel;
 
-#[kernel]
-pub fn add(_a: &[f32], _b: &[f32], _c: &mut [f32]) {}
+#[kernel(i)]
+pub fn add(a: &[f32], b: &[f32], c: &mut [f32]) {
+    *c[0] = a[0] + b[0];
+}
 
 fn main() {
     //

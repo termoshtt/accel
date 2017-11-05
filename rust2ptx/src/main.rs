@@ -41,8 +41,10 @@ const PTX_BUILDER: &'static str = r#"
 #![no_std]
 
 #[no_mangle]
-pub extern "ptx-kernel" fn foo() {}
+pub extern "ptx-kernel" fn bar() {}
 "#;
+
+const NIGHTLY: &'static str = "nightly-2017-09-01";
 
 fn generate_ptx_builder(work: &Path) {
     let save = |fname: &str, s: &str| {
@@ -55,16 +57,9 @@ fn generate_ptx_builder(work: &Path) {
     save("src/lib.rs", PTX_BUILDER);
 }
 
-fn ready_rustup(work_dir: &Path) {
-    let nightly = "nightly-2017-09-01";
+fn install_rustup_nightly() {
     process::Command::new("rustup")
-        .args(&["toolchain", "install", nightly])
-        .stdout(process::Stdio::null())
-        .status()
-        .unwrap();
-    process::Command::new("rustup")
-        .args(&["override", "set", nightly])
-        .current_dir(work_dir)
+        .args(&["toolchain", "install", NIGHTLY])
         .stdout(process::Stdio::null())
         .status()
         .unwrap();
@@ -88,6 +83,7 @@ fn compile(work_dir: &Path) {
             ],
         )
         .current_dir(work_dir)
+        .env("RUSTUP_TOOLCHAIN", NIGHTLY)
         .status()
         .unwrap();
 }
@@ -104,13 +100,13 @@ fn get_ptx_path(work_dir: &Path) -> PathBuf {
 }
 
 fn main() {
+    install_rustup_nightly();
     let work = work_dir();
     if !work.exists() {
         fs::create_dir_all(&work).unwrap();
         fs::create_dir_all(work.join("src")).unwrap();
     }
     generate_ptx_builder(&work);
-    ready_rustup(&work);
     compile(&work);
     let ptx = get_ptx_path(&work);
     println!("PTX path = {}", ptx.display());

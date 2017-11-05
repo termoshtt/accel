@@ -5,3 +5,4 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
 glob = "*"
+clap = "*"

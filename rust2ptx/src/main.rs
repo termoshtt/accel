@@ -1,10 +1,12 @@
 
 extern crate glob;
+extern crate clap;
 
 use std::path::*;
 use std::io::*;
 use std::{fs, env, process};
 use glob::glob;
+use clap::{App, Arg};
 
 const PTX_BUILDER_TOML: &'static str = r#"
 [package]
@@ -108,6 +110,14 @@ fn load_str(path: &Path) -> String {
 }
 
 fn main() {
+    let app = App::new("rust2ptx").version("0.1.0").arg(
+        Arg::with_name("output")
+            .help("output path")
+            .short("o")
+            .long("output")
+            .takes_value(true),
+    );
+    let matches = app.get_matches();
     install_rustup_nightly();
     let work = work_dir();
     if !work.exists() {
@@ -117,8 +127,15 @@ fn main() {
     generate_ptx_builder(&work);
     compile(&work);
     let ptx_path = get_ptx_path(&work);
-    let ptx = load_str(&ptx_path);
-    println!("{}", ptx);
+
+    if let Some(output) = matches.value_of("output") {
+        // Copy PTX to {output}
+        fs::copy(ptx_path, output).unwrap();
+    } else {
+        // Output PTX to stdout
+        let ptx = load_str(&ptx_path);
+        println!("{}", ptx);
+    }
 }
 
 fn work_dir() -> PathBuf {

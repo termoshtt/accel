@@ -1,0 +1,7 @@
+[package]
+name = "rust2ptx"
+version = "0.1.0"
+authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+
+[dependencies]
+glob = "*"

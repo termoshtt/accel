@@ -2,7 +2,7 @@
 extern crate glob;
 
 use std::path::*;
-use std::io::Write;
+use std::io::*;
 use std::{fs, env, process};
 use glob::glob;
 
@@ -99,6 +99,14 @@ fn get_ptx_path(work_dir: &Path) -> PathBuf {
     unreachable!("");
 }
 
+fn load_str(path: &Path) -> String {
+    let f = fs::File::open(path).unwrap();
+    let mut buf = BufReader::new(f);
+    let mut v = String::new();
+    buf.read_to_string(&mut v).unwrap();
+    v
+}
+
 fn main() {
     install_rustup_nightly();
     let work = work_dir();
@@ -108,8 +116,9 @@ fn main() {
     }
     generate_ptx_builder(&work);
     compile(&work);
-    let ptx = get_ptx_path(&work);
-    println!("PTX path = {}", ptx.display());
+    let ptx_path = get_ptx_path(&work);
+    let ptx = load_str(&ptx_path);
+    println!("{}", ptx);
 }
 
 fn work_dir() -> PathBuf {

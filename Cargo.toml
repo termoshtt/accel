@@ -5,7 +5,11 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
 glob = "*"
-clap = "*"
+
+[dependencies.futures-await-syn]
+version = "*"
+features = ["full", "fold", "parsing", "printing", "extra-traits"]
+default-features = false
 
 [dev-dependencies]
 acc-derive = { path = "./acc-derive" }

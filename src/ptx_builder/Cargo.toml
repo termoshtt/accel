@@ -1,0 +1,5 @@
+[package]
+name = "ptx-builder"
+version = "0.1.0"
+[profile.dev]
+debug = false

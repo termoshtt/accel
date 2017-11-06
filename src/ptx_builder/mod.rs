@@ -8,43 +8,10 @@ use std::{fs, env, process};
 use glob::glob;
 use clap::{App, Arg};
 
-const PTX_BUILDER_TOML: &'static str = r#"
-[package]
-name = "ptx-builder"
-version = "0.1.0"
-[profile.dev]
-debug = false
-"#;
-
-const PTX_BUILDER_XARGO: &'static str = r#"
-[dependencies.core]
-git = "https://github.com/japaric/core64"
-"#;
-
-const PTX_BUILDER_TARGET: &'static str = r#"
-{
-    "arch": "nvptx64",
-    "cpu": "sm_20",
-    "data-layout": "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v16:16:16-v32:32:32-v64:64:64-v128:128:128-n16:32:64",
-    "linker": "false",
-    "linker-flavor": "ld",
-    "llvm-target": "nvptx64-nvidia-cuda",
-    "max-atomic-width": 0,
-    "os": "cuda",
-    "panic-strategy": "abort",
-    "target-endian": "little",
-    "target-c-int-width": "32",
-    "target-pointer-width": "64"
-}
-"#;
-
-const PTX_BUILDER: &'static str = r#"
-#![feature(abi_ptx)]
-#![no_std]
-
-#[no_mangle]
-pub extern "ptx-kernel" fn bar() {}
-"#;
+const PTX_BUILDER_TOML: &'static str = include_str!("Cargo.toml");
+const PTX_BUILDER_XARGO: &'static str = include_str!("Xargo.toml");
+const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json");
+const PTX_BUILDER: &'static str = include_str!("lib.rs.j2");
 
 const NIGHTLY: &'static str = "nightly-2017-09-01";
 
@@ -109,7 +76,7 @@ fn load_str(path: &Path) -> String {
     v
 }
 
-fn main() {
+pub fn rust2ptx() {
     let app = App::new("rust2ptx").version("0.1.0").arg(
         Arg::with_name("output")
             .help("output path")

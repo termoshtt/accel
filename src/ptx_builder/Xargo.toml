@@ -1,0 +1,2 @@
+[dependencies.core]
+git = "https://github.com/japaric/core64"

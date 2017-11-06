@@ -3,5 +3,5 @@ name = "acc"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
-[dependencies]
-derive-kernel = { path = "./derive_kernel" }
+[dev-dependencies]
+acc-derive = { path = "./acc-derive" }

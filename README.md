@@ -1,12 +1,15 @@
 # acc
 
-Plan to develop OpenACC-like extension for Rust:
+[![Build Status](https://travis-ci.org/termoshtt/acc.svg?branch=master)](https://travis-ci.org/termoshtt/acc)
+
+Plan to develop CUDA-like GPGPU library for Rust:
 
 ```rust
 extern crate acc;
 
-#[kernel(i)]
+#[kernel]
 fn add(a: &[f64], b: &[f64], c: &mut [f64]) {
+  let i = acc::index();
   *c[i] = a[i] + b[i];
 }
 

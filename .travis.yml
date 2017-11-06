@@ -6,7 +6,9 @@ rust:
   - nightly
 
 script:
+  - cargo install xargo
   - cargo test -vv
+  - cargo run --release --example add
 
 env:
   - RUST_BACKTRACE=1

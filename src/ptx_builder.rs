@@ -109,7 +109,7 @@ fn load_str(path: &Path) -> String {
     v
 }
 
-fn main() {
+pub fn rust2ptx() {
     let app = App::new("rust2ptx").version("0.1.0").arg(
         Arg::with_name("output")
             .help("output path")

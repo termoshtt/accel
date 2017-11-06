@@ -1,0 +1,12 @@
+language: rust
+sudo: false
+dist: trusty
+
+rust:
+  - nightly
+
+script:
+  - cargo test -vv
+
+env:
+  - RUST_BACKTRACE=1

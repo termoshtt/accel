@@ -5,11 +5,11 @@ use std::{fs, env, process};
 use glob::glob;
 
 /// Compile kernel code into PTX using NVPTX backend
-pub fn compile(kernel: String) -> String {
+pub fn compile(kernel: &str) -> String {
     let work = work_dir();
     create_dir(&work);
     install_builder(&work);
-    install_file(&work, &kernel, "lib.rs");
+    install_file(&work.join("src"), kernel, "lib.rs");
     compile_builder(&work);
     load_str(&get_ptx_path(&work))
 }

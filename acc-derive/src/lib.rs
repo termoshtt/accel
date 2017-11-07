@@ -14,7 +14,8 @@ use syn::*;
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     let ptx_kernel = func2kernel(&func);
-    let _ptx = acc::ptx_builder::compile(ptx_kernel.to_string());
+    let ptx = acc::ptx_builder::compile(&ptx_kernel.to_string());
+    println!("PTX = {}", ptx);
     func2caller(&func)
 }
 
@@ -45,7 +46,6 @@ fn func2kernel(func: &TokenStream) -> TokenStream {
         quote!{
         #![feature(abi_ptx)]
         #![no_std]
-        extern crate acc;
         #[no_mangle]
         #vis extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };

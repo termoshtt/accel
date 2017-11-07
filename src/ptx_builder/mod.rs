@@ -3,39 +3,37 @@ use std::path::*;
 use std::io::*;
 use std::{fs, env, process};
 use glob::glob;
-use proc_macro::TokenStream;
 
-/// Compile function into PTX using NVPTX backend
-pub fn fn2ptx(_fn: TokenStream) -> String {
-    install_rustup_nightly();
+/// Compile kernel code into PTX using NVPTX backend
+pub fn compile(kernel: String) -> String {
     let work = work_dir();
     create_dir(&work);
-    install_ptx_builder(&work);
-    compile(&work);
+    install_builder(&work);
+    install_file(&work, &kernel, "lib.rs");
+    compile_builder(&work);
     load_str(&get_ptx_path(&work))
 }
 
 const PTX_BUILDER_TOML: &'static str = include_str!("Cargo.toml");
 const PTX_BUILDER_XARGO: &'static str = include_str!("Xargo.toml");
 const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json");
-const PTX_BUILDER: &'static str = include_str!("lib.rs.j2");
 
 // japaric/core64 cannot be compiled with recent nightly
 // https://github.com/japaric/nvptx/issues/12
 const NIGHTLY: &'static str = "nightly-2017-09-01";
 
-fn install(work_dir: &Path, contents: &str, filename: &str) {
+fn install_file(work_dir: &Path, contents: &str, filename: &str) {
     let mut f = fs::File::create(work_dir.join(filename)).unwrap();
     f.write(contents.as_bytes()).unwrap();
 }
 
+
 /// Copy contents to build PTX
-fn install_ptx_builder(work: &Path) {
-    install(work, PTX_BUILDER_TOML, "Cargo.toml");
-    install(work, PTX_BUILDER_XARGO, "Xargo.toml");
-    install(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");
-    // FIXME
-    install(work, PTX_BUILDER, "lib.rs");
+fn install_builder(work: &Path) {
+    install_rustup_nightly();
+    install_file(work, PTX_BUILDER_TOML, "Cargo.toml");
+    install_file(work, PTX_BUILDER_XARGO, "Xargo.toml");
+    install_file(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");
 }
 
 fn install_rustup_nightly() {
@@ -46,7 +44,7 @@ fn install_rustup_nightly() {
         .unwrap();
 }
 
-fn compile(work_dir: &Path) {
+fn compile_builder(work_dir: &Path) {
     // remove old PTX
     process::Command::new("rm")
         .args(&["-rf", "target"])

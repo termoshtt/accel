@@ -5,6 +5,8 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
 glob = "*"
+proc-macro2 = "*"
+futures-await-quote = "0.4"
 
 [dependencies.futures-await-syn]
 version = "*"

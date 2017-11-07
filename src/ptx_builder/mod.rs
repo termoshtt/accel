@@ -45,6 +45,7 @@ fn install_rustup_nightly() {
     process::Command::new("rustup")
         .args(&["component", "add", "rust-src"])
         .stdout(process::Stdio::null())
+        .env("RUSTUP_TOOLCHAIN", NIGHTLY)
         .status()
         .unwrap();
 }

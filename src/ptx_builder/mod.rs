@@ -42,6 +42,11 @@ fn install_rustup_nightly() {
         .stdout(process::Stdio::null())
         .status()
         .unwrap();
+    process::Command::new("rustup")
+        .args(&["component", "add", "rust-src"])
+        .stdout(process::Stdio::null())
+        .status()
+        .unwrap();
 }
 
 fn compile_builder(work_dir: &Path) {

@@ -1,53 +1,82 @@
-
 #![feature(proc_macro)]
 #![recursion_limit = "128"]
 
-extern crate proc_macro2;
-extern crate proc_macro;
 #[macro_use]
 extern crate futures_await_quote as quote;
 extern crate futures_await_syn as syn;
-extern crate synom;
+extern crate proc_macro;
+
+extern crate acc;
 
 use proc_macro::TokenStream;
 use syn::*;
 
 #[proc_macro_attribute]
-pub fn kernel(kernel_attr: TokenStream, function: TokenStream) -> TokenStream {
-    let Item { attrs, node } = syn::parse(function).unwrap();
-    println!("{:?}", kernel_attr.to_string());
+pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
+    let ptx_kernel = func2kernel(&func);
+    let ptx = acc::ptx_builder::compile(&ptx_kernel.to_string());
+    println!("PTX = {}", ptx);
+    func2caller(&func)
+}
+
+/// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
+fn func2kernel(func: &TokenStream) -> TokenStream {
+    let Item { node, .. } = syn::parse(func.clone()).unwrap();
     let ItemFn {
         ident,
         vis,
-        unsafety,
-        constness,
-        abi,
         block,
         decl,
         ..
     } = match node {
         ItemKind::Fn(item) => item,
-        _ => panic!("#[kernel] can only be applied to functions"),
+        _ => unreachable!(""),
     };
+
     let FnDecl {
         inputs,
         output,
-        variadic,
-        generics,
         fn_token,
         ..
     } = {
         *decl
     };
-    let where_clause = &generics.where_clause;
-    let output = quote!{};
 
-    println!(
-        "{}",
-        quote!{ 
-        inputs = #inputs;
-        block = #block;
-    }
-    );
-    output.into()
+    let kernel =
+        quote!{
+        #![feature(abi_ptx)]
+        #![no_std]
+        #[no_mangle]
+        #vis extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
+    };
+    kernel.into()
+}
+
+fn func2caller(func: &TokenStream) -> TokenStream {
+    let Item { node, .. } = syn::parse(func.clone()).unwrap();
+    let ItemFn {
+        ident,
+        vis,
+        decl,
+        ..  // for future compatiblity
+    } = match node {
+        ItemKind::Fn(item) => item,
+        _ => unreachable!("")
+    };
+
+    let FnDecl {
+        inputs,
+        output,
+        fn_token,
+        ..
+    } = {
+        *decl
+    };
+
+    // FIXME call kernel
+    let caller =
+        quote!{
+        #vis #fn_token #ident(#inputs) #output {}
+    };
+    caller.into()
 }

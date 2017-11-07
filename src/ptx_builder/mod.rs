@@ -1,29 +1,39 @@
 
-extern crate glob;
-extern crate clap;
-
 use std::path::*;
 use std::io::*;
 use std::{fs, env, process};
 use glob::glob;
-use clap::{App, Arg};
+
+/// Compile kernel code into PTX using NVPTX backend
+pub fn compile(kernel: &str) -> String {
+    let work = work_dir();
+    create_dir(&work);
+    install_builder(&work);
+    install_file(&work.join("src"), kernel, "lib.rs");
+    compile_builder(&work);
+    load_str(&get_ptx_path(&work))
+}
 
 const PTX_BUILDER_TOML: &'static str = include_str!("Cargo.toml");
 const PTX_BUILDER_XARGO: &'static str = include_str!("Xargo.toml");
 const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json");
-const PTX_BUILDER: &'static str = include_str!("lib.rs.j2");
 
+// japaric/core64 cannot be compiled with recent nightly
+// https://github.com/japaric/nvptx/issues/12
 const NIGHTLY: &'static str = "nightly-2017-09-01";
 
-fn generate_ptx_builder(work: &Path) {
-    let save = |fname: &str, s: &str| {
-        let mut f = fs::File::create(work.join(fname)).unwrap();
-        f.write(s.as_bytes()).unwrap();
-    };
-    save("Cargo.toml", PTX_BUILDER_TOML);
-    save("Xargo.toml", PTX_BUILDER_XARGO);
-    save("nvptx64-nvidia-cuda.json", PTX_BUILDER_TARGET);
-    save("src/lib.rs", PTX_BUILDER);
+fn install_file(work_dir: &Path, contents: &str, filename: &str) {
+    let mut f = fs::File::create(work_dir.join(filename)).unwrap();
+    f.write(contents.as_bytes()).unwrap();
+}
+
+
+/// Copy contents to build PTX
+fn install_builder(work: &Path) {
+    install_rustup_nightly();
+    install_file(work, PTX_BUILDER_TOML, "Cargo.toml");
+    install_file(work, PTX_BUILDER_XARGO, "Xargo.toml");
+    install_file(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");
 }
 
 fn install_rustup_nightly() {
@@ -32,9 +42,16 @@ fn install_rustup_nightly() {
         .stdout(process::Stdio::null())
         .status()
         .unwrap();
+    process::Command::new("rustup")
+        .args(&["component", "add", "rust-src"])
+        .stdout(process::Stdio::null())
+        .env("RUSTUP_TOOLCHAIN", NIGHTLY)
+        .status()
+        .unwrap();
 }
 
-fn compile(work_dir: &Path) {
+fn compile_builder(work_dir: &Path) {
+    // remove old PTX
     process::Command::new("rm")
         .args(&["-rf", "target"])
         .current_dir(work_dir)
@@ -76,37 +93,15 @@ fn load_str(path: &Path) -> String {
     v
 }
 
-pub fn rust2ptx() {
-    let app = App::new("rust2ptx").version("0.1.0").arg(
-        Arg::with_name("output")
-            .help("output path")
-            .short("o")
-            .long("output")
-            .takes_value(true),
-    );
-    let matches = app.get_matches();
-    install_rustup_nightly();
-    let work = work_dir();
-    if !work.exists() {
-        fs::create_dir_all(&work).unwrap();
-        fs::create_dir_all(work.join("src")).unwrap();
-    }
-    generate_ptx_builder(&work);
-    compile(&work);
-    let ptx_path = get_ptx_path(&work);
-
-    if let Some(output) = matches.value_of("output") {
-        // Copy PTX to {output}
-        fs::copy(ptx_path, output).unwrap();
-    } else {
-        // Output PTX to stdout
-        let ptx = load_str(&ptx_path);
-        println!("{}", ptx);
-    }
-}
-
 fn work_dir() -> PathBuf {
     let home = env::home_dir().unwrap();
     let work = home.join(".rust2ptx");
     work.into()
+}
+
+fn create_dir(work: &Path) {
+    if !work.exists() {
+        fs::create_dir_all(&work).unwrap();
+        fs::create_dir_all(work.join("src")).unwrap();
+    }
 }

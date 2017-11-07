@@ -2,7 +2,5 @@
 //! ==============================
 //!
 
-extern crate clap;
 extern crate glob;
-
 pub mod ptx_builder;

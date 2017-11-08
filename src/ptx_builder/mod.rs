@@ -20,7 +20,7 @@ const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json"
 
 // japaric/core64 cannot be compiled with recent nightly
 // https://github.com/japaric/nvptx/issues/12
-const NIGHTLY: &'static str = "nightly-2017-09-01";
+const NIGHTLY: &'static str = "nightly-2017-11-07";
 
 fn install_file(work_dir: &Path, contents: &str, filename: &str) {
     let mut f = fs::File::create(work_dir.join(filename)).unwrap();

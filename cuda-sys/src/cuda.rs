@@ -1,0 +1,3577 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+
+pub const _FEATURES_H: ::std::os::raw::c_uint = 1;
+pub const _DEFAULT_SOURCE: ::std::os::raw::c_uint = 1;
+pub const __USE_ISOC11: ::std::os::raw::c_uint = 1;
+pub const __USE_ISOC99: ::std::os::raw::c_uint = 1;
+pub const __USE_ISOC95: ::std::os::raw::c_uint = 1;
+pub const __USE_POSIX_IMPLICITLY: ::std::os::raw::c_uint = 1;
+pub const _POSIX_SOURCE: ::std::os::raw::c_uint = 1;
+pub const _POSIX_C_SOURCE: ::std::os::raw::c_uint = 200809;
+pub const __USE_POSIX: ::std::os::raw::c_uint = 1;
+pub const __USE_POSIX2: ::std::os::raw::c_uint = 1;
+pub const __USE_POSIX199309: ::std::os::raw::c_uint = 1;
+pub const __USE_POSIX199506: ::std::os::raw::c_uint = 1;
+pub const __USE_XOPEN2K: ::std::os::raw::c_uint = 1;
+pub const __USE_XOPEN2K8: ::std::os::raw::c_uint = 1;
+pub const _ATFILE_SOURCE: ::std::os::raw::c_uint = 1;
+pub const __USE_MISC: ::std::os::raw::c_uint = 1;
+pub const __USE_ATFILE: ::std::os::raw::c_uint = 1;
+pub const __USE_FORTIFY_LEVEL: ::std::os::raw::c_uint = 0;
+pub const _STDC_PREDEF_H: ::std::os::raw::c_uint = 1;
+pub const __STDC_IEC_559__: ::std::os::raw::c_uint = 1;
+pub const __STDC_IEC_559_COMPLEX__: ::std::os::raw::c_uint = 1;
+pub const __STDC_ISO_10646__: ::std::os::raw::c_uint = 201505;
+pub const __STDC_NO_THREADS__: ::std::os::raw::c_uint = 1;
+pub const __GNU_LIBRARY__: ::std::os::raw::c_uint = 6;
+pub const __GLIBC__: ::std::os::raw::c_uint = 2;
+pub const __GLIBC_MINOR__: ::std::os::raw::c_uint = 24;
+pub const _SYS_CDEFS_H: ::std::os::raw::c_uint = 1;
+pub const __WORDSIZE: ::std::os::raw::c_uint = 64;
+pub const __WORDSIZE_TIME64_COMPAT32: ::std::os::raw::c_uint = 1;
+pub const __SYSCALL_WORDSIZE: ::std::os::raw::c_uint = 64;
+pub const _STDLIB_H: ::std::os::raw::c_uint = 1;
+pub const WNOHANG: ::std::os::raw::c_uint = 1;
+pub const WUNTRACED: ::std::os::raw::c_uint = 2;
+pub const WSTOPPED: ::std::os::raw::c_uint = 2;
+pub const WEXITED: ::std::os::raw::c_uint = 4;
+pub const WCONTINUED: ::std::os::raw::c_uint = 8;
+pub const WNOWAIT: ::std::os::raw::c_uint = 16777216;
+pub const __WNOTHREAD: ::std::os::raw::c_uint = 536870912;
+pub const __WALL: ::std::os::raw::c_uint = 1073741824;
+pub const __WCLONE: ::std::os::raw::c_uint = 2147483648;
+pub const __W_CONTINUED: ::std::os::raw::c_uint = 65535;
+pub const __WCOREFLAG: ::std::os::raw::c_uint = 128;
+pub const __ldiv_t_defined: ::std::os::raw::c_uint = 1;
+pub const RAND_MAX: ::std::os::raw::c_uint = 2147483647;
+pub const EXIT_FAILURE: ::std::os::raw::c_uint = 1;
+pub const EXIT_SUCCESS: ::std::os::raw::c_uint = 0;
+pub const _SYS_TYPES_H: ::std::os::raw::c_uint = 1;
+pub const _BITS_TYPES_H: ::std::os::raw::c_uint = 1;
+pub const _BITS_TYPESIZES_H: ::std::os::raw::c_uint = 1;
+pub const __OFF_T_MATCHES_OFF64_T: ::std::os::raw::c_uint = 1;
+pub const __INO_T_MATCHES_INO64_T: ::std::os::raw::c_uint = 1;
+pub const __FD_SETSIZE: ::std::os::raw::c_uint = 1024;
+pub const __clock_t_defined: ::std::os::raw::c_uint = 1;
+pub const __time_t_defined: ::std::os::raw::c_uint = 1;
+pub const __clockid_t_defined: ::std::os::raw::c_uint = 1;
+pub const __timer_t_defined: ::std::os::raw::c_uint = 1;
+pub const __BIT_TYPES_DEFINED__: ::std::os::raw::c_uint = 1;
+pub const _ENDIAN_H: ::std::os::raw::c_uint = 1;
+pub const __LITTLE_ENDIAN: ::std::os::raw::c_uint = 1234;
+pub const __BIG_ENDIAN: ::std::os::raw::c_uint = 4321;
+pub const __PDP_ENDIAN: ::std::os::raw::c_uint = 3412;
+pub const __BYTE_ORDER: ::std::os::raw::c_uint = 1234;
+pub const __FLOAT_WORD_ORDER: ::std::os::raw::c_uint = 1234;
+pub const LITTLE_ENDIAN: ::std::os::raw::c_uint = 1234;
+pub const BIG_ENDIAN: ::std::os::raw::c_uint = 4321;
+pub const PDP_ENDIAN: ::std::os::raw::c_uint = 3412;
+pub const BYTE_ORDER: ::std::os::raw::c_uint = 1234;
+pub const _BITS_BYTESWAP_H: ::std::os::raw::c_uint = 1;
+pub const _SYS_SELECT_H: ::std::os::raw::c_uint = 1;
+pub const __FD_ZERO_STOS: &'static [u8; 6usize] = b"stosq\x00";
+pub const _SIGSET_H_types: ::std::os::raw::c_uint = 1;
+pub const __timespec_defined: ::std::os::raw::c_uint = 1;
+pub const _STRUCT_TIMEVAL: ::std::os::raw::c_uint = 1;
+pub const FD_SETSIZE: ::std::os::raw::c_uint = 1024;
+pub const _SYS_SYSMACROS_H: ::std::os::raw::c_uint = 1;
+pub const _BITS_PTHREADTYPES_H: ::std::os::raw::c_uint = 1;
+pub const __SIZEOF_PTHREAD_ATTR_T: ::std::os::raw::c_uint = 56;
+pub const __SIZEOF_PTHREAD_MUTEX_T: ::std::os::raw::c_uint = 40;
+pub const __SIZEOF_PTHREAD_MUTEXATTR_T: ::std::os::raw::c_uint = 4;
+pub const __SIZEOF_PTHREAD_COND_T: ::std::os::raw::c_uint = 48;
+pub const __SIZEOF_PTHREAD_CONDATTR_T: ::std::os::raw::c_uint = 4;
+pub const __SIZEOF_PTHREAD_RWLOCK_T: ::std::os::raw::c_uint = 56;
+pub const __SIZEOF_PTHREAD_RWLOCKATTR_T: ::std::os::raw::c_uint = 8;
+pub const __SIZEOF_PTHREAD_BARRIER_T: ::std::os::raw::c_uint = 32;
+pub const __SIZEOF_PTHREAD_BARRIERATTR_T: ::std::os::raw::c_uint = 4;
+pub const __have_pthread_attr_t: ::std::os::raw::c_uint = 1;
+pub const __PTHREAD_MUTEX_HAVE_PREV: ::std::os::raw::c_uint = 1;
+pub const _ALLOCA_H: ::std::os::raw::c_uint = 1;
+pub const _STDINT_H: ::std::os::raw::c_uint = 1;
+pub const _BITS_WCHAR_H: ::std::os::raw::c_uint = 1;
+pub const INT8_MIN: ::std::os::raw::c_int = -128;
+pub const INT16_MIN: ::std::os::raw::c_int = -32768;
+pub const INT32_MIN: ::std::os::raw::c_int = -2147483648;
+pub const INT8_MAX: ::std::os::raw::c_uint = 127;
+pub const INT16_MAX: ::std::os::raw::c_uint = 32767;
+pub const INT32_MAX: ::std::os::raw::c_uint = 2147483647;
+pub const UINT8_MAX: ::std::os::raw::c_uint = 255;
+pub const UINT16_MAX: ::std::os::raw::c_uint = 65535;
+pub const UINT32_MAX: ::std::os::raw::c_uint = 4294967295;
+pub const INT_LEAST8_MIN: ::std::os::raw::c_int = -128;
+pub const INT_LEAST16_MIN: ::std::os::raw::c_int = -32768;
+pub const INT_LEAST32_MIN: ::std::os::raw::c_int = -2147483648;
+pub const INT_LEAST8_MAX: ::std::os::raw::c_uint = 127;
+pub const INT_LEAST16_MAX: ::std::os::raw::c_uint = 32767;
+pub const INT_LEAST32_MAX: ::std::os::raw::c_uint = 2147483647;
+pub const UINT_LEAST8_MAX: ::std::os::raw::c_uint = 255;
+pub const UINT_LEAST16_MAX: ::std::os::raw::c_uint = 65535;
+pub const UINT_LEAST32_MAX: ::std::os::raw::c_uint = 4294967295;
+pub const INT_FAST8_MIN: ::std::os::raw::c_int = -128;
+pub const INT_FAST16_MIN: ::std::os::raw::c_longlong = -9223372036854775808;
+pub const INT_FAST32_MIN: ::std::os::raw::c_longlong = -9223372036854775808;
+pub const INT_FAST8_MAX: ::std::os::raw::c_uint = 127;
+pub const INT_FAST16_MAX: ::std::os::raw::c_ulonglong = 9223372036854775807;
+pub const INT_FAST32_MAX: ::std::os::raw::c_ulonglong = 9223372036854775807;
+pub const UINT_FAST8_MAX: ::std::os::raw::c_uint = 255;
+pub const UINT_FAST16_MAX: ::std::os::raw::c_int = -1;
+pub const UINT_FAST32_MAX: ::std::os::raw::c_int = -1;
+pub const INTPTR_MIN: ::std::os::raw::c_longlong = -9223372036854775808;
+pub const INTPTR_MAX: ::std::os::raw::c_ulonglong = 9223372036854775807;
+pub const UINTPTR_MAX: ::std::os::raw::c_int = -1;
+pub const PTRDIFF_MIN: ::std::os::raw::c_longlong = -9223372036854775808;
+pub const PTRDIFF_MAX: ::std::os::raw::c_ulonglong = 9223372036854775807;
+pub const SIG_ATOMIC_MIN: ::std::os::raw::c_int = -2147483648;
+pub const SIG_ATOMIC_MAX: ::std::os::raw::c_uint = 2147483647;
+pub const SIZE_MAX: ::std::os::raw::c_int = -1;
+pub const WINT_MIN: ::std::os::raw::c_uint = 0;
+pub const WINT_MAX: ::std::os::raw::c_uint = 4294967295;
+pub const __CUDA_API_VERSION: ::std::os::raw::c_uint = 8000;
+pub const CUDA_VERSION: ::std::os::raw::c_uint = 8000;
+pub const CU_IPC_HANDLE_SIZE: ::std::os::raw::c_uint = 64;
+pub const CU_MEMHOSTALLOC_PORTABLE: ::std::os::raw::c_uint = 1;
+pub const CU_MEMHOSTALLOC_DEVICEMAP: ::std::os::raw::c_uint = 2;
+pub const CU_MEMHOSTALLOC_WRITECOMBINED: ::std::os::raw::c_uint = 4;
+pub const CU_MEMHOSTREGISTER_PORTABLE: ::std::os::raw::c_uint = 1;
+pub const CU_MEMHOSTREGISTER_DEVICEMAP: ::std::os::raw::c_uint = 2;
+pub const CU_MEMHOSTREGISTER_IOMEMORY: ::std::os::raw::c_uint = 4;
+pub const CUDA_ARRAY3D_LAYERED: ::std::os::raw::c_uint = 1;
+pub const CUDA_ARRAY3D_2DARRAY: ::std::os::raw::c_uint = 1;
+pub const CUDA_ARRAY3D_SURFACE_LDST: ::std::os::raw::c_uint = 2;
+pub const CUDA_ARRAY3D_CUBEMAP: ::std::os::raw::c_uint = 4;
+pub const CUDA_ARRAY3D_TEXTURE_GATHER: ::std::os::raw::c_uint = 8;
+pub const CUDA_ARRAY3D_DEPTH_TEXTURE: ::std::os::raw::c_uint = 16;
+pub const CU_TRSA_OVERRIDE_FORMAT: ::std::os::raw::c_uint = 1;
+pub const CU_TRSF_READ_AS_INTEGER: ::std::os::raw::c_uint = 1;
+pub const CU_TRSF_NORMALIZED_COORDINATES: ::std::os::raw::c_uint = 2;
+pub const CU_TRSF_SRGB: ::std::os::raw::c_uint = 16;
+pub const CU_PARAM_TR_DEFAULT: ::std::os::raw::c_int = -1;
+pub type wchar_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_1 {
+    pub quot: ::std::os::raw::c_int,
+    pub rem: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_1() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_1>(), 8usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_1>(), 4usize);
+}
+impl Clone for _bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type div_t = _bindgen_ty_1;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_2 {
+    pub quot: ::std::os::raw::c_long,
+    pub rem: ::std::os::raw::c_long,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_2() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_2>(), 16usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_2>(), 8usize);
+}
+impl Clone for _bindgen_ty_2 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type ldiv_t = _bindgen_ty_2;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_3 {
+    pub quot: ::std::os::raw::c_longlong,
+    pub rem: ::std::os::raw::c_longlong,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_3() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_3>(), 16usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_3>(), 8usize);
+}
+impl Clone for _bindgen_ty_3 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type lldiv_t = _bindgen_ty_3;
+extern "C" {
+    pub fn __ctype_get_mb_cur_max() -> usize;
+}
+extern "C" {
+    pub fn atof(__nptr: *const ::std::os::raw::c_char) -> f64;
+}
+extern "C" {
+    pub fn atoi(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn atol(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn atoll(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_longlong;
+}
+extern "C" {
+    pub fn strtod(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+    ) -> f64;
+}
+extern "C" {
+    pub fn strtof(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+    ) -> f32;
+}
+extern "C" {
+    pub fn strtold(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+    ) -> f64;
+}
+extern "C" {
+    pub fn strtol(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn strtoul(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_ulong;
+}
+extern "C" {
+    pub fn strtoq(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_longlong;
+}
+extern "C" {
+    pub fn strtouq(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_ulonglong;
+}
+extern "C" {
+    pub fn strtoll(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_longlong;
+}
+extern "C" {
+    pub fn strtoull(
+        __nptr: *const ::std::os::raw::c_char,
+        __endptr: *mut *mut ::std::os::raw::c_char,
+        __base: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_ulonglong;
+}
+extern "C" {
+    pub fn l64a(__n: ::std::os::raw::c_long) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn a64l(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_long;
+}
+pub type __u_char = ::std::os::raw::c_uchar;
+pub type __u_short = ::std::os::raw::c_ushort;
+pub type __u_int = ::std::os::raw::c_uint;
+pub type __u_long = ::std::os::raw::c_ulong;
+pub type __int8_t = ::std::os::raw::c_char;
+pub type __uint8_t = ::std::os::raw::c_uchar;
+pub type __int16_t = ::std::os::raw::c_short;
+pub type __uint16_t = ::std::os::raw::c_ushort;
+pub type __int32_t = ::std::os::raw::c_int;
+pub type __uint32_t = ::std::os::raw::c_uint;
+pub type __int64_t = ::std::os::raw::c_long;
+pub type __uint64_t = ::std::os::raw::c_ulong;
+pub type __quad_t = ::std::os::raw::c_long;
+pub type __u_quad_t = ::std::os::raw::c_ulong;
+pub type __dev_t = ::std::os::raw::c_ulong;
+pub type __uid_t = ::std::os::raw::c_uint;
+pub type __gid_t = ::std::os::raw::c_uint;
+pub type __ino_t = ::std::os::raw::c_ulong;
+pub type __ino64_t = ::std::os::raw::c_ulong;
+pub type __mode_t = ::std::os::raw::c_uint;
+pub type __nlink_t = ::std::os::raw::c_ulong;
+pub type __off_t = ::std::os::raw::c_long;
+pub type __off64_t = ::std::os::raw::c_long;
+pub type __pid_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_4 {
+    pub __val: [::std::os::raw::c_int; 2usize],
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_4() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_4>(), 8usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_4>(), 4usize);
+}
+impl Clone for _bindgen_ty_4 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type __fsid_t = _bindgen_ty_4;
+pub type __clock_t = ::std::os::raw::c_long;
+pub type __rlim_t = ::std::os::raw::c_ulong;
+pub type __rlim64_t = ::std::os::raw::c_ulong;
+pub type __id_t = ::std::os::raw::c_uint;
+pub type __time_t = ::std::os::raw::c_long;
+pub type __useconds_t = ::std::os::raw::c_uint;
+pub type __suseconds_t = ::std::os::raw::c_long;
+pub type __daddr_t = ::std::os::raw::c_int;
+pub type __key_t = ::std::os::raw::c_int;
+pub type __clockid_t = ::std::os::raw::c_int;
+pub type __timer_t = *mut ::std::os::raw::c_void;
+pub type __blksize_t = ::std::os::raw::c_long;
+pub type __blkcnt_t = ::std::os::raw::c_long;
+pub type __blkcnt64_t = ::std::os::raw::c_long;
+pub type __fsblkcnt_t = ::std::os::raw::c_ulong;
+pub type __fsblkcnt64_t = ::std::os::raw::c_ulong;
+pub type __fsfilcnt_t = ::std::os::raw::c_ulong;
+pub type __fsfilcnt64_t = ::std::os::raw::c_ulong;
+pub type __fsword_t = ::std::os::raw::c_long;
+pub type __ssize_t = ::std::os::raw::c_long;
+pub type __syscall_slong_t = ::std::os::raw::c_long;
+pub type __syscall_ulong_t = ::std::os::raw::c_ulong;
+pub type __loff_t = __off64_t;
+pub type __qaddr_t = *mut __quad_t;
+pub type __caddr_t = *mut ::std::os::raw::c_char;
+pub type __intptr_t = ::std::os::raw::c_long;
+pub type __socklen_t = ::std::os::raw::c_uint;
+pub type u_char = __u_char;
+pub type u_short = __u_short;
+pub type u_int = __u_int;
+pub type u_long = __u_long;
+pub type quad_t = __quad_t;
+pub type u_quad_t = __u_quad_t;
+pub type fsid_t = __fsid_t;
+pub type loff_t = __loff_t;
+pub type ino_t = __ino_t;
+pub type dev_t = __dev_t;
+pub type gid_t = __gid_t;
+pub type mode_t = __mode_t;
+pub type nlink_t = __nlink_t;
+pub type uid_t = __uid_t;
+pub type off_t = __off_t;
+pub type pid_t = __pid_t;
+pub type id_t = __id_t;
+pub type daddr_t = __daddr_t;
+pub type caddr_t = __caddr_t;
+pub type key_t = __key_t;
+pub type clock_t = __clock_t;
+pub type time_t = __time_t;
+pub type clockid_t = __clockid_t;
+pub type timer_t = __timer_t;
+pub type ulong = ::std::os::raw::c_ulong;
+pub type ushort = ::std::os::raw::c_ushort;
+pub type uint = ::std::os::raw::c_uint;
+pub type u_int8_t = ::std::os::raw::c_uchar;
+pub type u_int16_t = ::std::os::raw::c_ushort;
+pub type u_int32_t = ::std::os::raw::c_uint;
+pub type u_int64_t = ::std::os::raw::c_ulong;
+pub type register_t = ::std::os::raw::c_long;
+pub type __sig_atomic_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_5 {
+    pub __val: [::std::os::raw::c_ulong; 16usize],
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_5() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_5>(), 128usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_5>(), 8usize);
+}
+impl Clone for _bindgen_ty_5 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type __sigset_t = _bindgen_ty_5;
+pub type sigset_t = __sigset_t;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct timespec {
+    pub tv_sec: __time_t,
+    pub tv_nsec: __syscall_slong_t,
+}
+#[test]
+fn bindgen_test_layout_timespec() {
+    assert_eq!(::std::mem::size_of::<timespec>(), 16usize);
+    assert_eq!(::std::mem::align_of::<timespec>(), 8usize);
+}
+impl Clone for timespec {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct timeval {
+    pub tv_sec: __time_t,
+    pub tv_usec: __suseconds_t,
+}
+#[test]
+fn bindgen_test_layout_timeval() {
+    assert_eq!(::std::mem::size_of::<timeval>(), 16usize);
+    assert_eq!(::std::mem::align_of::<timeval>(), 8usize);
+}
+impl Clone for timeval {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type suseconds_t = __suseconds_t;
+pub type __fd_mask = ::std::os::raw::c_long;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_6 {
+    pub __fds_bits: [__fd_mask; 16usize],
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_6() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_6>(), 128usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_6>(), 8usize);
+}
+impl Clone for _bindgen_ty_6 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type fd_set = _bindgen_ty_6;
+pub type fd_mask = __fd_mask;
+extern "C" {
+    pub fn select(
+        __nfds: ::std::os::raw::c_int,
+        __readfds: *mut fd_set,
+        __writefds: *mut fd_set,
+        __exceptfds: *mut fd_set,
+        __timeout: *mut timeval,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn pselect(
+        __nfds: ::std::os::raw::c_int,
+        __readfds: *mut fd_set,
+        __writefds: *mut fd_set,
+        __exceptfds: *mut fd_set,
+        __timeout: *const timespec,
+        __sigmask: *const __sigset_t,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn gnu_dev_major(__dev: ::std::os::raw::c_ulonglong) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn gnu_dev_minor(__dev: ::std::os::raw::c_ulonglong) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    pub fn gnu_dev_makedev(
+        __major: ::std::os::raw::c_uint,
+        __minor: ::std::os::raw::c_uint,
+    ) -> ::std::os::raw::c_ulonglong;
+}
+pub type blksize_t = __blksize_t;
+pub type blkcnt_t = __blkcnt_t;
+pub type fsblkcnt_t = __fsblkcnt_t;
+pub type fsfilcnt_t = __fsfilcnt_t;
+pub type pthread_t = ::std::os::raw::c_ulong;
+#[repr(C)]
+pub union pthread_attr_t {
+    pub __size: [::std::os::raw::c_char; 56usize],
+    pub __align: ::std::os::raw::c_long,
+}
+#[test]
+fn bindgen_test_layout_pthread_attr_t() {
+    assert_eq!(::std::mem::size_of::<pthread_attr_t>(), 56usize);
+    assert_eq!(::std::mem::align_of::<pthread_attr_t>(), 8usize);
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct __pthread_internal_list {
+    pub __prev: *mut __pthread_internal_list,
+    pub __next: *mut __pthread_internal_list,
+}
+#[test]
+fn bindgen_test_layout___pthread_internal_list() {
+    assert_eq!(::std::mem::size_of::<__pthread_internal_list>(), 16usize);
+    assert_eq!(::std::mem::align_of::<__pthread_internal_list>(), 8usize);
+}
+impl Clone for __pthread_internal_list {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type __pthread_list_t = __pthread_internal_list;
+#[repr(C)]
+pub union _bindgen_ty_7 {
+    pub __data: _bindgen_ty_7___pthread_mutex_s,
+    pub __size: [::std::os::raw::c_char; 40usize],
+    pub __align: ::std::os::raw::c_long,
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_7___pthread_mutex_s {
+    pub __lock: ::std::os::raw::c_int,
+    pub __count: ::std::os::raw::c_uint,
+    pub __owner: ::std::os::raw::c_int,
+    pub __nusers: ::std::os::raw::c_uint,
+    pub __kind: ::std::os::raw::c_int,
+    pub __spins: ::std::os::raw::c_short,
+    pub __elision: ::std::os::raw::c_short,
+    pub __list: __pthread_list_t,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_7___pthread_mutex_s() {
+    assert_eq!(
+        ::std::mem::size_of::<_bindgen_ty_7___pthread_mutex_s>(),
+        40usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_bindgen_ty_7___pthread_mutex_s>(),
+        8usize
+    );
+}
+impl Clone for _bindgen_ty_7___pthread_mutex_s {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_7() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_7>(), 40usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_7>(), 8usize);
+}
+pub type pthread_mutex_t = _bindgen_ty_7;
+#[repr(C)]
+#[derive(Copy)]
+pub union _bindgen_ty_8 {
+    pub __size: [::std::os::raw::c_char; 4usize],
+    pub __align: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_8() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_8>(), 4usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_8>(), 4usize);
+}
+impl Clone for _bindgen_ty_8 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type pthread_mutexattr_t = _bindgen_ty_8;
+#[repr(C)]
+pub union _bindgen_ty_9 {
+    pub __data: _bindgen_ty_9__bindgen_ty_1,
+    pub __size: [::std::os::raw::c_char; 48usize],
+    pub __align: ::std::os::raw::c_longlong,
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_9__bindgen_ty_1 {
+    pub __lock: ::std::os::raw::c_int,
+    pub __futex: ::std::os::raw::c_uint,
+    pub __total_seq: ::std::os::raw::c_ulonglong,
+    pub __wakeup_seq: ::std::os::raw::c_ulonglong,
+    pub __woken_seq: ::std::os::raw::c_ulonglong,
+    pub __mutex: *mut ::std::os::raw::c_void,
+    pub __nwaiters: ::std::os::raw::c_uint,
+    pub __broadcast_seq: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_9__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<_bindgen_ty_9__bindgen_ty_1>(),
+        48usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_bindgen_ty_9__bindgen_ty_1>(),
+        8usize
+    );
+}
+impl Clone for _bindgen_ty_9__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_9() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_9>(), 48usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_9>(), 8usize);
+}
+pub type pthread_cond_t = _bindgen_ty_9;
+#[repr(C)]
+#[derive(Copy)]
+pub union _bindgen_ty_10 {
+    pub __size: [::std::os::raw::c_char; 4usize],
+    pub __align: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_10() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_10>(), 4usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_10>(), 4usize);
+}
+impl Clone for _bindgen_ty_10 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type pthread_condattr_t = _bindgen_ty_10;
+pub type pthread_key_t = ::std::os::raw::c_uint;
+pub type pthread_once_t = ::std::os::raw::c_int;
+#[repr(C)]
+pub union _bindgen_ty_11 {
+    pub __data: _bindgen_ty_11__bindgen_ty_1,
+    pub __size: [::std::os::raw::c_char; 56usize],
+    pub __align: ::std::os::raw::c_long,
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct _bindgen_ty_11__bindgen_ty_1 {
+    pub __lock: ::std::os::raw::c_int,
+    pub __nr_readers: ::std::os::raw::c_uint,
+    pub __readers_wakeup: ::std::os::raw::c_uint,
+    pub __writer_wakeup: ::std::os::raw::c_uint,
+    pub __nr_readers_queued: ::std::os::raw::c_uint,
+    pub __nr_writers_queued: ::std::os::raw::c_uint,
+    pub __writer: ::std::os::raw::c_int,
+    pub __shared: ::std::os::raw::c_int,
+    pub __rwelision: ::std::os::raw::c_char,
+    pub __pad1: [::std::os::raw::c_uchar; 7usize],
+    pub __pad2: ::std::os::raw::c_ulong,
+    pub __flags: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_11__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<_bindgen_ty_11__bindgen_ty_1>(),
+        56usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<_bindgen_ty_11__bindgen_ty_1>(),
+        8usize
+    );
+}
+impl Clone for _bindgen_ty_11__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_11() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_11>(), 56usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_11>(), 8usize);
+}
+pub type pthread_rwlock_t = _bindgen_ty_11;
+#[repr(C)]
+#[derive(Copy)]
+pub union _bindgen_ty_12 {
+    pub __size: [::std::os::raw::c_char; 8usize],
+    pub __align: ::std::os::raw::c_long,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_12() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_12>(), 8usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_12>(), 8usize);
+}
+impl Clone for _bindgen_ty_12 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type pthread_rwlockattr_t = _bindgen_ty_12;
+pub type pthread_spinlock_t = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Copy)]
+pub union _bindgen_ty_13 {
+    pub __size: [::std::os::raw::c_char; 32usize],
+    pub __align: ::std::os::raw::c_long,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_13() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_13>(), 32usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_13>(), 8usize);
+}
+impl Clone for _bindgen_ty_13 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type pthread_barrier_t = _bindgen_ty_13;
+#[repr(C)]
+#[derive(Copy)]
+pub union _bindgen_ty_14 {
+    pub __size: [::std::os::raw::c_char; 4usize],
+    pub __align: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout__bindgen_ty_14() {
+    assert_eq!(::std::mem::size_of::<_bindgen_ty_14>(), 4usize);
+    assert_eq!(::std::mem::align_of::<_bindgen_ty_14>(), 4usize);
+}
+impl Clone for _bindgen_ty_14 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type pthread_barrierattr_t = _bindgen_ty_14;
+extern "C" {
+    pub fn random() -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn srandom(__seed: ::std::os::raw::c_uint);
+}
+extern "C" {
+    pub fn initstate(
+        __seed: ::std::os::raw::c_uint,
+        __statebuf: *mut ::std::os::raw::c_char,
+        __statelen: usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn setstate(__statebuf: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct random_data {
+    pub fptr: *mut i32,
+    pub rptr: *mut i32,
+    pub state: *mut i32,
+    pub rand_type: ::std::os::raw::c_int,
+    pub rand_deg: ::std::os::raw::c_int,
+    pub rand_sep: ::std::os::raw::c_int,
+    pub end_ptr: *mut i32,
+}
+#[test]
+fn bindgen_test_layout_random_data() {
+    assert_eq!(::std::mem::size_of::<random_data>(), 48usize);
+    assert_eq!(::std::mem::align_of::<random_data>(), 8usize);
+}
+impl Clone for random_data {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+extern "C" {
+    pub fn random_r(__buf: *mut random_data, __result: *mut i32) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn srandom_r(
+        __seed: ::std::os::raw::c_uint,
+        __buf: *mut random_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn initstate_r(
+        __seed: ::std::os::raw::c_uint,
+        __statebuf: *mut ::std::os::raw::c_char,
+        __statelen: usize,
+        __buf: *mut random_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn setstate_r(
+        __statebuf: *mut ::std::os::raw::c_char,
+        __buf: *mut random_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn rand() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn srand(__seed: ::std::os::raw::c_uint);
+}
+extern "C" {
+    pub fn rand_r(__seed: *mut ::std::os::raw::c_uint) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn drand48() -> f64;
+}
+extern "C" {
+    pub fn erand48(__xsubi: *mut ::std::os::raw::c_ushort) -> f64;
+}
+extern "C" {
+    pub fn lrand48() -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn nrand48(__xsubi: *mut ::std::os::raw::c_ushort) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn mrand48() -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn jrand48(__xsubi: *mut ::std::os::raw::c_ushort) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn srand48(__seedval: ::std::os::raw::c_long);
+}
+extern "C" {
+    pub fn seed48(__seed16v: *mut ::std::os::raw::c_ushort) -> *mut ::std::os::raw::c_ushort;
+}
+extern "C" {
+    pub fn lcong48(__param: *mut ::std::os::raw::c_ushort);
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct drand48_data {
+    pub __x: [::std::os::raw::c_ushort; 3usize],
+    pub __old_x: [::std::os::raw::c_ushort; 3usize],
+    pub __c: ::std::os::raw::c_ushort,
+    pub __init: ::std::os::raw::c_ushort,
+    pub __a: ::std::os::raw::c_ulonglong,
+}
+#[test]
+fn bindgen_test_layout_drand48_data() {
+    assert_eq!(::std::mem::size_of::<drand48_data>(), 24usize);
+    assert_eq!(::std::mem::align_of::<drand48_data>(), 8usize);
+}
+impl Clone for drand48_data {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+extern "C" {
+    pub fn drand48_r(__buffer: *mut drand48_data, __result: *mut f64) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn erand48_r(
+        __xsubi: *mut ::std::os::raw::c_ushort,
+        __buffer: *mut drand48_data,
+        __result: *mut f64,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn lrand48_r(
+        __buffer: *mut drand48_data,
+        __result: *mut ::std::os::raw::c_long,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn nrand48_r(
+        __xsubi: *mut ::std::os::raw::c_ushort,
+        __buffer: *mut drand48_data,
+        __result: *mut ::std::os::raw::c_long,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mrand48_r(
+        __buffer: *mut drand48_data,
+        __result: *mut ::std::os::raw::c_long,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn jrand48_r(
+        __xsubi: *mut ::std::os::raw::c_ushort,
+        __buffer: *mut drand48_data,
+        __result: *mut ::std::os::raw::c_long,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn srand48_r(
+        __seedval: ::std::os::raw::c_long,
+        __buffer: *mut drand48_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn seed48_r(
+        __seed16v: *mut ::std::os::raw::c_ushort,
+        __buffer: *mut drand48_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn lcong48_r(
+        __param: *mut ::std::os::raw::c_ushort,
+        __buffer: *mut drand48_data,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn malloc(__size: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn calloc(__nmemb: usize, __size: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn realloc(
+        __ptr: *mut ::std::os::raw::c_void,
+        __size: usize,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn free(__ptr: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn cfree(__ptr: *mut ::std::os::raw::c_void);
+}
+extern "C" {
+    pub fn alloca(__size: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn valloc(__size: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn posix_memalign(
+        __memptr: *mut *mut ::std::os::raw::c_void,
+        __alignment: usize,
+        __size: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn aligned_alloc(__alignment: usize, __size: usize) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn abort();
+}
+extern "C" {
+    pub fn atexit(__func: ::std::option::Option<unsafe extern "C" fn()>) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn at_quick_exit(
+        __func: ::std::option::Option<unsafe extern "C" fn()>,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn on_exit(
+        __func: ::std::option::Option<
+            unsafe extern "C" fn(__status: ::std::os::raw::c_int,
+                                 __arg: *mut ::std::os::raw::c_void),
+        >,
+        __arg: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn exit(__status: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn quick_exit(__status: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn _Exit(__status: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn getenv(__name: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn putenv(__string: *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn setenv(
+        __name: *const ::std::os::raw::c_char,
+        __value: *const ::std::os::raw::c_char,
+        __replace: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn unsetenv(__name: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn clearenv() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mktemp(__template: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn mkstemp(__template: *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mkstemps(
+        __template: *mut ::std::os::raw::c_char,
+        __suffixlen: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mkdtemp(__template: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn system(__command: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn realpath(
+        __name: *const ::std::os::raw::c_char,
+        __resolved: *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+pub type __compar_fn_t =
+    ::std::option::Option<
+        unsafe extern "C" fn(arg1: *const ::std::os::raw::c_void,
+                             arg2: *const ::std::os::raw::c_void)
+                             -> ::std::os::raw::c_int,
+    >;
+extern "C" {
+    pub fn bsearch(
+        __key: *const ::std::os::raw::c_void,
+        __base: *const ::std::os::raw::c_void,
+        __nmemb: usize,
+        __size: usize,
+        __compar: __compar_fn_t,
+    ) -> *mut ::std::os::raw::c_void;
+}
+extern "C" {
+    pub fn qsort(
+        __base: *mut ::std::os::raw::c_void,
+        __nmemb: usize,
+        __size: usize,
+        __compar: __compar_fn_t,
+    );
+}
+extern "C" {
+    pub fn abs(__x: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn labs(__x: ::std::os::raw::c_long) -> ::std::os::raw::c_long;
+}
+extern "C" {
+    pub fn llabs(__x: ::std::os::raw::c_longlong) -> ::std::os::raw::c_longlong;
+}
+extern "C" {
+    pub fn div(__numer: ::std::os::raw::c_int, __denom: ::std::os::raw::c_int) -> div_t;
+}
+extern "C" {
+    pub fn ldiv(__numer: ::std::os::raw::c_long, __denom: ::std::os::raw::c_long) -> ldiv_t;
+}
+extern "C" {
+    pub fn lldiv(
+        __numer: ::std::os::raw::c_longlong,
+        __denom: ::std::os::raw::c_longlong,
+    ) -> lldiv_t;
+}
+extern "C" {
+    pub fn ecvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn fcvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn gcvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn qecvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn qfcvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn qgcvt(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+    ) -> *mut ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn ecvt_r(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+        __len: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn fcvt_r(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+        __len: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qecvt_r(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+        __len: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qfcvt_r(
+        __value: f64,
+        __ndigit: ::std::os::raw::c_int,
+        __decpt: *mut ::std::os::raw::c_int,
+        __sign: *mut ::std::os::raw::c_int,
+        __buf: *mut ::std::os::raw::c_char,
+        __len: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mblen(__s: *const ::std::os::raw::c_char, __n: usize) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mbtowc(
+        __pwc: *mut wchar_t,
+        __s: *const ::std::os::raw::c_char,
+        __n: usize,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn wctomb(__s: *mut ::std::os::raw::c_char, __wchar: wchar_t) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn mbstowcs(__pwcs: *mut wchar_t, __s: *const ::std::os::raw::c_char, __n: usize) -> usize;
+}
+extern "C" {
+    pub fn wcstombs(__s: *mut ::std::os::raw::c_char, __pwcs: *const wchar_t, __n: usize) -> usize;
+}
+extern "C" {
+    pub fn rpmatch(__response: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getsubopt(
+        __optionp: *mut *mut ::std::os::raw::c_char,
+        __tokens: *const *const ::std::os::raw::c_char,
+        __valuep: *mut *mut ::std::os::raw::c_char,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn getloadavg(__loadavg: *mut f64, __nelem: ::std::os::raw::c_int)
+        -> ::std::os::raw::c_int;
+}
+pub type int_least8_t = ::std::os::raw::c_char;
+pub type int_least16_t = ::std::os::raw::c_short;
+pub type int_least32_t = ::std::os::raw::c_int;
+pub type int_least64_t = ::std::os::raw::c_long;
+pub type uint_least8_t = ::std::os::raw::c_uchar;
+pub type uint_least16_t = ::std::os::raw::c_ushort;
+pub type uint_least32_t = ::std::os::raw::c_uint;
+pub type uint_least64_t = ::std::os::raw::c_ulong;
+pub type int_fast8_t = ::std::os::raw::c_char;
+pub type int_fast16_t = ::std::os::raw::c_long;
+pub type int_fast32_t = ::std::os::raw::c_long;
+pub type int_fast64_t = ::std::os::raw::c_long;
+pub type uint_fast8_t = ::std::os::raw::c_uchar;
+pub type uint_fast16_t = ::std::os::raw::c_ulong;
+pub type uint_fast32_t = ::std::os::raw::c_ulong;
+pub type uint_fast64_t = ::std::os::raw::c_ulong;
+pub type intmax_t = ::std::os::raw::c_long;
+pub type uintmax_t = ::std::os::raw::c_ulong;
+pub type cuuint32_t = u32;
+pub type cuuint64_t = u64;
+pub type CUdeviceptr = ::std::os::raw::c_ulonglong;
+pub type CUdevice = ::std::os::raw::c_int;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUctx_st {
+    pub _address: u8,
+}
+impl Clone for CUctx_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUcontext = *mut CUctx_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUmod_st {
+    pub _address: u8,
+}
+impl Clone for CUmod_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUmodule = *mut CUmod_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUfunc_st {
+    pub _address: u8,
+}
+impl Clone for CUfunc_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUfunction = *mut CUfunc_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUarray_st {
+    pub _address: u8,
+}
+impl Clone for CUarray_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUarray = *mut CUarray_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUmipmappedArray_st {
+    pub _address: u8,
+}
+impl Clone for CUmipmappedArray_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUmipmappedArray = *mut CUmipmappedArray_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUtexref_st {
+    pub _address: u8,
+}
+impl Clone for CUtexref_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUtexref = *mut CUtexref_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUsurfref_st {
+    pub _address: u8,
+}
+impl Clone for CUsurfref_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUsurfref = *mut CUsurfref_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUevent_st {
+    pub _address: u8,
+}
+impl Clone for CUevent_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUevent = *mut CUevent_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUstream_st {
+    pub _address: u8,
+}
+impl Clone for CUstream_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUstream = *mut CUstream_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUgraphicsResource_st {
+    pub _address: u8,
+}
+impl Clone for CUgraphicsResource_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUgraphicsResource = *mut CUgraphicsResource_st;
+pub type CUtexObject = ::std::os::raw::c_ulonglong;
+pub type CUsurfObject = ::std::os::raw::c_ulonglong;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUuuid_st {
+    pub bytes: [::std::os::raw::c_char; 16usize],
+}
+#[test]
+fn bindgen_test_layout_CUuuid_st() {
+    assert_eq!(::std::mem::size_of::<CUuuid_st>(), 16usize);
+    assert_eq!(::std::mem::align_of::<CUuuid_st>(), 1usize);
+}
+impl Clone for CUuuid_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUuuid = CUuuid_st;
+#[repr(C)]
+pub struct CUipcEventHandle_st {
+    pub reserved: [::std::os::raw::c_char; 64usize],
+}
+#[test]
+fn bindgen_test_layout_CUipcEventHandle_st() {
+    assert_eq!(::std::mem::size_of::<CUipcEventHandle_st>(), 64usize);
+    assert_eq!(::std::mem::align_of::<CUipcEventHandle_st>(), 1usize);
+}
+pub type CUipcEventHandle = CUipcEventHandle_st;
+#[repr(C)]
+pub struct CUipcMemHandle_st {
+    pub reserved: [::std::os::raw::c_char; 64usize],
+}
+#[test]
+fn bindgen_test_layout_CUipcMemHandle_st() {
+    assert_eq!(::std::mem::size_of::<CUipcMemHandle_st>(), 64usize);
+    assert_eq!(::std::mem::align_of::<CUipcMemHandle_st>(), 1usize);
+}
+pub type CUipcMemHandle = CUipcMemHandle_st;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUipcMem_flags_enum {
+    CU_IPC_MEM_LAZY_ENABLE_PEER_ACCESS = 1,
+}
+pub type CUipcMem_flags = CUipcMem_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUmemAttach_flags_enum {
+    CU_MEM_ATTACH_GLOBAL = 1,
+    CU_MEM_ATTACH_HOST = 2,
+    CU_MEM_ATTACH_SINGLE = 4,
+}
+pub type CUmemAttach_flags = CUmemAttach_flags_enum;
+pub const CUctx_flags_enum_CU_CTX_BLOCKING_SYNC: CUctx_flags_enum =
+    CUctx_flags_enum::CU_CTX_SCHED_BLOCKING_SYNC;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUctx_flags_enum {
+    CU_CTX_SCHED_AUTO = 0,
+    CU_CTX_SCHED_SPIN = 1,
+    CU_CTX_SCHED_YIELD = 2,
+    CU_CTX_SCHED_BLOCKING_SYNC = 4,
+    CU_CTX_SCHED_MASK = 7,
+    CU_CTX_MAP_HOST = 8,
+    CU_CTX_LMEM_RESIZE_TO_MAX = 16,
+    CU_CTX_FLAGS_MASK = 31,
+}
+pub type CUctx_flags = CUctx_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUstream_flags_enum {
+    CU_STREAM_DEFAULT = 0,
+    CU_STREAM_NON_BLOCKING = 1,
+}
+pub type CUstream_flags = CUstream_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUevent_flags_enum {
+    CU_EVENT_DEFAULT = 0,
+    CU_EVENT_BLOCKING_SYNC = 1,
+    CU_EVENT_DISABLE_TIMING = 2,
+    CU_EVENT_INTERPROCESS = 4,
+}
+pub type CUevent_flags = CUevent_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUstreamWaitValue_flags_enum {
+    CU_STREAM_WAIT_VALUE_GEQ = 0,
+    CU_STREAM_WAIT_VALUE_EQ = 1,
+    CU_STREAM_WAIT_VALUE_AND = 2,
+    CU_STREAM_WAIT_VALUE_FLUSH = 1073741824,
+}
+pub type CUstreamWaitValue_flags = CUstreamWaitValue_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUstreamWriteValue_flags_enum {
+    CU_STREAM_WRITE_VALUE_DEFAULT = 0,
+    CU_STREAM_WRITE_VALUE_NO_MEMORY_BARRIER = 1,
+}
+pub type CUstreamWriteValue_flags = CUstreamWriteValue_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUstreamBatchMemOpType_enum {
+    CU_STREAM_MEM_OP_WAIT_VALUE_32 = 1,
+    CU_STREAM_MEM_OP_WRITE_VALUE_32 = 2,
+    CU_STREAM_MEM_OP_FLUSH_REMOTE_WRITES = 3,
+}
+pub type CUstreamBatchMemOpType = CUstreamBatchMemOpType_enum;
+#[repr(C)]
+#[derive(Copy)]
+pub union CUstreamBatchMemOpParams_union {
+    pub operation: CUstreamBatchMemOpType,
+    pub waitValue: CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st,
+    pub writeValue: CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st,
+    pub flushRemoteWrites: CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st,
+    pub pad: [cuuint64_t; 6usize],
+}
+#[repr(C)]
+#[derive(Copy)]
+pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st {
+    pub operation: CUstreamBatchMemOpType,
+    pub address: CUdeviceptr,
+    pub __bindgen_anon_1:
+        CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1,
+    pub flags: ::std::os::raw::c_uint,
+    pub alias: CUdeviceptr,
+}
+#[repr(C)]
+#[derive(Copy)]
+pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1 {
+    pub value: cuuint32_t,
+    pub pad: cuuint64_t,
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1
+(){
+    assert_eq!(::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1>()
+               , 8usize);
+    assert_eq!(::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1>()
+               , 8usize);
+}
+impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st() {
+    assert_eq!(
+        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st>(),
+        40usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st>(),
+        8usize
+    );
+}
+impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Copy)]
+pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st {
+    pub operation: CUstreamBatchMemOpType,
+    pub address: CUdeviceptr,
+    pub __bindgen_anon_1:
+        CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1,
+    pub flags: ::std::os::raw::c_uint,
+    pub alias: CUdeviceptr,
+}
+#[repr(C)]
+#[derive(Copy)]
+pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1 {
+    pub value: cuuint32_t,
+    pub pad: cuuint64_t,
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1
+(){
+    assert_eq!(::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1>()
+               , 8usize);
+    assert_eq!(::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1>()
+               , 8usize);
+}
+impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st() {
+    assert_eq!(
+        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st>(),
+        40usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st>(),
+        8usize
+    );
+}
+impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st {
+    pub operation: CUstreamBatchMemOpType,
+    pub flags: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st() {
+    assert_eq!(
+        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st>(),
+        8usize
+    );
+    assert_eq!(::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st>()
+               , 4usize);
+}
+impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout_CUstreamBatchMemOpParams_union() {
+    assert_eq!(
+        ::std::mem::size_of::<CUstreamBatchMemOpParams_union>(),
+        48usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUstreamBatchMemOpParams_union>(),
+        8usize
+    );
+}
+impl Clone for CUstreamBatchMemOpParams_union {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUstreamBatchMemOpParams = CUstreamBatchMemOpParams_union;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUoccupancy_flags_enum {
+    CU_OCCUPANCY_DEFAULT = 0,
+    CU_OCCUPANCY_DISABLE_CACHING_OVERRIDE = 1,
+}
+pub type CUoccupancy_flags = CUoccupancy_flags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUarray_format_enum {
+    CU_AD_FORMAT_UNSIGNED_INT8 = 1,
+    CU_AD_FORMAT_UNSIGNED_INT16 = 2,
+    CU_AD_FORMAT_UNSIGNED_INT32 = 3,
+    CU_AD_FORMAT_SIGNED_INT8 = 8,
+    CU_AD_FORMAT_SIGNED_INT16 = 9,
+    CU_AD_FORMAT_SIGNED_INT32 = 10,
+    CU_AD_FORMAT_HALF = 16,
+    CU_AD_FORMAT_FLOAT = 32,
+}
+pub type CUarray_format = CUarray_format_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUaddress_mode_enum {
+    CU_TR_ADDRESS_MODE_WRAP = 0,
+    CU_TR_ADDRESS_MODE_CLAMP = 1,
+    CU_TR_ADDRESS_MODE_MIRROR = 2,
+    CU_TR_ADDRESS_MODE_BORDER = 3,
+}
+pub type CUaddress_mode = CUaddress_mode_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUfilter_mode_enum {
+    CU_TR_FILTER_MODE_POINT = 0,
+    CU_TR_FILTER_MODE_LINEAR = 1,
+}
+pub type CUfilter_mode = CUfilter_mode_enum;
+pub const CUdevice_attribute_enum_CU_DEVICE_ATTRIBUTE_SHARED_MEMORY_PER_BLOCK:
+          CUdevice_attribute_enum =
+    CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK;
+pub const CUdevice_attribute_enum_CU_DEVICE_ATTRIBUTE_REGISTERS_PER_BLOCK:
+          CUdevice_attribute_enum =
+    CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK;
+pub const CUdevice_attribute_enum_CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_WIDTH:
+          CUdevice_attribute_enum =
+    CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_WIDTH;
+pub const CUdevice_attribute_enum_CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_HEIGHT:
+          CUdevice_attribute_enum =
+    CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_HEIGHT;
+pub const CUdevice_attribute_enum_CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_NUMSLICES:
+          CUdevice_attribute_enum =
+    CUdevice_attribute_enum::CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_LAYERS;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUdevice_attribute_enum {
+    CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1,
+    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X = 2,
+    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y = 3,
+    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z = 4,
+    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X = 5,
+    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y = 6,
+    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z = 7,
+    CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8,
+    CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY = 9,
+    CU_DEVICE_ATTRIBUTE_WARP_SIZE = 10,
+    CU_DEVICE_ATTRIBUTE_MAX_PITCH = 11,
+    CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK = 12,
+    CU_DEVICE_ATTRIBUTE_CLOCK_RATE = 13,
+    CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT = 14,
+    CU_DEVICE_ATTRIBUTE_GPU_OVERLAP = 15,
+    CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT = 16,
+    CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT = 17,
+    CU_DEVICE_ATTRIBUTE_INTEGRATED = 18,
+    CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY = 19,
+    CU_DEVICE_ATTRIBUTE_COMPUTE_MODE = 20,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_WIDTH = 21,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_WIDTH = 22,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_HEIGHT = 23,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_WIDTH = 24,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_HEIGHT = 25,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_DEPTH = 26,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_WIDTH = 27,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_HEIGHT = 28,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LAYERED_LAYERS = 29,
+    CU_DEVICE_ATTRIBUTE_SURFACE_ALIGNMENT = 30,
+    CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS = 31,
+    CU_DEVICE_ATTRIBUTE_ECC_ENABLED = 32,
+    CU_DEVICE_ATTRIBUTE_PCI_BUS_ID = 33,
+    CU_DEVICE_ATTRIBUTE_PCI_DEVICE_ID = 34,
+    CU_DEVICE_ATTRIBUTE_TCC_DRIVER = 35,
+    CU_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE = 36,
+    CU_DEVICE_ATTRIBUTE_GLOBAL_MEMORY_BUS_WIDTH = 37,
+    CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE = 38,
+    CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_MULTIPROCESSOR = 39,
+    CU_DEVICE_ATTRIBUTE_ASYNC_ENGINE_COUNT = 40,
+    CU_DEVICE_ATTRIBUTE_UNIFIED_ADDRESSING = 41,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_LAYERED_WIDTH = 42,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_LAYERED_LAYERS = 43,
+    CU_DEVICE_ATTRIBUTE_CAN_TEX2D_GATHER = 44,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_GATHER_WIDTH = 45,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_GATHER_HEIGHT = 46,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_WIDTH_ALTERNATE = 47,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_HEIGHT_ALTERNATE = 48,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_DEPTH_ALTERNATE = 49,
+    CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID = 50,
+    CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT = 51,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURECUBEMAP_WIDTH = 52,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURECUBEMAP_LAYERED_WIDTH = 53,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURECUBEMAP_LAYERED_LAYERS = 54,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE1D_WIDTH = 55,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE2D_WIDTH = 56,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE2D_HEIGHT = 57,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE3D_WIDTH = 58,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE3D_HEIGHT = 59,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE3D_DEPTH = 60,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE1D_LAYERED_WIDTH = 61,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE1D_LAYERED_LAYERS = 62,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE2D_LAYERED_WIDTH = 63,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE2D_LAYERED_HEIGHT = 64,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACE2D_LAYERED_LAYERS = 65,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACECUBEMAP_WIDTH = 66,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACECUBEMAP_LAYERED_WIDTH = 67,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_SURFACECUBEMAP_LAYERED_LAYERS = 68,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_LINEAR_WIDTH = 69,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LINEAR_WIDTH = 70,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LINEAR_HEIGHT = 71,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_LINEAR_PITCH = 72,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_MIPMAPPED_WIDTH = 73,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_MIPMAPPED_HEIGHT = 74,
+    CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR = 75,
+    CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR = 76,
+    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_MIPMAPPED_WIDTH = 77,
+    CU_DEVICE_ATTRIBUTE_STREAM_PRIORITIES_SUPPORTED = 78,
+    CU_DEVICE_ATTRIBUTE_GLOBAL_L1_CACHE_SUPPORTED = 79,
+    CU_DEVICE_ATTRIBUTE_LOCAL_L1_CACHE_SUPPORTED = 80,
+    CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_MULTIPROCESSOR = 81,
+    CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_MULTIPROCESSOR = 82,
+    CU_DEVICE_ATTRIBUTE_MANAGED_MEMORY = 83,
+    CU_DEVICE_ATTRIBUTE_MULTI_GPU_BOARD = 84,
+    CU_DEVICE_ATTRIBUTE_MULTI_GPU_BOARD_GROUP_ID = 85,
+    CU_DEVICE_ATTRIBUTE_HOST_NATIVE_ATOMIC_SUPPORTED = 86,
+    CU_DEVICE_ATTRIBUTE_SINGLE_TO_DOUBLE_PRECISION_PERF_RATIO = 87,
+    CU_DEVICE_ATTRIBUTE_PAGEABLE_MEMORY_ACCESS = 88,
+    CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS = 89,
+    CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED = 90,
+    CU_DEVICE_ATTRIBUTE_CAN_USE_HOST_POINTER_FOR_REGISTERED_MEM = 91,
+    CU_DEVICE_ATTRIBUTE_MAX = 92,
+}
+pub type CUdevice_attribute = CUdevice_attribute_enum;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUdevprop_st {
+    pub maxThreadsPerBlock: ::std::os::raw::c_int,
+    pub maxThreadsDim: [::std::os::raw::c_int; 3usize],
+    pub maxGridSize: [::std::os::raw::c_int; 3usize],
+    pub sharedMemPerBlock: ::std::os::raw::c_int,
+    pub totalConstantMemory: ::std::os::raw::c_int,
+    pub SIMDWidth: ::std::os::raw::c_int,
+    pub memPitch: ::std::os::raw::c_int,
+    pub regsPerBlock: ::std::os::raw::c_int,
+    pub clockRate: ::std::os::raw::c_int,
+    pub textureAlign: ::std::os::raw::c_int,
+}
+#[test]
+fn bindgen_test_layout_CUdevprop_st() {
+    assert_eq!(::std::mem::size_of::<CUdevprop_st>(), 56usize);
+    assert_eq!(::std::mem::align_of::<CUdevprop_st>(), 4usize);
+}
+impl Clone for CUdevprop_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUdevprop = CUdevprop_st;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUpointer_attribute_enum {
+    CU_POINTER_ATTRIBUTE_CONTEXT = 1,
+    CU_POINTER_ATTRIBUTE_MEMORY_TYPE = 2,
+    CU_POINTER_ATTRIBUTE_DEVICE_POINTER = 3,
+    CU_POINTER_ATTRIBUTE_HOST_POINTER = 4,
+    CU_POINTER_ATTRIBUTE_P2P_TOKENS = 5,
+    CU_POINTER_ATTRIBUTE_SYNC_MEMOPS = 6,
+    CU_POINTER_ATTRIBUTE_BUFFER_ID = 7,
+    CU_POINTER_ATTRIBUTE_IS_MANAGED = 8,
+}
+pub type CUpointer_attribute = CUpointer_attribute_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUfunction_attribute_enum {
+    CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 0,
+    CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES = 1,
+    CU_FUNC_ATTRIBUTE_CONST_SIZE_BYTES = 2,
+    CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES = 3,
+    CU_FUNC_ATTRIBUTE_NUM_REGS = 4,
+    CU_FUNC_ATTRIBUTE_PTX_VERSION = 5,
+    CU_FUNC_ATTRIBUTE_BINARY_VERSION = 6,
+    CU_FUNC_ATTRIBUTE_CACHE_MODE_CA = 7,
+    CU_FUNC_ATTRIBUTE_MAX = 8,
+}
+pub type CUfunction_attribute = CUfunction_attribute_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUfunc_cache_enum {
+    CU_FUNC_CACHE_PREFER_NONE = 0,
+    CU_FUNC_CACHE_PREFER_SHARED = 1,
+    CU_FUNC_CACHE_PREFER_L1 = 2,
+    CU_FUNC_CACHE_PREFER_EQUAL = 3,
+}
+pub type CUfunc_cache = CUfunc_cache_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUsharedconfig_enum {
+    CU_SHARED_MEM_CONFIG_DEFAULT_BANK_SIZE = 0,
+    CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE = 1,
+    CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE = 2,
+}
+pub type CUsharedconfig = CUsharedconfig_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUmemorytype_enum {
+    CU_MEMORYTYPE_HOST = 1,
+    CU_MEMORYTYPE_DEVICE = 2,
+    CU_MEMORYTYPE_ARRAY = 3,
+    CU_MEMORYTYPE_UNIFIED = 4,
+}
+pub type CUmemorytype = CUmemorytype_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUcomputemode_enum {
+    CU_COMPUTEMODE_DEFAULT = 0,
+    CU_COMPUTEMODE_PROHIBITED = 2,
+    CU_COMPUTEMODE_EXCLUSIVE_PROCESS = 3,
+}
+pub type CUcomputemode = CUcomputemode_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUmem_advise_enum {
+    CU_MEM_ADVISE_SET_READ_MOSTLY = 1,
+    CU_MEM_ADVISE_UNSET_READ_MOSTLY = 2,
+    CU_MEM_ADVISE_SET_PREFERRED_LOCATION = 3,
+    CU_MEM_ADVISE_UNSET_PREFERRED_LOCATION = 4,
+    CU_MEM_ADVISE_SET_ACCESSED_BY = 5,
+    CU_MEM_ADVISE_UNSET_ACCESSED_BY = 6,
+}
+pub type CUmem_advise = CUmem_advise_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUmem_range_attribute_enum {
+    CU_MEM_RANGE_ATTRIBUTE_READ_MOSTLY = 1,
+    CU_MEM_RANGE_ATTRIBUTE_PREFERRED_LOCATION = 2,
+    CU_MEM_RANGE_ATTRIBUTE_ACCESSED_BY = 3,
+    CU_MEM_RANGE_ATTRIBUTE_LAST_PREFETCH_LOCATION = 4,
+}
+pub type CUmem_range_attribute = CUmem_range_attribute_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUjit_option_enum {
+    CU_JIT_MAX_REGISTERS = 0,
+    CU_JIT_THREADS_PER_BLOCK = 1,
+    CU_JIT_WALL_TIME = 2,
+    CU_JIT_INFO_LOG_BUFFER = 3,
+    CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES = 4,
+    CU_JIT_ERROR_LOG_BUFFER = 5,
+    CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES = 6,
+    CU_JIT_OPTIMIZATION_LEVEL = 7,
+    CU_JIT_TARGET_FROM_CUCONTEXT = 8,
+    CU_JIT_TARGET = 9,
+    CU_JIT_FALLBACK_STRATEGY = 10,
+    CU_JIT_GENERATE_DEBUG_INFO = 11,
+    CU_JIT_LOG_VERBOSE = 12,
+    CU_JIT_GENERATE_LINE_INFO = 13,
+    CU_JIT_CACHE_MODE = 14,
+    CU_JIT_NEW_SM3X_OPT = 15,
+    CU_JIT_FAST_COMPILE = 16,
+    CU_JIT_NUM_OPTIONS = 17,
+}
+pub type CUjit_option = CUjit_option_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUjit_target_enum {
+    CU_TARGET_COMPUTE_10 = 10,
+    CU_TARGET_COMPUTE_11 = 11,
+    CU_TARGET_COMPUTE_12 = 12,
+    CU_TARGET_COMPUTE_13 = 13,
+    CU_TARGET_COMPUTE_20 = 20,
+    CU_TARGET_COMPUTE_21 = 21,
+    CU_TARGET_COMPUTE_30 = 30,
+    CU_TARGET_COMPUTE_32 = 32,
+    CU_TARGET_COMPUTE_35 = 35,
+    CU_TARGET_COMPUTE_37 = 37,
+    CU_TARGET_COMPUTE_50 = 50,
+    CU_TARGET_COMPUTE_52 = 52,
+    CU_TARGET_COMPUTE_53 = 53,
+    CU_TARGET_COMPUTE_60 = 60,
+    CU_TARGET_COMPUTE_61 = 61,
+    CU_TARGET_COMPUTE_62 = 62,
+}
+pub type CUjit_target = CUjit_target_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUjit_fallback_enum {
+    CU_PREFER_PTX = 0,
+    CU_PREFER_BINARY = 1,
+}
+pub type CUjit_fallback = CUjit_fallback_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUjit_cacheMode_enum {
+    CU_JIT_CACHE_OPTION_NONE = 0,
+    CU_JIT_CACHE_OPTION_CG = 1,
+    CU_JIT_CACHE_OPTION_CA = 2,
+}
+pub type CUjit_cacheMode = CUjit_cacheMode_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUjitInputType_enum {
+    CU_JIT_INPUT_CUBIN = 0,
+    CU_JIT_INPUT_PTX = 1,
+    CU_JIT_INPUT_FATBINARY = 2,
+    CU_JIT_INPUT_OBJECT = 3,
+    CU_JIT_INPUT_LIBRARY = 4,
+    CU_JIT_NUM_INPUT_TYPES = 5,
+}
+pub type CUjitInputType = CUjitInputType_enum;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUlinkState_st {
+    pub _address: u8,
+}
+impl Clone for CUlinkState_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUlinkState = *mut CUlinkState_st;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUgraphicsRegisterFlags_enum {
+    CU_GRAPHICS_REGISTER_FLAGS_NONE = 0,
+    CU_GRAPHICS_REGISTER_FLAGS_READ_ONLY = 1,
+    CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD = 2,
+    CU_GRAPHICS_REGISTER_FLAGS_SURFACE_LDST = 4,
+    CU_GRAPHICS_REGISTER_FLAGS_TEXTURE_GATHER = 8,
+}
+pub type CUgraphicsRegisterFlags = CUgraphicsRegisterFlags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUgraphicsMapResourceFlags_enum {
+    CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE = 0,
+    CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY = 1,
+    CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 2,
+}
+pub type CUgraphicsMapResourceFlags = CUgraphicsMapResourceFlags_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUarray_cubemap_face_enum {
+    CU_CUBEMAP_FACE_POSITIVE_X = 0,
+    CU_CUBEMAP_FACE_NEGATIVE_X = 1,
+    CU_CUBEMAP_FACE_POSITIVE_Y = 2,
+    CU_CUBEMAP_FACE_NEGATIVE_Y = 3,
+    CU_CUBEMAP_FACE_POSITIVE_Z = 4,
+    CU_CUBEMAP_FACE_NEGATIVE_Z = 5,
+}
+pub type CUarray_cubemap_face = CUarray_cubemap_face_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUlimit_enum {
+    CU_LIMIT_STACK_SIZE = 0,
+    CU_LIMIT_PRINTF_FIFO_SIZE = 1,
+    CU_LIMIT_MALLOC_HEAP_SIZE = 2,
+    CU_LIMIT_DEV_RUNTIME_SYNC_DEPTH = 3,
+    CU_LIMIT_DEV_RUNTIME_PENDING_LAUNCH_COUNT = 4,
+    CU_LIMIT_MAX = 5,
+}
+pub type CUlimit = CUlimit_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUresourcetype_enum {
+    CU_RESOURCE_TYPE_ARRAY = 0,
+    CU_RESOURCE_TYPE_MIPMAPPED_ARRAY = 1,
+    CU_RESOURCE_TYPE_LINEAR = 2,
+    CU_RESOURCE_TYPE_PITCH2D = 3,
+}
+pub type CUresourcetype = CUresourcetype_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum cudaError_enum {
+    CUDA_SUCCESS = 0,
+    CUDA_ERROR_INVALID_VALUE = 1,
+    CUDA_ERROR_OUT_OF_MEMORY = 2,
+    CUDA_ERROR_NOT_INITIALIZED = 3,
+    CUDA_ERROR_DEINITIALIZED = 4,
+    CUDA_ERROR_PROFILER_DISABLED = 5,
+    CUDA_ERROR_PROFILER_NOT_INITIALIZED = 6,
+    CUDA_ERROR_PROFILER_ALREADY_STARTED = 7,
+    CUDA_ERROR_PROFILER_ALREADY_STOPPED = 8,
+    CUDA_ERROR_NO_DEVICE = 100,
+    CUDA_ERROR_INVALID_DEVICE = 101,
+    CUDA_ERROR_INVALID_IMAGE = 200,
+    CUDA_ERROR_INVALID_CONTEXT = 201,
+    CUDA_ERROR_CONTEXT_ALREADY_CURRENT = 202,
+    CUDA_ERROR_MAP_FAILED = 205,
+    CUDA_ERROR_UNMAP_FAILED = 206,
+    CUDA_ERROR_ARRAY_IS_MAPPED = 207,
+    CUDA_ERROR_ALREADY_MAPPED = 208,
+    CUDA_ERROR_NO_BINARY_FOR_GPU = 209,
+    CUDA_ERROR_ALREADY_ACQUIRED = 210,
+    CUDA_ERROR_NOT_MAPPED = 211,
+    CUDA_ERROR_NOT_MAPPED_AS_ARRAY = 212,
+    CUDA_ERROR_NOT_MAPPED_AS_POINTER = 213,
+    CUDA_ERROR_ECC_UNCORRECTABLE = 214,
+    CUDA_ERROR_UNSUPPORTED_LIMIT = 215,
+    CUDA_ERROR_CONTEXT_ALREADY_IN_USE = 216,
+    CUDA_ERROR_PEER_ACCESS_UNSUPPORTED = 217,
+    CUDA_ERROR_INVALID_PTX = 218,
+    CUDA_ERROR_INVALID_GRAPHICS_CONTEXT = 219,
+    CUDA_ERROR_NVLINK_UNCORRECTABLE = 220,
+    CUDA_ERROR_INVALID_SOURCE = 300,
+    CUDA_ERROR_FILE_NOT_FOUND = 301,
+    CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND = 302,
+    CUDA_ERROR_SHARED_OBJECT_INIT_FAILED = 303,
+    CUDA_ERROR_OPERATING_SYSTEM = 304,
+    CUDA_ERROR_INVALID_HANDLE = 400,
+    CUDA_ERROR_NOT_FOUND = 500,
+    CUDA_ERROR_NOT_READY = 600,
+    CUDA_ERROR_ILLEGAL_ADDRESS = 700,
+    CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES = 701,
+    CUDA_ERROR_LAUNCH_TIMEOUT = 702,
+    CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING = 703,
+    CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED = 704,
+    CUDA_ERROR_PEER_ACCESS_NOT_ENABLED = 705,
+    CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE = 708,
+    CUDA_ERROR_CONTEXT_IS_DESTROYED = 709,
+    CUDA_ERROR_ASSERT = 710,
+    CUDA_ERROR_TOO_MANY_PEERS = 711,
+    CUDA_ERROR_HOST_MEMORY_ALREADY_REGISTERED = 712,
+    CUDA_ERROR_HOST_MEMORY_NOT_REGISTERED = 713,
+    CUDA_ERROR_HARDWARE_STACK_ERROR = 714,
+    CUDA_ERROR_ILLEGAL_INSTRUCTION = 715,
+    CUDA_ERROR_MISALIGNED_ADDRESS = 716,
+    CUDA_ERROR_INVALID_ADDRESS_SPACE = 717,
+    CUDA_ERROR_INVALID_PC = 718,
+    CUDA_ERROR_LAUNCH_FAILED = 719,
+    CUDA_ERROR_NOT_PERMITTED = 800,
+    CUDA_ERROR_NOT_SUPPORTED = 801,
+    CUDA_ERROR_UNKNOWN = 999,
+}
+pub type CUresult = cudaError_enum;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUdevice_P2PAttribute_enum {
+    CU_DEVICE_P2P_ATTRIBUTE_PERFORMANCE_RANK = 1,
+    CU_DEVICE_P2P_ATTRIBUTE_ACCESS_SUPPORTED = 2,
+    CU_DEVICE_P2P_ATTRIBUTE_NATIVE_ATOMIC_SUPPORTED = 3,
+}
+pub type CUdevice_P2PAttribute = CUdevice_P2PAttribute_enum;
+pub type CUstreamCallback =
+    ::std::option::Option<
+        unsafe extern "C" fn(hStream: CUstream,
+                             status: CUresult,
+                             userData: *mut ::std::os::raw::c_void),
+    >;
+pub type CUoccupancyB2DSize =
+    ::std::option::Option<
+        unsafe extern "C" fn(blockSize: ::std::os::raw::c_int)
+                             -> ::std::os::raw::c_ulong,
+    >;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_MEMCPY2D_st {
+    pub srcXInBytes: usize,
+    pub srcY: usize,
+    pub srcMemoryType: CUmemorytype,
+    pub srcHost: *const ::std::os::raw::c_void,
+    pub srcDevice: CUdeviceptr,
+    pub srcArray: CUarray,
+    pub srcPitch: usize,
+    pub dstXInBytes: usize,
+    pub dstY: usize,
+    pub dstMemoryType: CUmemorytype,
+    pub dstHost: *mut ::std::os::raw::c_void,
+    pub dstDevice: CUdeviceptr,
+    pub dstArray: CUarray,
+    pub dstPitch: usize,
+    pub WidthInBytes: usize,
+    pub Height: usize,
+}
+#[test]
+fn bindgen_test_layout_CUDA_MEMCPY2D_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY2D_st>(), 128usize);
+    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY2D_st>(), 8usize);
+}
+impl Clone for CUDA_MEMCPY2D_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_MEMCPY2D = CUDA_MEMCPY2D_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_MEMCPY3D_st {
+    pub srcXInBytes: usize,
+    pub srcY: usize,
+    pub srcZ: usize,
+    pub srcLOD: usize,
+    pub srcMemoryType: CUmemorytype,
+    pub srcHost: *const ::std::os::raw::c_void,
+    pub srcDevice: CUdeviceptr,
+    pub srcArray: CUarray,
+    pub reserved0: *mut ::std::os::raw::c_void,
+    pub srcPitch: usize,
+    pub srcHeight: usize,
+    pub dstXInBytes: usize,
+    pub dstY: usize,
+    pub dstZ: usize,
+    pub dstLOD: usize,
+    pub dstMemoryType: CUmemorytype,
+    pub dstHost: *mut ::std::os::raw::c_void,
+    pub dstDevice: CUdeviceptr,
+    pub dstArray: CUarray,
+    pub reserved1: *mut ::std::os::raw::c_void,
+    pub dstPitch: usize,
+    pub dstHeight: usize,
+    pub WidthInBytes: usize,
+    pub Height: usize,
+    pub Depth: usize,
+}
+#[test]
+fn bindgen_test_layout_CUDA_MEMCPY3D_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY3D_st>(), 200usize);
+    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY3D_st>(), 8usize);
+}
+impl Clone for CUDA_MEMCPY3D_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_MEMCPY3D = CUDA_MEMCPY3D_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_MEMCPY3D_PEER_st {
+    pub srcXInBytes: usize,
+    pub srcY: usize,
+    pub srcZ: usize,
+    pub srcLOD: usize,
+    pub srcMemoryType: CUmemorytype,
+    pub srcHost: *const ::std::os::raw::c_void,
+    pub srcDevice: CUdeviceptr,
+    pub srcArray: CUarray,
+    pub srcContext: CUcontext,
+    pub srcPitch: usize,
+    pub srcHeight: usize,
+    pub dstXInBytes: usize,
+    pub dstY: usize,
+    pub dstZ: usize,
+    pub dstLOD: usize,
+    pub dstMemoryType: CUmemorytype,
+    pub dstHost: *mut ::std::os::raw::c_void,
+    pub dstDevice: CUdeviceptr,
+    pub dstArray: CUarray,
+    pub dstContext: CUcontext,
+    pub dstPitch: usize,
+    pub dstHeight: usize,
+    pub WidthInBytes: usize,
+    pub Height: usize,
+    pub Depth: usize,
+}
+#[test]
+fn bindgen_test_layout_CUDA_MEMCPY3D_PEER_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY3D_PEER_st>(), 200usize);
+    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY3D_PEER_st>(), 8usize);
+}
+impl Clone for CUDA_MEMCPY3D_PEER_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_MEMCPY3D_PEER = CUDA_MEMCPY3D_PEER_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_ARRAY_DESCRIPTOR_st {
+    pub Width: usize,
+    pub Height: usize,
+    pub Format: CUarray_format,
+    pub NumChannels: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout_CUDA_ARRAY_DESCRIPTOR_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_ARRAY_DESCRIPTOR_st>(), 24usize);
+    assert_eq!(::std::mem::align_of::<CUDA_ARRAY_DESCRIPTOR_st>(), 8usize);
+}
+impl Clone for CUDA_ARRAY_DESCRIPTOR_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_ARRAY_DESCRIPTOR = CUDA_ARRAY_DESCRIPTOR_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_ARRAY3D_DESCRIPTOR_st {
+    pub Width: usize,
+    pub Height: usize,
+    pub Depth: usize,
+    pub Format: CUarray_format,
+    pub NumChannels: ::std::os::raw::c_uint,
+    pub Flags: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout_CUDA_ARRAY3D_DESCRIPTOR_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_ARRAY3D_DESCRIPTOR_st>(), 40usize);
+    assert_eq!(::std::mem::align_of::<CUDA_ARRAY3D_DESCRIPTOR_st>(), 8usize);
+}
+impl Clone for CUDA_ARRAY3D_DESCRIPTOR_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_ARRAY3D_DESCRIPTOR = CUDA_ARRAY3D_DESCRIPTOR_st;
+#[repr(C)]
+#[derive(Copy)]
+pub struct CUDA_RESOURCE_DESC_st {
+    pub resType: CUresourcetype,
+    pub res: CUDA_RESOURCE_DESC_st__bindgen_ty_1,
+    pub flags: ::std::os::raw::c_uint,
+}
+#[repr(C)]
+#[derive(Copy)]
+pub union CUDA_RESOURCE_DESC_st__bindgen_ty_1 {
+    pub array: CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1,
+    pub mipmap: CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2,
+    pub linear: CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3,
+    pub pitch2D: CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4,
+    pub reserved: CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5,
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1 {
+    pub hArray: CUarray,
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1>(),
+        8usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1>(),
+        8usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2 {
+    pub hMipmappedArray: CUmipmappedArray,
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2>(),
+        8usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2>(),
+        8usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3 {
+    pub devPtr: CUdeviceptr,
+    pub format: CUarray_format,
+    pub numChannels: ::std::os::raw::c_uint,
+    pub sizeInBytes: usize,
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3>(),
+        24usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3>(),
+        8usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4 {
+    pub devPtr: CUdeviceptr,
+    pub format: CUarray_format,
+    pub numChannels: ::std::os::raw::c_uint,
+    pub width: usize,
+    pub height: usize,
+    pub pitchInBytes: usize,
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4>(),
+        40usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4>(),
+        8usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5 {
+    pub reserved: [::std::os::raw::c_int; 32usize],
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5>(),
+        128usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5>(),
+        4usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1>(),
+        128usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1>(),
+        8usize
+    );
+}
+impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1 {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_DESC_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_RESOURCE_DESC_st>(), 144usize);
+    assert_eq!(::std::mem::align_of::<CUDA_RESOURCE_DESC_st>(), 8usize);
+}
+impl Clone for CUDA_RESOURCE_DESC_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_RESOURCE_DESC = CUDA_RESOURCE_DESC_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_TEXTURE_DESC_st {
+    pub addressMode: [CUaddress_mode; 3usize],
+    pub filterMode: CUfilter_mode,
+    pub flags: ::std::os::raw::c_uint,
+    pub maxAnisotropy: ::std::os::raw::c_uint,
+    pub mipmapFilterMode: CUfilter_mode,
+    pub mipmapLevelBias: f32,
+    pub minMipmapLevelClamp: f32,
+    pub maxMipmapLevelClamp: f32,
+    pub borderColor: [f32; 4usize],
+    pub reserved: [::std::os::raw::c_int; 12usize],
+}
+#[test]
+fn bindgen_test_layout_CUDA_TEXTURE_DESC_st() {
+    assert_eq!(::std::mem::size_of::<CUDA_TEXTURE_DESC_st>(), 104usize);
+    assert_eq!(::std::mem::align_of::<CUDA_TEXTURE_DESC_st>(), 4usize);
+}
+impl Clone for CUDA_TEXTURE_DESC_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_TEXTURE_DESC = CUDA_TEXTURE_DESC_st;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CUresourceViewFormat_enum {
+    CU_RES_VIEW_FORMAT_NONE = 0,
+    CU_RES_VIEW_FORMAT_UINT_1X8 = 1,
+    CU_RES_VIEW_FORMAT_UINT_2X8 = 2,
+    CU_RES_VIEW_FORMAT_UINT_4X8 = 3,
+    CU_RES_VIEW_FORMAT_SINT_1X8 = 4,
+    CU_RES_VIEW_FORMAT_SINT_2X8 = 5,
+    CU_RES_VIEW_FORMAT_SINT_4X8 = 6,
+    CU_RES_VIEW_FORMAT_UINT_1X16 = 7,
+    CU_RES_VIEW_FORMAT_UINT_2X16 = 8,
+    CU_RES_VIEW_FORMAT_UINT_4X16 = 9,
+    CU_RES_VIEW_FORMAT_SINT_1X16 = 10,
+    CU_RES_VIEW_FORMAT_SINT_2X16 = 11,
+    CU_RES_VIEW_FORMAT_SINT_4X16 = 12,
+    CU_RES_VIEW_FORMAT_UINT_1X32 = 13,
+    CU_RES_VIEW_FORMAT_UINT_2X32 = 14,
+    CU_RES_VIEW_FORMAT_UINT_4X32 = 15,
+    CU_RES_VIEW_FORMAT_SINT_1X32 = 16,
+    CU_RES_VIEW_FORMAT_SINT_2X32 = 17,
+    CU_RES_VIEW_FORMAT_SINT_4X32 = 18,
+    CU_RES_VIEW_FORMAT_FLOAT_1X16 = 19,
+    CU_RES_VIEW_FORMAT_FLOAT_2X16 = 20,
+    CU_RES_VIEW_FORMAT_FLOAT_4X16 = 21,
+    CU_RES_VIEW_FORMAT_FLOAT_1X32 = 22,
+    CU_RES_VIEW_FORMAT_FLOAT_2X32 = 23,
+    CU_RES_VIEW_FORMAT_FLOAT_4X32 = 24,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC1 = 25,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC2 = 26,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC3 = 27,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC4 = 28,
+    CU_RES_VIEW_FORMAT_SIGNED_BC4 = 29,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC5 = 30,
+    CU_RES_VIEW_FORMAT_SIGNED_BC5 = 31,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC6H = 32,
+    CU_RES_VIEW_FORMAT_SIGNED_BC6H = 33,
+    CU_RES_VIEW_FORMAT_UNSIGNED_BC7 = 34,
+}
+pub type CUresourceViewFormat = CUresourceViewFormat_enum;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_RESOURCE_VIEW_DESC_st {
+    pub format: CUresourceViewFormat,
+    pub width: usize,
+    pub height: usize,
+    pub depth: usize,
+    pub firstMipmapLevel: ::std::os::raw::c_uint,
+    pub lastMipmapLevel: ::std::os::raw::c_uint,
+    pub firstLayer: ::std::os::raw::c_uint,
+    pub lastLayer: ::std::os::raw::c_uint,
+    pub reserved: [::std::os::raw::c_uint; 16usize],
+}
+#[test]
+fn bindgen_test_layout_CUDA_RESOURCE_VIEW_DESC_st() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_RESOURCE_VIEW_DESC_st>(),
+        112usize
+    );
+    assert_eq!(::std::mem::align_of::<CUDA_RESOURCE_VIEW_DESC_st>(), 8usize);
+}
+impl Clone for CUDA_RESOURCE_VIEW_DESC_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_RESOURCE_VIEW_DESC = CUDA_RESOURCE_VIEW_DESC_st;
+#[repr(C)]
+#[derive(Debug, Copy)]
+pub struct CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
+    pub p2pToken: ::std::os::raw::c_ulonglong,
+    pub vaSpaceToken: ::std::os::raw::c_uint,
+}
+#[test]
+fn bindgen_test_layout_CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st() {
+    assert_eq!(
+        ::std::mem::size_of::<CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st>(),
+        16usize
+    );
+    assert_eq!(
+        ::std::mem::align_of::<CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st>(),
+        8usize
+    );
+}
+impl Clone for CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+pub type CUDA_POINTER_ATTRIBUTE_P2P_TOKENS = CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st;
+extern "C" {
+    pub fn cuGetErrorString(error: CUresult, pStr: *mut *const ::std::os::raw::c_char) -> CUresult;
+}
+extern "C" {
+    pub fn cuGetErrorName(error: CUresult, pStr: *mut *const ::std::os::raw::c_char) -> CUresult;
+}
+extern "C" {
+    pub fn cuInit(Flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuDriverGetVersion(driverVersion: *mut ::std::os::raw::c_int) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGet(device: *mut CUdevice, ordinal: ::std::os::raw::c_int) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetCount(count: *mut ::std::os::raw::c_int) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetName(
+        name: *mut ::std::os::raw::c_char,
+        len: ::std::os::raw::c_int,
+        dev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceTotalMem_v2(bytes: *mut usize, dev: CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetAttribute(
+        pi: *mut ::std::os::raw::c_int,
+        attrib: CUdevice_attribute,
+        dev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetProperties(prop: *mut CUdevprop, dev: CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceComputeCapability(
+        major: *mut ::std::os::raw::c_int,
+        minor: *mut ::std::os::raw::c_int,
+        dev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDevicePrimaryCtxRetain(pctx: *mut CUcontext, dev: CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuDevicePrimaryCtxRelease(dev: CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuDevicePrimaryCtxSetFlags(dev: CUdevice, flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuDevicePrimaryCtxGetState(
+        dev: CUdevice,
+        flags: *mut ::std::os::raw::c_uint,
+        active: *mut ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDevicePrimaryCtxReset(dev: CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxCreate_v2(
+        pctx: *mut CUcontext,
+        flags: ::std::os::raw::c_uint,
+        dev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxDestroy_v2(ctx: CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxPushCurrent_v2(ctx: CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxPopCurrent_v2(pctx: *mut CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxSetCurrent(ctx: CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetCurrent(pctx: *mut CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetDevice(device: *mut CUdevice) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetFlags(flags: *mut ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxSynchronize() -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxSetLimit(limit: CUlimit, value: usize) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetLimit(pvalue: *mut usize, limit: CUlimit) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetCacheConfig(pconfig: *mut CUfunc_cache) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxSetCacheConfig(config: CUfunc_cache) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetSharedMemConfig(pConfig: *mut CUsharedconfig) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxSetSharedMemConfig(config: CUsharedconfig) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetApiVersion(ctx: CUcontext, version: *mut ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxGetStreamPriorityRange(
+        leastPriority: *mut ::std::os::raw::c_int,
+        greatestPriority: *mut ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxAttach(pctx: *mut CUcontext, flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxDetach(ctx: CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleLoad(module: *mut CUmodule, fname: *const ::std::os::raw::c_char) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleLoadData(
+        module: *mut CUmodule,
+        image: *const ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleLoadDataEx(
+        module: *mut CUmodule,
+        image: *const ::std::os::raw::c_void,
+        numOptions: ::std::os::raw::c_uint,
+        options: *mut CUjit_option,
+        optionValues: *mut *mut ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleLoadFatBinary(
+        module: *mut CUmodule,
+        fatCubin: *const ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleUnload(hmod: CUmodule) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleGetFunction(
+        hfunc: *mut CUfunction,
+        hmod: CUmodule,
+        name: *const ::std::os::raw::c_char,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleGetGlobal_v2(
+        dptr: *mut CUdeviceptr,
+        bytes: *mut usize,
+        hmod: CUmodule,
+        name: *const ::std::os::raw::c_char,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleGetTexRef(
+        pTexRef: *mut CUtexref,
+        hmod: CUmodule,
+        name: *const ::std::os::raw::c_char,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuModuleGetSurfRef(
+        pSurfRef: *mut CUsurfref,
+        hmod: CUmodule,
+        name: *const ::std::os::raw::c_char,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLinkCreate_v2(
+        numOptions: ::std::os::raw::c_uint,
+        options: *mut CUjit_option,
+        optionValues: *mut *mut ::std::os::raw::c_void,
+        stateOut: *mut CUlinkState,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLinkAddData_v2(
+        state: CUlinkState,
+        type_: CUjitInputType,
+        data: *mut ::std::os::raw::c_void,
+        size: usize,
+        name: *const ::std::os::raw::c_char,
+        numOptions: ::std::os::raw::c_uint,
+        options: *mut CUjit_option,
+        optionValues: *mut *mut ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLinkAddFile_v2(
+        state: CUlinkState,
+        type_: CUjitInputType,
+        path: *const ::std::os::raw::c_char,
+        numOptions: ::std::os::raw::c_uint,
+        options: *mut CUjit_option,
+        optionValues: *mut *mut ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLinkComplete(
+        state: CUlinkState,
+        cubinOut: *mut *mut ::std::os::raw::c_void,
+        sizeOut: *mut usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLinkDestroy(state: CUlinkState) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemGetInfo_v2(free: *mut usize, total: *mut usize) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemAlloc_v2(dptr: *mut CUdeviceptr, bytesize: usize) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemAllocPitch_v2(
+        dptr: *mut CUdeviceptr,
+        pPitch: *mut usize,
+        WidthInBytes: usize,
+        Height: usize,
+        ElementSizeBytes: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemFree_v2(dptr: CUdeviceptr) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemGetAddressRange_v2(
+        pbase: *mut CUdeviceptr,
+        psize: *mut usize,
+        dptr: CUdeviceptr,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemAllocHost_v2(pp: *mut *mut ::std::os::raw::c_void, bytesize: usize) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemFreeHost(p: *mut ::std::os::raw::c_void) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemHostAlloc(
+        pp: *mut *mut ::std::os::raw::c_void,
+        bytesize: usize,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemHostGetDevicePointer_v2(
+        pdptr: *mut CUdeviceptr,
+        p: *mut ::std::os::raw::c_void,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemHostGetFlags(
+        pFlags: *mut ::std::os::raw::c_uint,
+        p: *mut ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemAllocManaged(
+        dptr: *mut CUdeviceptr,
+        bytesize: usize,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetByPCIBusId(
+        dev: *mut CUdevice,
+        pciBusId: *const ::std::os::raw::c_char,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetPCIBusId(
+        pciBusId: *mut ::std::os::raw::c_char,
+        len: ::std::os::raw::c_int,
+        dev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuIpcGetEventHandle(pHandle: *mut CUipcEventHandle, event: CUevent) -> CUresult;
+}
+extern "C" {
+    pub fn cuIpcOpenEventHandle(phEvent: *mut CUevent, handle: CUipcEventHandle) -> CUresult;
+}
+extern "C" {
+    pub fn cuIpcGetMemHandle(pHandle: *mut CUipcMemHandle, dptr: CUdeviceptr) -> CUresult;
+}
+extern "C" {
+    pub fn cuIpcOpenMemHandle(
+        pdptr: *mut CUdeviceptr,
+        handle: CUipcMemHandle,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuIpcCloseMemHandle(dptr: CUdeviceptr) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemHostRegister_v2(
+        p: *mut ::std::os::raw::c_void,
+        bytesize: usize,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemHostUnregister(p: *mut ::std::os::raw::c_void) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy(dst: CUdeviceptr, src: CUdeviceptr, ByteCount: usize) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyPeer(
+        dstDevice: CUdeviceptr,
+        dstContext: CUcontext,
+        srcDevice: CUdeviceptr,
+        srcContext: CUcontext,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyHtoD_v2(
+        dstDevice: CUdeviceptr,
+        srcHost: *const ::std::os::raw::c_void,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyDtoH_v2(
+        dstHost: *mut ::std::os::raw::c_void,
+        srcDevice: CUdeviceptr,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyDtoD_v2(
+        dstDevice: CUdeviceptr,
+        srcDevice: CUdeviceptr,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyDtoA_v2(
+        dstArray: CUarray,
+        dstOffset: usize,
+        srcDevice: CUdeviceptr,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyAtoD_v2(
+        dstDevice: CUdeviceptr,
+        srcArray: CUarray,
+        srcOffset: usize,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyHtoA_v2(
+        dstArray: CUarray,
+        dstOffset: usize,
+        srcHost: *const ::std::os::raw::c_void,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyAtoH_v2(
+        dstHost: *mut ::std::os::raw::c_void,
+        srcArray: CUarray,
+        srcOffset: usize,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyAtoA_v2(
+        dstArray: CUarray,
+        dstOffset: usize,
+        srcArray: CUarray,
+        srcOffset: usize,
+        ByteCount: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy2D_v2(pCopy: *const CUDA_MEMCPY2D) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy2DUnaligned_v2(pCopy: *const CUDA_MEMCPY2D) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy3D_v2(pCopy: *const CUDA_MEMCPY3D) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy3DPeer(pCopy: *const CUDA_MEMCPY3D_PEER) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyAsync(
+        dst: CUdeviceptr,
+        src: CUdeviceptr,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyPeerAsync(
+        dstDevice: CUdeviceptr,
+        dstContext: CUcontext,
+        srcDevice: CUdeviceptr,
+        srcContext: CUcontext,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyHtoDAsync_v2(
+        dstDevice: CUdeviceptr,
+        srcHost: *const ::std::os::raw::c_void,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyDtoHAsync_v2(
+        dstHost: *mut ::std::os::raw::c_void,
+        srcDevice: CUdeviceptr,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyDtoDAsync_v2(
+        dstDevice: CUdeviceptr,
+        srcDevice: CUdeviceptr,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyHtoAAsync_v2(
+        dstArray: CUarray,
+        dstOffset: usize,
+        srcHost: *const ::std::os::raw::c_void,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpyAtoHAsync_v2(
+        dstHost: *mut ::std::os::raw::c_void,
+        srcArray: CUarray,
+        srcOffset: usize,
+        ByteCount: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy2DAsync_v2(pCopy: *const CUDA_MEMCPY2D, hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy3DAsync_v2(pCopy: *const CUDA_MEMCPY3D, hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemcpy3DPeerAsync(pCopy: *const CUDA_MEMCPY3D_PEER, hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD8_v2(dstDevice: CUdeviceptr, uc: ::std::os::raw::c_uchar, N: usize)
+        -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD16_v2(
+        dstDevice: CUdeviceptr,
+        us: ::std::os::raw::c_ushort,
+        N: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD32_v2(dstDevice: CUdeviceptr, ui: ::std::os::raw::c_uint, N: usize)
+        -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D8_v2(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        uc: ::std::os::raw::c_uchar,
+        Width: usize,
+        Height: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D16_v2(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        us: ::std::os::raw::c_ushort,
+        Width: usize,
+        Height: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D32_v2(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        ui: ::std::os::raw::c_uint,
+        Width: usize,
+        Height: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD8Async(
+        dstDevice: CUdeviceptr,
+        uc: ::std::os::raw::c_uchar,
+        N: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD16Async(
+        dstDevice: CUdeviceptr,
+        us: ::std::os::raw::c_ushort,
+        N: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD32Async(
+        dstDevice: CUdeviceptr,
+        ui: ::std::os::raw::c_uint,
+        N: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D8Async(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        uc: ::std::os::raw::c_uchar,
+        Width: usize,
+        Height: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D16Async(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        us: ::std::os::raw::c_ushort,
+        Width: usize,
+        Height: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemsetD2D32Async(
+        dstDevice: CUdeviceptr,
+        dstPitch: usize,
+        ui: ::std::os::raw::c_uint,
+        Width: usize,
+        Height: usize,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuArrayCreate_v2(
+        pHandle: *mut CUarray,
+        pAllocateArray: *const CUDA_ARRAY_DESCRIPTOR,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuArrayGetDescriptor_v2(
+        pArrayDescriptor: *mut CUDA_ARRAY_DESCRIPTOR,
+        hArray: CUarray,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuArrayDestroy(hArray: CUarray) -> CUresult;
+}
+extern "C" {
+    pub fn cuArray3DCreate_v2(
+        pHandle: *mut CUarray,
+        pAllocateArray: *const CUDA_ARRAY3D_DESCRIPTOR,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuArray3DGetDescriptor_v2(
+        pArrayDescriptor: *mut CUDA_ARRAY3D_DESCRIPTOR,
+        hArray: CUarray,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMipmappedArrayCreate(
+        pHandle: *mut CUmipmappedArray,
+        pMipmappedArrayDesc: *const CUDA_ARRAY3D_DESCRIPTOR,
+        numMipmapLevels: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMipmappedArrayGetLevel(
+        pLevelArray: *mut CUarray,
+        hMipmappedArray: CUmipmappedArray,
+        level: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMipmappedArrayDestroy(hMipmappedArray: CUmipmappedArray) -> CUresult;
+}
+extern "C" {
+    pub fn cuPointerGetAttribute(
+        data: *mut ::std::os::raw::c_void,
+        attribute: CUpointer_attribute,
+        ptr: CUdeviceptr,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemPrefetchAsync(
+        devPtr: CUdeviceptr,
+        count: usize,
+        dstDevice: CUdevice,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemAdvise(
+        devPtr: CUdeviceptr,
+        count: usize,
+        advice: CUmem_advise,
+        device: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemRangeGetAttribute(
+        data: *mut ::std::os::raw::c_void,
+        dataSize: usize,
+        attribute: CUmem_range_attribute,
+        devPtr: CUdeviceptr,
+        count: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuMemRangeGetAttributes(
+        data: *mut *mut ::std::os::raw::c_void,
+        dataSizes: *mut usize,
+        attributes: *mut CUmem_range_attribute,
+        numAttributes: usize,
+        devPtr: CUdeviceptr,
+        count: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuPointerSetAttribute(
+        value: *const ::std::os::raw::c_void,
+        attribute: CUpointer_attribute,
+        ptr: CUdeviceptr,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuPointerGetAttributes(
+        numAttributes: ::std::os::raw::c_uint,
+        attributes: *mut CUpointer_attribute,
+        data: *mut *mut ::std::os::raw::c_void,
+        ptr: CUdeviceptr,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamCreate(phStream: *mut CUstream, Flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamCreateWithPriority(
+        phStream: *mut CUstream,
+        flags: ::std::os::raw::c_uint,
+        priority: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamGetPriority(hStream: CUstream, priority: *mut ::std::os::raw::c_int)
+        -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamGetFlags(hStream: CUstream, flags: *mut ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamWaitEvent(
+        hStream: CUstream,
+        hEvent: CUevent,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamAddCallback(
+        hStream: CUstream,
+        callback: CUstreamCallback,
+        userData: *mut ::std::os::raw::c_void,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamAttachMemAsync(
+        hStream: CUstream,
+        dptr: CUdeviceptr,
+        length: usize,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamQuery(hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamSynchronize(hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamDestroy_v2(hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventCreate(phEvent: *mut CUevent, Flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventRecord(hEvent: CUevent, hStream: CUstream) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventQuery(hEvent: CUevent) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventSynchronize(hEvent: CUevent) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventDestroy_v2(hEvent: CUevent) -> CUresult;
+}
+extern "C" {
+    pub fn cuEventElapsedTime(pMilliseconds: *mut f32, hStart: CUevent, hEnd: CUevent) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamWaitValue32(
+        stream: CUstream,
+        addr: CUdeviceptr,
+        value: cuuint32_t,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamWriteValue32(
+        stream: CUstream,
+        addr: CUdeviceptr,
+        value: cuuint32_t,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuStreamBatchMemOp(
+        stream: CUstream,
+        count: ::std::os::raw::c_uint,
+        paramArray: *mut CUstreamBatchMemOpParams,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuFuncGetAttribute(
+        pi: *mut ::std::os::raw::c_int,
+        attrib: CUfunction_attribute,
+        hfunc: CUfunction,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuFuncSetCacheConfig(hfunc: CUfunction, config: CUfunc_cache) -> CUresult;
+}
+extern "C" {
+    pub fn cuFuncSetSharedMemConfig(hfunc: CUfunction, config: CUsharedconfig) -> CUresult;
+}
+extern "C" {
+    pub fn cuLaunchKernel(
+        f: CUfunction,
+        gridDimX: ::std::os::raw::c_uint,
+        gridDimY: ::std::os::raw::c_uint,
+        gridDimZ: ::std::os::raw::c_uint,
+        blockDimX: ::std::os::raw::c_uint,
+        blockDimY: ::std::os::raw::c_uint,
+        blockDimZ: ::std::os::raw::c_uint,
+        sharedMemBytes: ::std::os::raw::c_uint,
+        hStream: CUstream,
+        kernelParams: *mut *mut ::std::os::raw::c_void,
+        extra: *mut *mut ::std::os::raw::c_void,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuFuncSetBlockShape(
+        hfunc: CUfunction,
+        x: ::std::os::raw::c_int,
+        y: ::std::os::raw::c_int,
+        z: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuFuncSetSharedSize(hfunc: CUfunction, bytes: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuParamSetSize(hfunc: CUfunction, numbytes: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuParamSeti(
+        hfunc: CUfunction,
+        offset: ::std::os::raw::c_int,
+        value: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuParamSetf(hfunc: CUfunction, offset: ::std::os::raw::c_int, value: f32) -> CUresult;
+}
+extern "C" {
+    pub fn cuParamSetv(
+        hfunc: CUfunction,
+        offset: ::std::os::raw::c_int,
+        ptr: *mut ::std::os::raw::c_void,
+        numbytes: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLaunch(f: CUfunction) -> CUresult;
+}
+extern "C" {
+    pub fn cuLaunchGrid(
+        f: CUfunction,
+        grid_width: ::std::os::raw::c_int,
+        grid_height: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuLaunchGridAsync(
+        f: CUfunction,
+        grid_width: ::std::os::raw::c_int,
+        grid_height: ::std::os::raw::c_int,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuParamSetTexRef(
+        hfunc: CUfunction,
+        texunit: ::std::os::raw::c_int,
+        hTexRef: CUtexref,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuOccupancyMaxActiveBlocksPerMultiprocessor(
+        numBlocks: *mut ::std::os::raw::c_int,
+        func: CUfunction,
+        blockSize: ::std::os::raw::c_int,
+        dynamicSMemSize: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+        numBlocks: *mut ::std::os::raw::c_int,
+        func: CUfunction,
+        blockSize: ::std::os::raw::c_int,
+        dynamicSMemSize: usize,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuOccupancyMaxPotentialBlockSize(
+        minGridSize: *mut ::std::os::raw::c_int,
+        blockSize: *mut ::std::os::raw::c_int,
+        func: CUfunction,
+        blockSizeToDynamicSMemSize: CUoccupancyB2DSize,
+        dynamicSMemSize: usize,
+        blockSizeLimit: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuOccupancyMaxPotentialBlockSizeWithFlags(
+        minGridSize: *mut ::std::os::raw::c_int,
+        blockSize: *mut ::std::os::raw::c_int,
+        func: CUfunction,
+        blockSizeToDynamicSMemSize: CUoccupancyB2DSize,
+        dynamicSMemSize: usize,
+        blockSizeLimit: ::std::os::raw::c_int,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetArray(
+        hTexRef: CUtexref,
+        hArray: CUarray,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetMipmappedArray(
+        hTexRef: CUtexref,
+        hMipmappedArray: CUmipmappedArray,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetAddress_v2(
+        ByteOffset: *mut usize,
+        hTexRef: CUtexref,
+        dptr: CUdeviceptr,
+        bytes: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetAddress2D_v3(
+        hTexRef: CUtexref,
+        desc: *const CUDA_ARRAY_DESCRIPTOR,
+        dptr: CUdeviceptr,
+        Pitch: usize,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetFormat(
+        hTexRef: CUtexref,
+        fmt: CUarray_format,
+        NumPackedComponents: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetAddressMode(
+        hTexRef: CUtexref,
+        dim: ::std::os::raw::c_int,
+        am: CUaddress_mode,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetFilterMode(hTexRef: CUtexref, fm: CUfilter_mode) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetMipmapFilterMode(hTexRef: CUtexref, fm: CUfilter_mode) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetMipmapLevelBias(hTexRef: CUtexref, bias: f32) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetMipmapLevelClamp(
+        hTexRef: CUtexref,
+        minMipmapLevelClamp: f32,
+        maxMipmapLevelClamp: f32,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetMaxAnisotropy(
+        hTexRef: CUtexref,
+        maxAniso: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetBorderColor(hTexRef: CUtexref, pBorderColor: *mut f32) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefSetFlags(hTexRef: CUtexref, Flags: ::std::os::raw::c_uint) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetAddress_v2(pdptr: *mut CUdeviceptr, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetArray(phArray: *mut CUarray, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetMipmappedArray(
+        phMipmappedArray: *mut CUmipmappedArray,
+        hTexRef: CUtexref,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetAddressMode(
+        pam: *mut CUaddress_mode,
+        hTexRef: CUtexref,
+        dim: ::std::os::raw::c_int,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetFilterMode(pfm: *mut CUfilter_mode, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetFormat(
+        pFormat: *mut CUarray_format,
+        pNumChannels: *mut ::std::os::raw::c_int,
+        hTexRef: CUtexref,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetMipmapFilterMode(pfm: *mut CUfilter_mode, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetMipmapLevelBias(pbias: *mut f32, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetMipmapLevelClamp(
+        pminMipmapLevelClamp: *mut f32,
+        pmaxMipmapLevelClamp: *mut f32,
+        hTexRef: CUtexref,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetMaxAnisotropy(
+        pmaxAniso: *mut ::std::os::raw::c_int,
+        hTexRef: CUtexref,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetBorderColor(pBorderColor: *mut f32, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefGetFlags(pFlags: *mut ::std::os::raw::c_uint, hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefCreate(pTexRef: *mut CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexRefDestroy(hTexRef: CUtexref) -> CUresult;
+}
+extern "C" {
+    pub fn cuSurfRefSetArray(
+        hSurfRef: CUsurfref,
+        hArray: CUarray,
+        Flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuSurfRefGetArray(phArray: *mut CUarray, hSurfRef: CUsurfref) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexObjectCreate(
+        pTexObject: *mut CUtexObject,
+        pResDesc: *const CUDA_RESOURCE_DESC,
+        pTexDesc: *const CUDA_TEXTURE_DESC,
+        pResViewDesc: *const CUDA_RESOURCE_VIEW_DESC,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexObjectDestroy(texObject: CUtexObject) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexObjectGetResourceDesc(
+        pResDesc: *mut CUDA_RESOURCE_DESC,
+        texObject: CUtexObject,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexObjectGetTextureDesc(
+        pTexDesc: *mut CUDA_TEXTURE_DESC,
+        texObject: CUtexObject,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuTexObjectGetResourceViewDesc(
+        pResViewDesc: *mut CUDA_RESOURCE_VIEW_DESC,
+        texObject: CUtexObject,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuSurfObjectCreate(
+        pSurfObject: *mut CUsurfObject,
+        pResDesc: *const CUDA_RESOURCE_DESC,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuSurfObjectDestroy(surfObject: CUsurfObject) -> CUresult;
+}
+extern "C" {
+    pub fn cuSurfObjectGetResourceDesc(
+        pResDesc: *mut CUDA_RESOURCE_DESC,
+        surfObject: CUsurfObject,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceCanAccessPeer(
+        canAccessPeer: *mut ::std::os::raw::c_int,
+        dev: CUdevice,
+        peerDev: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuDeviceGetP2PAttribute(
+        value: *mut ::std::os::raw::c_int,
+        attrib: CUdevice_P2PAttribute,
+        srcDevice: CUdevice,
+        dstDevice: CUdevice,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxEnablePeerAccess(peerContext: CUcontext, Flags: ::std::os::raw::c_uint)
+        -> CUresult;
+}
+extern "C" {
+    pub fn cuCtxDisablePeerAccess(peerContext: CUcontext) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsUnregisterResource(resource: CUgraphicsResource) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsSubResourceGetMappedArray(
+        pArray: *mut CUarray,
+        resource: CUgraphicsResource,
+        arrayIndex: ::std::os::raw::c_uint,
+        mipLevel: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsResourceGetMappedMipmappedArray(
+        pMipmappedArray: *mut CUmipmappedArray,
+        resource: CUgraphicsResource,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsResourceGetMappedPointer_v2(
+        pDevPtr: *mut CUdeviceptr,
+        pSize: *mut usize,
+        resource: CUgraphicsResource,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsResourceSetMapFlags_v2(
+        resource: CUgraphicsResource,
+        flags: ::std::os::raw::c_uint,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsMapResources(
+        count: ::std::os::raw::c_uint,
+        resources: *mut CUgraphicsResource,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGraphicsUnmapResources(
+        count: ::std::os::raw::c_uint,
+        resources: *mut CUgraphicsResource,
+        hStream: CUstream,
+    ) -> CUresult;
+}
+extern "C" {
+    pub fn cuGetExportTable(
+        ppExportTable: *mut *const ::std::os::raw::c_void,
+        pExportTableId: *const CUuuid,
+    ) -> CUresult;
+}

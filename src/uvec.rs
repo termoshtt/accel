@@ -1,6 +1,6 @@
 
 use ffi::cuda_runtime as rt;
-use super::error::Result;
+use super::error::*;
 
 use std::os::raw::*;
 use std::ptr::null_mut;
@@ -14,8 +14,9 @@ pub struct UVec<T> {
 impl<T> UVec<T> {
     pub fn new(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
-        let flag = rt::cudaMemAttachGlobal;
-        cudo!(rt::cudaMallocManaged(&mut ptr as *mut *mut c_void, n, flag));
+        check(unsafe {
+            rt::cudaMallocManaged(&mut ptr as *mut *mut c_void, n, rt::cudaMemAttachGlobal)
+        })?;
         Ok(UVec {
             ptr: ptr as *mut T,
             n,
@@ -25,6 +26,6 @@ impl<T> UVec<T> {
 
 impl<T> Drop for UVec<T> {
     fn drop(&mut self) {
-        unsafe { rt::cudaFree(self.ptr as *mut c_void) };
+        check(unsafe { rt::cudaFree(self.ptr as *mut c_void) }).expect("Free failed");
     }
 }

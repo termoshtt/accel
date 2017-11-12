@@ -5,13 +5,6 @@ pub use ffi::cuda::cudaError_enum as cudaError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-#[macro_export]
-macro_rules! cudo {
-    ($st:expr) => {
-        $crate::error::check(unsafe { $st })?;
-    }
-}
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, IntoEnum)]
 pub enum Error {
     cudaError(cudaError),

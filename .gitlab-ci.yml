@@ -1,0 +1,18 @@
+
+cargo-build:
+  image: rust
+  script:
+    - cargo build -v
+  tags:
+    - docker
+  before_script:
+    - rustup toolchain add nightly
+  variables:
+    RUSTUP_TOOLCHAIN: "nightly"
+
+cargo-test:
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - nvidia-docker run --rm -u "$UID:100" -v $PWD:/source -e "RUSTUP_TOOLCHAIN=nightly" -e "HOME=/root" registry.gitlab.com/termoshtt/rust-cuda cargo test -v
+  tags:
+    - nvidia-docker

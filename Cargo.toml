@@ -5,6 +5,7 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
 glob = "*"
+procedurals = "*"
 
 [dependencies.cuda-sys]
 version = "0.1.0"

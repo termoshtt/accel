@@ -1,8 +1,16 @@
 #![allow(non_camel_case_types)]
 
+use ffi::cuda_runtime as rt;
 pub use ffi::cuda::cudaError_enum as cudaError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
+
+#[macro_export]
+macro_rules! cudo {
+    ($st:expr) => {
+        $crate::error::check(unsafe { $st })?;
+    }
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, IntoEnum)]
 pub enum Error {
@@ -112,4 +120,102 @@ pub enum cudaRuntimeError {
     CooperativeLaunchTooLarge = 82,
     StartupFailure = 127,
     ApiFailureBase = 10000,
+}
+impl From<rt::cudaError> for Error {
+    fn from(e: rt::cudaError) -> Error {
+        let e: cudaRuntimeError = e.into();
+        e.into()
+    }
+}
+
+impl From<rt::cudaError> for cudaRuntimeError {
+    fn from(e: rt::cudaError) -> Self {
+        use self::cudaRuntimeError::*;
+        match e {
+            0 => Success,
+            1 => MissingConfiguration,
+            2 => MemoryAllocation,
+            3 => InitializationError,
+            4 => LaunchFailure,
+            5 => PriorLaunchFailure,
+            6 => LaunchTimeout,
+            7 => LaunchOutOfResources,
+            8 => InvalidDeviceFunction,
+            9 => InvalidConfiguration,
+            10 => InvalidDevice,
+            11 => InvalidValue,
+            12 => InvalidPitchValue,
+            13 => InvalidSymbol,
+            14 => MapBufferObjectFailed,
+            15 => UnmapBufferObjectFailed,
+            16 => InvalidHostPointer,
+            17 => InvalidDevicePointer,
+            18 => InvalidTexture,
+            19 => InvalidTextureBinding,
+            20 => InvalidChannelDescriptor,
+            21 => InvalidMemcpyDirection,
+            22 => AddressOfConstant,
+            23 => TextureFetchFailed,
+            24 => TextureNotBound,
+            25 => SynchronizationError,
+            26 => InvalidFilterSetting,
+            27 => InvalidNormSetting,
+            28 => MixedDeviceExecution,
+            29 => CudartUnloading,
+            30 => Unknown,
+            31 => NotYetImplemented,
+            32 => MemoryValueTooLarge,
+            33 => InvalidResourceHandle,
+            34 => NotReady,
+            35 => InsufficientDriver,
+            36 => SetOnActiveProcess,
+            37 => InvalidSurface,
+            38 => NoDevice,
+            39 => ECCUncorrectable,
+            40 => SharedObjectSymbolNotFound,
+            41 => SharedObjectInitFailed,
+            42 => UnsupportedLimit,
+            43 => DuplicateVariableName,
+            44 => DuplicateTextureName,
+            45 => DuplicateSurfaceName,
+            46 => DevicesUnavailable,
+            47 => InvalidKernelImage,
+            48 => NoKernelImageForDevice,
+            49 => IncompatibleDriverContext,
+            50 => PeerAccessAlreadyEnabled,
+            51 => PeerAccessNotEnabled,
+            54 => DeviceAlreadyInUse,
+            55 => ProfilerDisabled,
+            56 => ProfilerNotInitialized,
+            57 => ProfilerAlreadyStarted,
+            58 => ProfilerAlreadyStopped,
+            59 => Assert,
+            60 => TooManyPeers,
+            61 => HostMemoryAlreadyRegistered,
+            62 => HostMemoryNotRegistered,
+            63 => OperatingSystem,
+            64 => PeerAccessUnsupported,
+            65 => LaunchMaxDepthExceeded,
+            66 => LaunchFileScopedTex,
+            67 => LaunchFileScopedSurf,
+            68 => SyncDepthExceeded,
+            69 => LaunchPendingCountExceeded,
+            70 => NotPermitted,
+            71 => NotSupported,
+            72 => HardwareStackError,
+            73 => IllegalInstruction,
+            74 => MisalignedAddress,
+            75 => InvalidAddressSpace,
+            76 => InvalidPc,
+            77 => IllegalAddress,
+            78 => InvalidPtx,
+            79 => InvalidGraphicsContext,
+            80 => NvlinkUncorrectable,
+            81 => JitCompilerNotFound,
+            82 => CooperativeLaunchTooLarge,
+            127 => StartupFailure,
+            10000 => ApiFailureBase,
+            _ => unreachable!("Invalid return value"),
+        }
+    }
 }

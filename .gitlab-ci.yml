@@ -5,10 +5,6 @@ cargo-build:
     - cargo build -v
   tags:
     - docker
-  before_script:
-    - rustup toolchain add nightly
-  variables:
-    RUSTUP_TOOLCHAIN: "nightly"
 
 cargo-test:
   script:

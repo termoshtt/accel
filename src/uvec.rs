@@ -86,8 +86,6 @@ impl<T> Drop for UVec<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sync::*;
-
     #[test]
     fn uvec_new() {
         // zero-filled on GPU

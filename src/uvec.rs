@@ -74,6 +74,10 @@ mod tests {
 
     #[test]
     fn uvec_new() {
-        let _uv: UVec<f64> = UVec::new(1024).unwrap();
+        let n = 1024;
+        let mut uv: UVec<f64> = UVec::new(n).unwrap();
+        for i in 0..n {
+            uv[i] = 0.0;
+        }
     }
 }

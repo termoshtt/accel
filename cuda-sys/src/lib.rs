@@ -1,3 +1,4 @@
+pub mod vector_types;
 pub mod cuda;
 pub mod cuda_runtime;
 pub mod cublas;

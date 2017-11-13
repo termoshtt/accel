@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 
+use vector_types::*;
 use cuda_runtime::*;
 
 pub type cuFloatComplex = float2;

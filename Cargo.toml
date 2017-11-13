@@ -5,6 +5,12 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 [dependencies]
 glob = "*"
+procedurals = "*"
 
-[dev-dependencies]
-acc-derive = { path = "./acc-derive" }
+[dependencies.cuda-sys]
+version = "0.1.0"
+path = "./cuda-sys"
+
+[dev-dependencies.acc-derive]
+version = "0.1.0"
+path = "./acc-derive"

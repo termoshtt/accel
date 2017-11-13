@@ -9,17 +9,21 @@ pub type cuFloatComplex = float2;
 pub type cuDoubleComplex = double2;
 pub type cuComplex = cuFloatComplex;
 
-pub const cublasStatus_t_CUBLAS_STATUS_SUCCESS: cublasStatus_t = 0;
-pub const cublasStatus_t_CUBLAS_STATUS_NOT_INITIALIZED: cublasStatus_t = 1;
-pub const cublasStatus_t_CUBLAS_STATUS_ALLOC_FAILED: cublasStatus_t = 3;
-pub const cublasStatus_t_CUBLAS_STATUS_INVALID_VALUE: cublasStatus_t = 7;
-pub const cublasStatus_t_CUBLAS_STATUS_ARCH_MISMATCH: cublasStatus_t = 8;
-pub const cublasStatus_t_CUBLAS_STATUS_MAPPING_ERROR: cublasStatus_t = 11;
-pub const cublasStatus_t_CUBLAS_STATUS_EXECUTION_FAILED: cublasStatus_t = 13;
-pub const cublasStatus_t_CUBLAS_STATUS_INTERNAL_ERROR: cublasStatus_t = 14;
-pub const cublasStatus_t_CUBLAS_STATUS_NOT_SUPPORTED: cublasStatus_t = 15;
-pub const cublasStatus_t_CUBLAS_STATUS_LICENSE_ERROR: cublasStatus_t = 16;
-pub type cublasStatus_t = ::std::os::raw::c_uint;
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum cublasStatus_t {
+    SUCCESS = 0,
+    NOT_INITIALIZED = 1,
+    ALLOC_FAILED = 3,
+    INVALID_VALUE = 7,
+    ARCH_MISMATCH = 8,
+    MAPPING_ERROR = 11,
+    EXECUTION_FAILED = 13,
+    INTERNAL_ERROR = 14,
+    NOT_SUPPORTED = 15,
+    LICENSE_ERROR = 16,
+}
+
 pub const cublasFillMode_t_CUBLAS_FILL_MODE_LOWER: cublasFillMode_t = 0;
 pub const cublasFillMode_t_CUBLAS_FILL_MODE_UPPER: cublasFillMode_t = 1;
 pub type cublasFillMode_t = ::std::os::raw::c_uint;

@@ -16,9 +16,8 @@ pub struct UVec<T> {
 impl<T> UVec<T> {
     pub fn new(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
-        check(unsafe {
-            rt::cudaMallocManaged(&mut ptr as *mut *mut c_void, n, rt::cudaMemAttachGlobal)
-        })?;
+        unsafe { rt::cudaMallocManaged(&mut ptr as *mut *mut c_void, n, rt::cudaMemAttachGlobal) }
+            .check()?;
         Ok(UVec {
             ptr: ptr as *mut T,
             n,
@@ -64,7 +63,9 @@ impl<T> IndexMut<usize> for UVec<T> {
 
 impl<T> Drop for UVec<T> {
     fn drop(&mut self) {
-        check(unsafe { rt::cudaFree(self.ptr as *mut c_void) }).expect("Free failed");
+        unsafe { rt::cudaFree(self.ptr as *mut c_void) }
+            .check()
+            .expect("Free failed");
     }
 }
 

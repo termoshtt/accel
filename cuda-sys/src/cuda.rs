@@ -766,7 +766,7 @@ pub enum CUresourcetype_enum {
 pub type CUresourcetype = CUresourcetype_enum;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum cudaError_enum {
+pub enum cudaError_t {
     CUDA_SUCCESS = 0,
     CUDA_ERROR_INVALID_VALUE = 1,
     CUDA_ERROR_OUT_OF_MEMORY = 2,
@@ -827,7 +827,7 @@ pub enum cudaError_enum {
     CUDA_ERROR_NOT_SUPPORTED = 801,
     CUDA_ERROR_UNKNOWN = 999,
 }
-pub type CUresult = cudaError_enum;
+pub type CUresult = cudaError_t;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum CUdevice_P2PAttribute_enum {

@@ -1,5 +1,6 @@
 pub mod cuda;
 pub mod cuda_runtime;
+pub mod cublas;
 
 #[test]
 fn cuda_version() {

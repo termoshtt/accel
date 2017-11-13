@@ -29,3 +29,13 @@ impl<T> Drop for UVec<T> {
         check(unsafe { rt::cudaFree(self.ptr as *mut c_void) }).expect("Free failed");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn uvec_new() {
+        let _uv: UVec<f64> = UVec::new(1024).unwrap();
+    }
+}

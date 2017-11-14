@@ -4,7 +4,7 @@ use ffi::vector_types::*;
 use error::*;
 
 use std::ptr::null_mut;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_void};
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -19,12 +19,12 @@ impl Module {
         Ok(Module(handle))
     }
 
-    pub fn get_function(&self, name: &str) -> Result<Function> {
+    pub fn get_function<'m>(&'m self, name: &str) -> Result<Function<'m>> {
         let name = str2cstring(name);
-        let mut f = null_mut();
-        unsafe { cuModuleGetFunction(&mut f as *mut CUfunction, self.0, name.as_ptr()) }
+        let mut func = null_mut();
+        unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
             .check()?;
-        Ok(Function(f))
+        Ok(Function { func, _m: self })
     }
 }
 
@@ -37,9 +37,35 @@ impl Drop for Module {
 }
 
 #[derive(Debug)]
-pub struct Function(CUfunction);
+pub struct Function<'m> {
+    func: CUfunction,
+    _m: &'m Module,
+}
 
-#[derive(Debug, Clone, Copy)]
+impl<'m> Function<'m> {
+    pub unsafe fn launch(
+        &mut self,
+        args: *mut *mut c_void,
+        grid: Grid,
+        block: Block,
+    ) -> Result<()> {
+        cuLaunchKernel(
+            self.func,
+            grid.x,
+            grid.y,
+            grid.z,
+            block.x,
+            block.y,
+            block.z,
+            0, // FIXME: no shared memory
+            null_mut(), // use default stream
+            args,
+            null_mut(), // no extra
+        ).check()
+    }
+}
+
+#[derive(Debug, Clone, Copy, NewType)]
 pub struct Dim3(dim3);
 
 impl Dim3 {

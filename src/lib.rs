@@ -12,4 +12,5 @@ pub mod ptx_builder;
 pub mod uvec;
 pub mod kernel;
 
+pub use uvec::UVec;
 pub use kernel::{Grid, Block};

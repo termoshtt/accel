@@ -19,7 +19,7 @@ pub trait Check {
 
 impl Check for cudaError {
     fn check(self) -> Result<()> {
-        if self != cudaError::CUDA_SUCCESS {
+        if self == cudaError::CUDA_SUCCESS {
             Ok(())
         } else {
             Err(self.into())

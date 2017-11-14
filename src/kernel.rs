@@ -6,12 +6,16 @@ use error::*;
 use std::ptr::null_mut;
 use std::os::raw::{c_char, c_void};
 use std::str::FromStr;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct PTXModule(CUmodule);
 
 impl PTXModule {
     pub fn load(filename: &str) -> Result<Self> {
+        if !Path::new(filename).exists() {
+            panic!("File not found: {}", filename);
+        }
         let filename = str2cstring(filename);
         let mut handle = null_mut();
         unsafe { cuModuleLoad(&mut handle as *mut CUmodule, filename.as_ptr()) }
@@ -63,6 +67,10 @@ impl<'m> Kernel<'m> {
             null_mut(), // no extra
         ).check()
     }
+}
+
+pub fn void_cast<T>(r: &T) -> *mut c_void {
+    &*r as *const T as *mut c_void
 }
 
 #[derive(Debug, Clone, Copy, NewType)]

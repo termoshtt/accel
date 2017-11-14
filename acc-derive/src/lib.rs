@@ -10,37 +10,78 @@ extern crate acc;
 
 use proc_macro::TokenStream;
 use syn::*;
+use std::io::Write;
+
+struct Function {
+    ident: Ident,
+    vis: Visibility,
+    block: Box<Block>,
+    inputs: delimited::Delimited<FnArg, tokens::Comma>,
+    output: FunctionRetTy,
+    fn_token: tokens::Fn_,
+}
+
+impl Function {
+    fn parse(func: TokenStream) -> Self {
+        let Item { node, .. } = syn::parse(func.clone()).unwrap();
+        let ItemFn {
+            ident,
+            vis,
+            block,
+            decl,
+            ..
+        } = match node {
+            ItemKind::Fn(item) => item,
+            _ => unreachable!(""),
+        };
+        let FnDecl {
+            inputs,
+            output,
+            fn_token,
+            ..
+        } = {
+            *decl
+        };
+        Function {
+            ident,
+            vis,
+            block,
+            inputs,
+            output,
+            fn_token,
+        }
+    }
+
+    fn path(&self) -> String {
+        format!("{}_ptx.s", self.ident.to_string())
+    }
+
+    fn input_values(&self) -> Vec<&Pat> {
+        self.inputs
+            .iter()
+            .map(|arg| match arg.into_item() {
+                &FnArg::Captured(ref val) => &val.pat,
+                _ => unreachable!(""),
+            })
+            .collect()
+    }
+}
 
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
-    let ptx_kernel = func2kernel(&func);
-    let ptx = acc::ptx_builder::compile(&ptx_kernel.to_string());
-    println!("PTX = {}", ptx);
+    let func = Function::parse(func);
+    func2kernel(&func);
     func2caller(&func)
 }
 
 /// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
-fn func2kernel(func: &TokenStream) -> TokenStream {
-    let Item { node, .. } = syn::parse(func.clone()).unwrap();
-    let ItemFn {
-        ident,
-        vis,
-        block,
-        decl,
-        ..
-    } = match node {
-        ItemKind::Fn(item) => item,
-        _ => unreachable!(""),
-    };
-
-    let FnDecl {
-        inputs,
-        output,
-        fn_token,
-        ..
-    } = {
-        *decl
-    };
+fn func2kernel(func: &Function) {
+    let vis = &func.vis;
+    let fn_token = &func.fn_token;
+    let ident = &func.ident;
+    let inputs = &func.inputs;
+    let output = &func.output;
+    let block = &func.block;
 
     let kernel =
         quote!{
@@ -49,34 +90,32 @@ fn func2kernel(func: &TokenStream) -> TokenStream {
         #[no_mangle]
         #vis extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
-    kernel.into()
+
+    let ptx = acc::ptx_builder::compile(&kernel.to_string());
+    let mut f = ::std::fs::File::create(&func.path()).unwrap();
+    f.write(ptx.as_bytes()).unwrap();
 }
 
-fn func2caller(func: &TokenStream) -> TokenStream {
-    let Item { node, .. } = syn::parse(func.clone()).unwrap();
-    let ItemFn {
-        ident,
-        vis,
-        decl,
-        ..  // for future compatiblity
-    } = match node {
-        ItemKind::Fn(item) => item,
-        _ => unreachable!("")
-    };
+fn func2caller(func: &Function) -> TokenStream {
+    let vis = &func.vis;
+    let fn_token = &func.fn_token;
+    let ident = &func.ident;
+    let inputs = &func.inputs;
+    let output = &func.output;
 
-    let FnDecl {
-        inputs,
-        output,
-        fn_token,
-        ..
-    } = {
-        *decl
-    };
+    let input_values = func.input_values();
+    let filename = func.path();
+    let kernel_name = quote!{ #ident }.to_string();
 
-    // FIXME call kernel
     let caller =
         quote!{
-        #vis #fn_token #ident(#inputs) #output {}
+        #vis #fn_token #ident(grid: ::acc::Grid, block: ::acc::Block, #inputs) #output {
+            let ptx = ::acc::kernel::PTXModule::load(#filename).unwrap();
+            let mut kernel = ptx.get_function(#kernel_name).unwrap();
+            use acc::kernel::void_cast;
+            let mut args = [#(void_cast(&#input_values)),*];
+            unsafe { kernel.launch(args.as_mut_ptr(), grid, block).unwrap() };
+        }
     };
     caller.into()
 }

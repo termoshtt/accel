@@ -66,27 +66,38 @@ impl<'m> Kernel<'m> {
 }
 
 #[derive(Debug, Clone, Copy, NewType)]
-pub struct Dim3(dim3);
+pub struct Block(dim3);
 
-impl Dim3 {
+impl Block {
     pub fn x(x: u32) -> Self {
-        Dim3(dim3 { x: x, y: 1, z: 1 })
+        Block(dim3 { x: x, y: 1, z: 1 })
     }
 
     pub fn xy(x: u32, y: u32) -> Self {
-        Dim3(dim3 { x: x, y: y, z: 1 })
+        Block(dim3 { x: x, y: y, z: 1 })
     }
 
     pub fn xyz(x: u32, y: u32, z: u32) -> Self {
-        Dim3(dim3 { x: x, y: y, z: z })
+        Block(dim3 { x: x, y: y, z: z })
     }
 }
 
 #[derive(Debug, Clone, Copy, NewType)]
-pub struct Block(Dim3);
+pub struct Grid(dim3);
 
-#[derive(Debug, Clone, Copy, NewType)]
-pub struct Grid(Dim3);
+impl Grid {
+    pub fn x(x: u32) -> Self {
+        Grid(dim3 { x: x, y: 1, z: 1 })
+    }
+
+    pub fn xy(x: u32, y: u32) -> Self {
+        Grid(dim3 { x: x, y: y, z: 1 })
+    }
+
+    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
+        Grid(dim3 { x: x, y: y, z: z })
+    }
+}
 
 fn str2cstring(s: &str) -> Vec<c_char> {
     let cstr = String::from_str(s).unwrap() + "\0";

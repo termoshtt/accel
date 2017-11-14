@@ -10,3 +10,4 @@ extern crate cuda_sys as ffi;
 pub mod error;
 pub mod ptx_builder;
 pub mod uvec;
+pub mod module;

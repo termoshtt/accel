@@ -8,27 +8,27 @@ use std::os::raw::{c_char, c_void};
 use std::str::FromStr;
 
 #[derive(Debug)]
-pub struct Module(CUmodule);
+pub struct PTXModule(CUmodule);
 
-impl Module {
+impl PTXModule {
     pub fn load(filename: &str) -> Result<Self> {
         let filename = str2cstring(filename);
         let mut handle = null_mut();
         unsafe { cuModuleLoad(&mut handle as *mut CUmodule, filename.as_ptr()) }
             .check()?;
-        Ok(Module(handle))
+        Ok(PTXModule(handle))
     }
 
-    pub fn get_function<'m>(&'m self, name: &str) -> Result<Function<'m>> {
+    pub fn get_function<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = str2cstring(name);
         let mut func = null_mut();
         unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
             .check()?;
-        Ok(Function { func, _m: self })
+        Ok(Kernel { func, _m: self })
     }
 }
 
-impl Drop for Module {
+impl Drop for PTXModule {
     fn drop(&mut self) {
         unsafe { cuModuleUnload(self.0) }.check().expect(
             "Failed to unload module",
@@ -37,12 +37,12 @@ impl Drop for Module {
 }
 
 #[derive(Debug)]
-pub struct Function<'m> {
+pub struct Kernel<'m> {
     func: CUfunction,
-    _m: &'m Module,
+    _m: &'m PTXModule,
 }
 
-impl<'m> Function<'m> {
+impl<'m> Kernel<'m> {
     pub unsafe fn launch(
         &mut self,
         args: *mut *mut c_void,

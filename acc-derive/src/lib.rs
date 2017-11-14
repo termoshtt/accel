@@ -11,6 +11,61 @@ extern crate acc;
 use proc_macro::TokenStream;
 use syn::*;
 
+struct Function {
+    ident: Ident,
+    vis: Visibility,
+    block: Box<Block>,
+    inputs: delimited::Delimited<FnArg, tokens::Comma>,
+    output: FunctionRetTy,
+    fn_token: tokens::Fn_,
+}
+
+impl Function {
+    fn parse(func: TokenStream) -> Self {
+        let Item { node, .. } = syn::parse(func.clone()).unwrap();
+        let ItemFn {
+            ident,
+            vis,
+            block,
+            decl,
+            ..
+        } = match node {
+            ItemKind::Fn(item) => item,
+            _ => unreachable!(""),
+        };
+        let FnDecl {
+            inputs,
+            output,
+            fn_token,
+            ..
+        } = {
+            *decl
+        };
+        Function {
+            ident,
+            vis,
+            block,
+            inputs,
+            output,
+            fn_token,
+        }
+    }
+
+    fn path(&self) -> String {
+        format!("{}_ptx.s", self.ident.to_string())
+    }
+
+    fn input_values(&self) -> Vec<&Pat> {
+        self.inputs
+            .iter()
+            .map(|arg| match arg.into_item() {
+                &FnArg::Captured(ref val) => &val.pat,
+                _ => unreachable!(""),
+            })
+            .collect()
+    }
+}
+
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     let ptx_kernel = func2kernel(&func);

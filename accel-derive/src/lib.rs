@@ -6,7 +6,7 @@ extern crate futures_await_quote as quote;
 extern crate futures_await_syn as syn;
 extern crate proc_macro;
 
-extern crate acc;
+extern crate accel;
 
 use proc_macro::TokenStream;
 use syn::*;
@@ -91,7 +91,7 @@ fn func2kernel(func: &Function) {
         #vis extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
 
-    let ptx = acc::ptx_builder::compile(&kernel.to_string());
+    let ptx = accel::ptx_builder::compile(&kernel.to_string());
     let mut f = ::std::fs::File::create(&func.path()).unwrap();
     f.write(ptx.as_bytes()).unwrap();
 }
@@ -109,10 +109,10 @@ fn func2caller(func: &Function) -> TokenStream {
 
     let caller =
         quote!{
-        #vis #fn_token #ident(grid: ::acc::Grid, block: ::acc::Block, #inputs) #output {
-            let ptx = ::acc::kernel::PTXModule::load(#filename).unwrap();
+        #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {
+            let ptx = ::accel::kernel::PTXModule::load(#filename).unwrap();
             let mut kernel = ptx.get_function(#kernel_name).unwrap();
-            use acc::kernel::void_cast;
+            use accel::kernel::void_cast;
             let mut args = [#(void_cast(&#input_values)),*];
             unsafe { kernel.launch(args.as_mut_ptr(), grid, block).unwrap() };
         }

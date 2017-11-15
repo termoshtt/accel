@@ -1,5 +1,5 @@
 [package]
-name = "acc-derive"
+name = "accel-derive"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
@@ -16,5 +16,5 @@ version = "*"
 features = ["full", "fold", "parsing", "printing", "extra-traits"]
 default-features = false
 
-[dependencies.acc]
+[dependencies.accel]
 path = "../"

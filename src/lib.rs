@@ -1,4 +1,4 @@
-//! acc: Write GPGPU code in Rust
+//! accel: Write GPGPU code in Rust
 //! ==============================
 //!
 

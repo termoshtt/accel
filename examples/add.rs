@@ -1,10 +1,10 @@
 #![feature(proc_macro)]
 
-extern crate acc;
-extern crate acc_derive;
+extern crate accel;
+extern crate accel_derive;
 
-use acc_derive::kernel;
-use acc::*;
+use accel_derive::kernel;
+use accel::*;
 
 #[kernel]
 pub fn add(a: *const f64, b: *const f64, c: *mut f64, _n: usize) {

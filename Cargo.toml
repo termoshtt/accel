@@ -1,5 +1,5 @@
 [package]
-name = "acc"
+name = "accel"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
@@ -11,6 +11,6 @@ procedurals = "*"
 version = "0.1.0"
 path = "./cuda-sys"
 
-[dev-dependencies.acc-derive]
+[dev-dependencies.accel-derive]
 version = "0.1.0"
-path = "./acc-derive"
+path = "./accel-derive"

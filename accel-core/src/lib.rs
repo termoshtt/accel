@@ -13,6 +13,7 @@ pub struct Idx3 {
     z: i32,
 }
 
+#[inline(always)]
 pub fn block_dim() -> Dim3 {
     unsafe {
         Dim3 {
@@ -23,6 +24,7 @@ pub fn block_dim() -> Dim3 {
     }
 }
 
+#[inline(always)]
 pub fn block_idx() -> Idx3 {
     unsafe {
         Idx3 {
@@ -33,6 +35,7 @@ pub fn block_idx() -> Idx3 {
     }
 }
 
+#[inline(always)]
 pub fn grid_dim() -> Dim3 {
     unsafe {
         Dim3 {
@@ -43,6 +46,7 @@ pub fn grid_dim() -> Dim3 {
     }
 }
 
+#[inline(always)]
 pub fn thread_idx() -> Idx3 {
     unsafe {
         Idx3 {
@@ -54,12 +58,14 @@ pub fn thread_idx() -> Idx3 {
 }
 
 impl Dim3 {
+    #[inline(always)]
     pub fn size(&self) -> i32 {
         (self.x * self.y * self.z)
     }
 }
 
 impl Idx3 {
+    #[inline(always)]
     pub fn into_id(&self, dim: Dim3) -> i32 {
         self.x + self.y * dim.x + self.z * dim.x * dim.y
     }
@@ -81,6 +87,7 @@ extern "platform-intrinsic" {
     pub fn nvptx_thread_idx_z() -> i32;
 }
 
+#[inline(always)]
 pub fn index() -> isize {
     let block_id = block_idx().into_id(grid_dim());
     let thread_id = thread_idx().into_id(block_dim());

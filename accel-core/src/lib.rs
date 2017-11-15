@@ -14,34 +14,42 @@ pub struct Idx3 {
 }
 
 pub fn block_dim() -> Dim3 {
-    Dim3 {
-        x: nvptx_block_dim_x(),
-        y: nvptx_block_dim_y(),
-        z: nvptx_block_dim_z(),
+    unsafe {
+        Dim3 {
+            x: nvptx_block_dim_x(),
+            y: nvptx_block_dim_y(),
+            z: nvptx_block_dim_z(),
+        }
     }
 }
 
 pub fn block_idx() -> Idx3 {
-    Idx3 {
-        x: nvptx_block_idx_x(),
-        y: nvptx_block_idx_y(),
-        z: nvptx_block_idx_z(),
+    unsafe {
+        Idx3 {
+            x: nvptx_block_idx_x(),
+            y: nvptx_block_idx_y(),
+            z: nvptx_block_idx_z(),
+        }
     }
 }
 
 pub fn grid_dim() -> Dim3 {
-    Dim3 {
-        x: nvptx_grid_dim_x(),
-        y: nvptx_grid_dim_y(),
-        z: nvptx_grid_dim_z(),
+    unsafe {
+        Dim3 {
+            x: nvptx_grid_dim_x(),
+            y: nvptx_grid_dim_y(),
+            z: nvptx_grid_dim_z(),
+        }
     }
 }
 
 pub fn thread_idx() -> Idx3 {
-    Idx3 {
-        x: nvptx_thread_x(),
-        y: nvptx_thread_y(),
-        z: nvptx_thread_z(),
+    unsafe {
+        Idx3 {
+            x: nvptx_thread_idx_x(),
+            y: nvptx_thread_idx_y(),
+            z: nvptx_thread_idx_z(),
+        }
     }
 }
 

@@ -19,8 +19,13 @@ fn main() {
     let mut a = UVec::new(n).unwrap();
     let mut b = UVec::new(n).unwrap();
     let mut c = UVec::new(n).unwrap();
-    a[3] = 1.0;
-    b[3] = 2.0;
+
+    for i in 0..n {
+        a[i] = i as f64;
+        b[i] = 2.0 * i as f64;
+    }
+    println!("a = {:?}", a.as_slice());
+    println!("b = {:?}", b.as_slice());
 
     let grid = Grid::x(64);
     let block = Block::x(64);

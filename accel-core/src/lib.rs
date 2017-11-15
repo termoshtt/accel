@@ -81,8 +81,8 @@ extern "platform-intrinsic" {
     pub fn nvptx_thread_idx_z() -> i32;
 }
 
-pub fn index() -> usize {
+pub fn index() -> isize {
     let block_id = block_idx().into_id(grid_dim());
     let thread_id = thread_idx().into_id(block_dim());
-    (block_id + thread_id) as usize
+    (block_id + thread_id) as isize
 }

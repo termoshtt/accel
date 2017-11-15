@@ -16,6 +16,7 @@ struct Function {
     ident: Ident,
     vis: Visibility,
     block: Box<Block>,
+    unsafety: Unsafety,
     inputs: delimited::Delimited<FnArg, tokens::Comma>,
     output: FunctionRetTy,
     fn_token: tokens::Fn_,
@@ -29,6 +30,7 @@ impl Function {
             vis,
             block,
             decl,
+            unsafety,
             ..
         } = match node {
             ItemKind::Fn(item) => item,
@@ -46,6 +48,7 @@ impl Function {
             ident,
             vis,
             block,
+            unsafety,
             inputs,
             output,
             fn_token,
@@ -79,6 +82,7 @@ fn func2kernel(func: &Function) {
     let vis = &func.vis;
     let fn_token = &func.fn_token;
     let ident = &func.ident;
+    let unsafety = &func.unsafety;
     let inputs = &func.inputs;
     let output = &func.output;
     let block = &func.block;
@@ -87,8 +91,9 @@ fn func2kernel(func: &Function) {
         quote!{
         #![feature(abi_ptx)]
         #![no_std]
+        extern crate accel_core;
         #[no_mangle]
-        #vis extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
+        #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
 
     let ptx = accel::ptx_builder::compile(&kernel.to_string());

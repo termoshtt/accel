@@ -15,12 +15,17 @@ pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
 }
 
 fn main() {
-    let n = 1024;
-    let a = UVec::new(n).unwrap();
-    let b = UVec::new(n).unwrap();
+    let n = 8;
+    let mut a = UVec::new(n).unwrap();
+    let mut b = UVec::new(n).unwrap();
     let mut c = UVec::new(n).unwrap();
+    a[3] = 1.0;
+    b[3] = 2.0;
 
     let grid = Grid::x(64);
     let block = Block::x(64);
     add(grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n);
+
+    device::sync().unwrap();
+    println!("c = {:?}", c.as_slice());
 }

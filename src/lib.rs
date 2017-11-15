@@ -11,6 +11,7 @@ pub mod error;
 pub mod ptx_builder;
 pub mod uvec;
 pub mod kernel;
+pub mod device;
 
 pub use uvec::UVec;
 pub use kernel::{Grid, Block};

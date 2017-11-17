@@ -3,6 +3,10 @@
 //!
 
 #[macro_use]
+extern crate serde_derive;
+extern crate serde;
+extern crate toml;
+#[macro_use]
 extern crate procedurals;
 extern crate glob;
 extern crate cuda_sys as ffi;

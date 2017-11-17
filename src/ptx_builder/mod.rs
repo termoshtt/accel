@@ -1,4 +1,6 @@
 
+mod config;
+
 use std::path::*;
 use std::io::*;
 use std::{fs, env, process};
@@ -14,12 +16,9 @@ pub fn compile(kernel: &str) -> String {
     load_str(&get_ptx_path(&work))
 }
 
-const PTX_BUILDER_TOML: &'static str = include_str!("Cargo.toml");
 const PTX_BUILDER_XARGO: &'static str = include_str!("Xargo.toml");
 const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json");
 
-// japaric/core64 cannot be compiled with recent nightly
-// https://github.com/japaric/nvptx/issues/12
 const NIGHTLY: &'static str = "nightly-2017-11-07";
 
 fn install_file(work_dir: &Path, contents: &str, filename: &str) {
@@ -27,11 +26,15 @@ fn install_file(work_dir: &Path, contents: &str, filename: &str) {
     f.write(contents.as_bytes()).unwrap();
 }
 
-
 /// Copy contents to build PTX
 fn install_builder(work: &Path) {
     install_rustup_nightly();
-    install_file(work, PTX_BUILDER_TOML, "Cargo.toml");
+    let mut dep = config::default_dependencies();
+    dep.get_mut("accel-core").unwrap().path = Some(
+        "/home/teramura/rhq/gitlab.com/termoshtt/accel/accel-core"
+            .to_string(),
+    );
+    install_file(work, &config::into_config(dep).to_string(), "Cargo.toml");
     install_file(work, PTX_BUILDER_XARGO, "Xargo.toml");
     install_file(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");
 }

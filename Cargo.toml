@@ -6,6 +6,9 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 [dependencies]
 glob = "*"
 procedurals = "*"
+serde_derive = "1.*"
+serde = "1.*"
+toml = "*"
 
 [dependencies.cuda-sys]
 version = "0.1.0"

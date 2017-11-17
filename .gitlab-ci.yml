@@ -6,9 +6,9 @@ cargo-build:
   tags:
     - docker
 
-cargo-test:
+cargo-run-gpu:
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - nvidia-docker run --rm -u "$UID:100" -v $PWD:/source -e "RUSTUP_TOOLCHAIN=nightly" -e "HOME=/root" -e "CUDA_LIBRARY_PATH=/usr/local/cuda-9.0/lib64" registry.gitlab.com/termoshtt/rust-cuda cargo test -v
+    - nvidia-docker run --rm -u "$UID:100" -v $PWD:/source --env-file=.nvidia-docker.env registry.gitlab.com/termoshtt/rust-cuda cargo run --example add
   tags:
     - nvidia-docker

@@ -30,10 +30,14 @@ fn install_file(work_dir: &Path, contents: &str, filename: &str) {
 fn install_builder(work: &Path) {
     install_rustup_nightly();
     let mut dep = config::default_dependencies();
-    dep.get_mut("accel-core").unwrap().path = Some(
-        "/home/teramura/rhq/gitlab.com/termoshtt/accel/accel-core"
-            .to_string(),
-    );
+    if let Ok(home) = env::var("ACCEL_HOME") {
+        let core_path = Path::new(&home)
+            .join("accel-core")
+            .to_str()
+            .unwrap()
+            .to_string();
+        dep.get_mut("accel-core").unwrap().path = Some(core_path);
+    }
     install_file(work, &config::into_config(dep).to_string(), "Cargo.toml");
     install_file(work, PTX_BUILDER_XARGO, "Xargo.toml");
     install_file(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");

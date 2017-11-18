@@ -1,10 +1,19 @@
-# Accel: GPGPU programing in Rust
+Accel: GPGPU Framework for Rust
+================================
+
+[![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
 CUDA-based GPGPU framework for Rust
+
+Features
+---------
 
 - Compile PTX Kernel from Rust using NVPTX backend of LLVM (demonstrated in [japaric/nvptx](https://github.com/japaric/nvptx))
 - [proc-macro-attribute](https://github.com/rust-lang/rust/issues/38356)-based approach like [futures-await](https://github.com/alexcrichton/futures-await)
 - Simple memory management using [Unified Memory](http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd)
+
+Example
+--------
 
 ```rust
 #![feature(proc_macro)]
@@ -44,3 +53,7 @@ fn main() {
     println!("c = {:?}", c.as_slice());
 }
 ```
+
+Licence
+--------
+MIT-License

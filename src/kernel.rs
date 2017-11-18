@@ -12,6 +12,14 @@ use std::path::Path;
 pub struct PTXModule(CUmodule);
 
 impl PTXModule {
+    pub fn from_str(ptx_str: &str) -> Result<Self> {
+        let ptx = str2cstring(ptx_str);
+        let mut handle = null_mut();
+        unsafe { cuModuleLoadData(&mut handle as *mut CUmodule, ptx.as_ptr() as *mut c_void) }
+            .check()?;
+        Ok(PTXModule(handle))
+    }
+
     pub fn load(filename: &str) -> Result<Self> {
         if !Path::new(filename).exists() {
             panic!("File not found: {}", filename);

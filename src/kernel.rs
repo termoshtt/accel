@@ -31,7 +31,7 @@ impl PTXModule {
         Ok(PTXModule(handle))
     }
 
-    pub fn get_function<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
+    pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = str2cstring(name);
         let mut func = null_mut();
         unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }

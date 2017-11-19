@@ -19,7 +19,7 @@ pub fn compile(kernel: &str) -> String {
 const PTX_BUILDER_XARGO: &'static str = include_str!("Xargo.toml");
 const PTX_BUILDER_TARGET: &'static str = include_str!("nvptx64-nvidia-cuda.json");
 
-const NIGHTLY: &'static str = "nightly-2017-11-07";
+const NIGHTLY: &'static str = "nightly-2017-11-18";
 
 fn install_file(work_dir: &Path, contents: &str, filename: &str) {
     let mut f = fs::File::create(work_dir.join(filename)).unwrap();

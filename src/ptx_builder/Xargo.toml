@@ -1,2 +1,3 @@
 [dependencies.core]
 git = "https://github.com/japaric/core64"
+rev = "0e29675fda37afa727f96818dabd8cbfb969dba4"

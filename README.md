@@ -12,6 +12,12 @@ Features
 - [proc-macro-attribute](https://github.com/rust-lang/rust/issues/38356)-based approach like [futures-await](https://github.com/alexcrichton/futures-await)
 - Simple memory management using [Unified Memory](http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd)
 
+Sub Crates
+-----------
+- [accel-derive](accel-derive/README.md): Define procedual macro `#[kernel]`
+- [accel-core](accel-core/README.md): Support crate for writing GPU kernel
+- [cuda-sys](cuda-sys/README.md): Rust binding to CUDA Driver/Runtime APIs
+
 Example
 --------
 

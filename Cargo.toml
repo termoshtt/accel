@@ -3,6 +3,14 @@ name = "accel"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
+description   = "GPGPU Framework for Rust"
+documentation = "https://docs.rs/accel"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []
+
 [dependencies]
 glob = "0.2.11"
 procedurals = "0.2.3"

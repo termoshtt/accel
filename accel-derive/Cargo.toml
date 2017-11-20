@@ -3,6 +3,14 @@ name = "accel-derive"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
+description   = "Procedual macro for writing GPGPU kernel"
+documentation = "https://docs.rs/accel-derive/"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA", "proc-macro"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []
+
 [lib]
 proc-macro = true
 

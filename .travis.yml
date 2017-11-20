@@ -6,9 +6,10 @@ rust:
   - nightly
 
 script:
-  - cargo install xargo
-  - cargo test -vv
-  - cargo run --release --example add
+  - cargo install cargo-check
+  - cargo check
+  - cd accel-core/ && cargo check && cd -
+  - cd accel-derive/ && cargo check && cd -
 
 env:
   - RUST_BACKTRACE=1

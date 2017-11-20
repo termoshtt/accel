@@ -21,7 +21,3 @@ toml = "0.4.5"
 [dependencies.cuda-sys]
 version = "0.1.0"
 path = "./cuda-sys"
-
-[dev-dependencies.accel-derive]
-version = "0.1.0"
-path = "./accel-derive"

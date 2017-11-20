@@ -1,6 +1,8 @@
 Accel: GPGPU Framework for Rust
 ================================
 
+[![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)
+[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)
 [![Build Status](https://travis-ci.org/termoshtt/accel.svg?branch=master)](https://travis-ci.org/termoshtt/accel)
 [![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 

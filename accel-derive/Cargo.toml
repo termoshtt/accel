@@ -3,18 +3,27 @@ name = "accel-derive"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
+description   = "Procedual macro for writing GPGPU kernel"
+documentation = "https://docs.rs/accel-derive/"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA", "proc-macro"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []
+
 [lib]
 proc-macro = true
 
 [dependencies]
-synom = "*"
+synom = "0.11.3"
 futures-await-quote = "0.4"
 proc-macro2 = { version = "0.1", features = ["unstable"] }
 
 [dependencies.futures-await-syn]
-version = "*"
+version = "0.12"
 features = ["full", "fold", "parsing", "printing", "extra-traits"]
 default-features = false
 
 [dependencies.accel]
 path = "../"
+version = "0.1.0"

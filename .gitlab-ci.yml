@@ -1,11 +1,4 @@
 
-cargo-build:
-  image: rust
-  script:
-    - cargo build -v
-  tags:
-    - docker
-
 cargo-run-gpu:
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com

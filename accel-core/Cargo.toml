@@ -3,4 +3,10 @@ name = "accel-core"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
-[dependencies]
+description   = "Support crate for writing GPGPU kernels using accel"
+documentation = "https://docs.rs/accel-core/"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA", "platform-intrinsic"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []

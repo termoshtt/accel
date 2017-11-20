@@ -1,6 +1,9 @@
 Accel: GPGPU Framework for Rust
 ================================
 
+[![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)
+[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)
+[![Build Status](https://travis-ci.org/termoshtt/accel.svg?branch=master)](https://travis-ci.org/termoshtt/accel)
 [![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
 CUDA-based GPGPU framework for Rust
@@ -11,6 +14,24 @@ Features
 - Compile PTX Kernel from Rust using NVPTX backend of LLVM (demonstrated in [japaric/nvptx](https://github.com/japaric/nvptx))
 - [proc-macro-attribute](https://github.com/rust-lang/rust/issues/38356)-based approach like [futures-await](https://github.com/alexcrichton/futures-await)
 - Simple memory management using [Unified Memory](http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd)
+
+Sub Crates
+-----------
+- [accel-derive](accel-derive/README.md): Define procedual macro `#[kernel]`
+- [accel-core](accel-core/README.md): Support crate for writing GPU kernel
+- [cuda-sys](cuda-sys/README.md): Rust binding to CUDA Driver/Runtime APIs
+
+Pre-requirements
+---------------
+
+- Install [CUDA](https://developer.nvidia.com/cuda-downloads)
+- Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
+    - `accel-derive` uses `rustup toolchain` command.
+- Install `xargo`:
+
+```
+cargo install xargo
+```
 
 Example
 --------

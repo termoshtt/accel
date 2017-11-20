@@ -5,3 +5,12 @@ authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 build = "build.rs"
 links = "cuda"
+
+description   = "Rust binding to CUDA Driver/Runtime APIs"
+documentation = "https://docs.rs/cuda-sys/"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA", "ffi"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []
+

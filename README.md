@@ -18,6 +18,18 @@ Sub Crates
 - [accel-core](accel-core/README.md): Support crate for writing GPU kernel
 - [cuda-sys](cuda-sys/README.md): Rust binding to CUDA Driver/Runtime APIs
 
+Pre-requirements
+---------------
+
+- Install [CUDA](https://developer.nvidia.com/cuda-downloads)
+- Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
+    - `accel-derive` uses `rustup toolchain` command.
+- Install `xargo`:
+
+```
+cargo install xargo
+```
+
 Example
 --------
 

@@ -1,6 +1,7 @@
 Accel: GPGPU Framework for Rust
 ================================
 
+[![Build Status](https://travis-ci.org/termoshtt/accel.svg?branch=master)](https://travis-ci.org/termoshtt/accel)
 [![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
 CUDA-based GPGPU framework for Rust

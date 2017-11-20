@@ -10,6 +10,7 @@ script:
   - cargo check
   - cd accel-core/ && cargo check && cd -
   - cd accel-derive/ && cargo check && cd -
+  - cd cuda-sys/ && cargo check && cd -
 
 env:
   - RUST_BACKTRACE=1

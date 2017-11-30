@@ -8,6 +8,7 @@ use std::os::raw::{c_uint, c_char, c_void};
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
+use std::ffi::CStr;
 
 pub type JITOption = Option<HashMap<CUjit_option, *mut c_void>>;
 
@@ -24,6 +25,7 @@ fn parse(option: &JITOption) -> (c_uint, Vec<CUjit_option>, Vec<*mut c_void>) {
 pub enum Data {
     PTX(String),
     PTXFile(PathBuf),
+    Cubin(Vec<u8>),
     CubinFile(PathBuf),
 }
 
@@ -31,6 +33,7 @@ impl Data {
     fn input_type(&self) -> CUjitInputType {
         match *self {
             Data::PTX(_) | Data::PTXFile(_) => CUjitInputType_enum::CU_JIT_INPUT_PTX,
+            Data::Cubin(_) |
             Data::CubinFile(_) => CUjitInputType_enum::CU_JIT_INPUT_CUBIN,
         }
     }
@@ -45,6 +48,15 @@ impl Drop for Linker {
             "Failed to release Linker",
         );
     }
+}
+
+pub fn link(data: &[Data], opt: &JITOption) -> Result<PTXModule> {
+    let mut l = Linker::create(opt)?;
+    for d in data {
+        l.add(d, opt)?;
+    }
+    let cubin = l.complete()?;
+    PTXModule::load(&cubin)
 }
 
 impl Linker {
@@ -103,6 +115,11 @@ impl Linker {
                 let (ptr, n) = str2void(ptx);
                 self.add_data(data.input_type(), ptr, n, opt)?;
             },
+            Data::Cubin(ref bin) => unsafe {
+                let ptr = bin.as_ptr() as *mut _;
+                let n = bin.len();
+                self.add_data(data.input_type(), ptr, n, opt)?;
+            },
             Data::PTXFile(ref path) |
             Data::CubinFile(ref path) => unsafe {
                 self.add_file(data.input_type(), path, opt)?;
@@ -110,29 +127,60 @@ impl Linker {
         };
         Ok(())
     }
+
+    /// Wrapper of cuLinkComplete
+    ///
+    /// LinkComplete returns a reference to cubin,
+    /// which is managed by LinkState.
+    /// Use owned strategy to avoid considering lifetime.
+    pub fn complete(&mut self) -> Result<Data> {
+        let cubin = null_mut();
+        let size = null_mut();
+        unsafe {
+            cuLinkComplete(self.0, cubin as *mut *mut _, size as *mut usize)
+                .check()?;
+            Ok(Data::Cubin(CStr::from_ptr(*cubin).to_bytes().to_vec()))
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct PTXModule(CUmodule);
 
 impl PTXModule {
-    pub fn from_str(ptx_str: &str) -> Result<Self> {
-        let ptx = str2cstring(ptx_str);
+    pub fn load(data: &Data) -> Result<Self> {
+        match *data {
+            Data::PTX(ref ptx) => unsafe {
+                let (ptr, _) = str2void(ptx);
+                Self::load_data(ptr)
+            },
+            Data::Cubin(ref bin) => unsafe {
+                let ptr = bin.as_ptr() as *mut _;
+                Self::load_data(ptr)
+            },
+            Data::PTXFile(ref path) |
+            Data::CubinFile(ref path) => Self::load_file(path),
+        }
+    }
+
+    unsafe fn load_data(ptr: *mut c_void) -> Result<Self> {
         let mut handle = null_mut();
-        unsafe { cuModuleLoadData(&mut handle as *mut CUmodule, ptx.as_ptr() as *mut c_void) }
-            .check()?;
+        let m = &mut handle as *mut CUmodule;
+        cuModuleLoadData(m, ptr).check()?;
         Ok(PTXModule(handle))
     }
 
-    pub fn load(filename: &str) -> Result<Self> {
-        if !Path::new(filename).exists() {
-            panic!("File not found: {}", filename);
-        }
-        let filename = str2cstring(filename);
+    pub fn load_file(path: &Path) -> Result<Self> {
         let mut handle = null_mut();
-        unsafe { cuModuleLoad(&mut handle as *mut CUmodule, filename.as_ptr()) }
-            .check()?;
+        let m = &mut handle as *mut CUmodule;
+        let filename = str2cstring(path.to_str().unwrap());
+        unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
         Ok(PTXModule(handle))
+    }
+
+    pub fn from_str(ptx: &str) -> Result<Self> {
+        let data = Data::PTX(ptx.to_owned());
+        Self::load(&data)
     }
 
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {

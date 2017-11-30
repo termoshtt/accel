@@ -29,6 +29,22 @@ pub enum Data {
     CubinFile(PathBuf),
 }
 
+pub fn ptx(s: &str) -> Data {
+    Data::PTX(s.to_owned())
+}
+
+pub fn cubin(sl: &[u8]) -> Data {
+    Data::Cubin(sl.to_vec())
+}
+
+pub fn ptx_file(path: &Path) -> Data {
+    Data::PTXFile(path.to_owned())
+}
+
+pub fn cubin_file(path: &Path) -> Data {
+    Data::CubinFile(path.to_owned())
+}
+
 impl Data {
     fn input_type(&self) -> CUjitInputType {
         match *self {
@@ -134,12 +150,11 @@ impl Linker {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(&mut self) -> Result<Data> {
-        let cubin = null_mut();
-        let size = null_mut();
+        let mut cb = null_mut();
         unsafe {
-            cuLinkComplete(self.0, cubin as *mut *mut _, size as *mut usize)
+            cuLinkComplete(self.0, &mut cb as *mut _, null_mut())
                 .check()?;
-            Ok(Data::Cubin(CStr::from_ptr(*cubin).to_bytes().to_vec()))
+            Ok(cubin(CStr::from_ptr(cb as *const i8).to_bytes()))
         }
     }
 }

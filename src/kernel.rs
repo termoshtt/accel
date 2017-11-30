@@ -22,6 +22,7 @@ fn parse(option: &JITOption) -> (c_uint, Vec<CUjit_option>, Vec<*mut c_void>) {
     }
 }
 
+#[derive(Debug)]
 pub enum Data {
     PTX(String),
     PTXFile(PathBuf),
@@ -29,20 +30,22 @@ pub enum Data {
     CubinFile(PathBuf),
 }
 
-pub fn ptx(s: &str) -> Data {
-    Data::PTX(s.to_owned())
-}
+impl Data {
+    pub fn ptx(s: &str) -> Data {
+        Data::PTX(s.to_owned())
+    }
 
-pub fn cubin(sl: &[u8]) -> Data {
-    Data::Cubin(sl.to_vec())
-}
+    pub fn cubin(sl: &[u8]) -> Data {
+        Data::Cubin(sl.to_vec())
+    }
 
-pub fn ptx_file(path: &Path) -> Data {
-    Data::PTXFile(path.to_owned())
-}
+    pub fn ptx_file(path: &Path) -> Data {
+        Data::PTXFile(path.to_owned())
+    }
 
-pub fn cubin_file(path: &Path) -> Data {
-    Data::CubinFile(path.to_owned())
+    pub fn cubin_file(path: &Path) -> Data {
+        Data::CubinFile(path.to_owned())
+    }
 }
 
 impl Data {
@@ -156,7 +159,7 @@ impl Linker {
         unsafe {
             cuLinkComplete(self.0, &mut cb as *mut _, null_mut())
                 .check()?;
-            Ok(cubin(CStr::from_ptr(cb as *const i8).to_bytes()))
+            Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
 }

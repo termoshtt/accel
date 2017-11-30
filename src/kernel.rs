@@ -128,7 +128,9 @@ impl Linker {
     pub fn add(&mut self, data: &Data, opt: &JITOption) -> Result<()> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
-                let (ptr, n) = str2void(ptx);
+                let mut cstr = str2cstring(ptx);
+                let ptr = cstr.as_mut_ptr() as *mut _;
+                let n = cstr.len();
                 self.add_data(data.input_type(), ptr, n, opt)?;
             },
             Data::Cubin(ref bin) => unsafe {
@@ -166,8 +168,8 @@ impl PTXModule {
     pub fn load(data: &Data) -> Result<Self> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
-                let (ptr, _) = str2void(ptx);
-                Self::load_data(ptr)
+                let cstr = str2cstring(ptx);
+                Self::load_data(cstr.as_ptr() as _)
             },
             Data::Cubin(ref bin) => unsafe {
                 let ptr = bin.as_ptr() as *mut _;
@@ -178,7 +180,7 @@ impl PTXModule {
         }
     }
 
-    unsafe fn load_data(ptr: *mut c_void) -> Result<Self> {
+    unsafe fn load_data(ptr: *const c_void) -> Result<Self> {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         cuModuleLoadData(m, ptr).check()?;
@@ -285,9 +287,4 @@ impl Grid {
 fn str2cstring(s: &str) -> Vec<c_char> {
     let cstr = String::from_str(s).unwrap() + "\0";
     cstr.into_bytes().into_iter().map(|c| c as c_char).collect()
-}
-
-unsafe fn str2void(s: &str) -> (*mut c_void, usize) {
-    let mut cstr = str2cstring(s);
-    (cstr.as_mut_ptr() as *mut _, cstr.len())
 }

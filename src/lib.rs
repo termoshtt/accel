@@ -15,6 +15,7 @@ pub mod error;
 pub mod ptx_builder;
 pub mod uvec;
 pub mod kernel;
+pub mod module;
 pub mod device;
 
 pub use uvec::UVec;

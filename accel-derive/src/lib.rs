@@ -132,15 +132,15 @@ fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
     let caller =
         quote!{
         mod ptx_mod {
-            use std::cell::RefCell;
-            use accel::kernel::Module;
+            use ::std::cell::RefCell;
+            use ::accel::module::Module;
             thread_local! {
                 #[allow(non_upper_case_globals)]
                 pub static #ident: RefCell<Module> = RefCell::new(Module::from_str(#ptx_str).unwrap());
             }
         }
         #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {
-            use accel::kernel::void_cast;
+            use ::accel::kernel::void_cast;
             ptx_mod::#ident.with(|m| {
                 let m = m.borrow();
                 let mut kernel = m.get_kernel(#kernel_name).unwrap();

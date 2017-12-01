@@ -41,40 +41,50 @@ impl<'m> Kernel<'m> {
     }
 }
 
-/// Get type-eraised pointer
+/// Get type-erased pointer
 pub fn void_cast<T>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }
 
+/// Size of Block in CUDA thread hierarchy
+/// http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model
 #[derive(Debug, Clone, Copy, NewType)]
 pub struct Block(dim3);
 
 impl Block {
+    /// one-dimensional
     pub fn x(x: u32) -> Self {
         Block(dim3 { x: x, y: 1, z: 1 })
     }
 
+    /// two-dimensional
     pub fn xy(x: u32, y: u32) -> Self {
         Block(dim3 { x: x, y: y, z: 1 })
     }
 
+    /// three-dimensional
     pub fn xyz(x: u32, y: u32, z: u32) -> Self {
         Block(dim3 { x: x, y: y, z: z })
     }
 }
 
+/// Size of Grid in CUDA thread hierarchy
+/// http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model
 #[derive(Debug, Clone, Copy, NewType)]
 pub struct Grid(dim3);
 
 impl Grid {
+    /// one-dimensional
     pub fn x(x: u32) -> Self {
         Grid(dim3 { x: x, y: 1, z: 1 })
     }
 
+    /// two-dimensional
     pub fn xy(x: u32, y: u32) -> Self {
         Grid(dim3 { x: x, y: y, z: 1 })
     }
 
+    /// three-dimensional
     pub fn xyz(x: u32, y: u32, z: u32) -> Self {
         Grid(dim3 { x: x, y: y, z: z })
     }

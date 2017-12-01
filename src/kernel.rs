@@ -1,3 +1,8 @@
+//! Submodule for the resource of CUDA middle-IR (PTX/cubin)
+//!
+//! This module includes a wrapper of `cuLink*` and `cuModule*` APIs.
+//!
+//! http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html
 
 use ffi::cuda::*;
 use ffi::vector_types::*;
@@ -10,8 +15,13 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use std::ffi::CStr;
 
+/// Option for JIT compile
+///
+/// A wrapper of `CUjit_option`
+/// http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
 pub type JITOption = Option<HashMap<CUjit_option, *mut c_void>>;
 
+/// Parse JIT option to use for `cuLink*` APIs
 fn parse(option: &JITOption) -> (c_uint, Vec<CUjit_option>, Vec<*mut c_void>) {
     if let &Some(ref hmap) = option {
         let opt_name: Vec<_> = hmap.keys().cloned().collect();
@@ -22,6 +32,7 @@ fn parse(option: &JITOption) -> (c_uint, Vec<CUjit_option>, Vec<*mut c_void>) {
     }
 }
 
+/// Represent the resource of CUDA middle-IR (PTX/cubin)
 #[derive(Debug)]
 pub enum Data {
     PTX(String),
@@ -31,24 +42,29 @@ pub enum Data {
 }
 
 impl Data {
+    /// Constructor for `Data::PTX`
     pub fn ptx(s: &str) -> Data {
         Data::PTX(s.to_owned())
     }
 
+    /// Constructor for `Data::Cubin`
     pub fn cubin(sl: &[u8]) -> Data {
         Data::Cubin(sl.to_vec())
     }
 
+    /// Constructor for `Data::PTXFile`
     pub fn ptx_file(path: &Path) -> Data {
         Data::PTXFile(path.to_owned())
     }
 
+    /// Constructor for `Data::CubinFile`
     pub fn cubin_file(path: &Path) -> Data {
         Data::CubinFile(path.to_owned())
     }
 }
 
 impl Data {
+    /// Get type of PTX/cubin
     fn input_type(&self) -> CUjitInputType {
         match *self {
             Data::PTX(_) | Data::PTXFile(_) => CUjitInputType_enum::CU_JIT_INPUT_PTX,
@@ -58,6 +74,7 @@ impl Data {
     }
 }
 
+/// OOP-like wrapper for `cuLink*` APIs
 #[derive(Debug)]
 pub struct Linker(CUlinkState);
 
@@ -69,16 +86,18 @@ impl Drop for Linker {
     }
 }
 
-pub fn link(data: &[Data], opt: &JITOption) -> Result<PTXModule> {
+/// Link PTX/cubin into a module
+pub fn link(data: &[Data], opt: &JITOption) -> Result<Module> {
     let mut l = Linker::create(opt)?;
     for d in data {
         l.add(d, opt)?;
     }
     let cubin = l.complete()?;
-    PTXModule::load(&cubin)
+    Module::load(&cubin)
 }
 
 impl Linker {
+    /// Create a new Linker
     pub fn create(option: &JITOption) -> Result<Self> {
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
@@ -87,6 +106,7 @@ impl Linker {
         Ok(Linker(st))
     }
 
+    /// Wrapper of cuLinkAddData
     unsafe fn add_data(
         &mut self,
         input_type: CUjitInputType,
@@ -109,6 +129,7 @@ impl Linker {
         Ok(())
     }
 
+    /// Wrapper of cuLinkAddFile
     unsafe fn add_file(
         &mut self,
         input_type: CUjitInputType,
@@ -128,6 +149,7 @@ impl Linker {
         Ok(())
     }
 
+    /// Add a resouce into the linker stack.
     pub fn add(&mut self, data: &Data, opt: &JITOption) -> Result<()> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
@@ -164,10 +186,12 @@ impl Linker {
     }
 }
 
+/// OOP-like wrapper of `cuModule*` APIs
 #[derive(Debug)]
-pub struct PTXModule(CUmodule);
+pub struct Module(CUmodule);
 
-impl PTXModule {
+impl Module {
+    /// integrated loader of Data
     pub fn load(data: &Data) -> Result<Self> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
@@ -183,26 +207,29 @@ impl PTXModule {
         }
     }
 
+    /// Wrapper for `cuModuleLoadData`
     unsafe fn load_data(ptr: *const c_void) -> Result<Self> {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         cuModuleLoadData(m, ptr).check()?;
-        Ok(PTXModule(handle))
+        Ok(Module(handle))
     }
 
+    /// Wrapper for `cuModuleLoad`
     pub fn load_file(path: &Path) -> Result<Self> {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         let filename = str2cstring(path.to_str().unwrap());
         unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
-        Ok(PTXModule(handle))
+        Ok(Module(handle))
     }
 
     pub fn from_str(ptx: &str) -> Result<Self> {
-        let data = Data::PTX(ptx.to_owned());
+        let data = Data::ptx(ptx);
         Self::load(&data)
     }
 
+    /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = str2cstring(name);
         let mut func = null_mut();
@@ -212,7 +239,7 @@ impl PTXModule {
     }
 }
 
-impl Drop for PTXModule {
+impl Drop for Module {
     fn drop(&mut self) {
         unsafe { cuModuleUnload(self.0) }.check().expect(
             "Failed to unload module",
@@ -220,13 +247,17 @@ impl Drop for PTXModule {
     }
 }
 
+/// Handler of CUDA Kernel function
+///
+/// This keep a reference to loaded module `'m`
 #[derive(Debug)]
 pub struct Kernel<'m> {
     func: CUfunction,
-    _m: &'m PTXModule,
+    _m: &'m Module,
 }
 
 impl<'m> Kernel<'m> {
+    /// Call CUDA kernel using `cuLaunchKernel`
     pub unsafe fn launch(
         &mut self,
         args: *mut *mut c_void,
@@ -249,6 +280,7 @@ impl<'m> Kernel<'m> {
     }
 }
 
+/// Get type-eraised pointer
 pub fn void_cast<T>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }

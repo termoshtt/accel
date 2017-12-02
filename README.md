@@ -46,6 +46,7 @@ use accel_derive::kernel;
 use accel::*;
 
 #[kernel]
+#[depends("accel-core" = "0.1")]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {

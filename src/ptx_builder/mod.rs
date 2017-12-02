@@ -1,5 +1,6 @@
 
 mod config;
+pub use self::config::{Crate, Depends};
 
 use std::path::*;
 use std::io::*;
@@ -7,10 +8,10 @@ use std::{fs, env, process};
 use glob::glob;
 
 /// Compile kernel code into PTX using NVPTX backend
-pub fn compile(kernel: &str) -> String {
+pub fn compile(kernel: &str, deps: Depends) -> String {
     let work = work_dir();
     create_dir(&work);
-    install_builder(&work);
+    install_builder(&work, deps);
     install_file(&work.join("src"), kernel, "lib.rs");
     compile_builder(&work);
     load_str(&get_ptx_path(&work))
@@ -27,18 +28,9 @@ fn install_file(work_dir: &Path, contents: &str, filename: &str) {
 }
 
 /// Copy contents to build PTX
-fn install_builder(work: &Path) {
+fn install_builder(work: &Path, deps: Depends) {
     install_rustup_nightly();
-    let mut dep = config::default_dependencies();
-    if let Ok(home) = env::var("ACCEL_HOME") {
-        let core_path = Path::new(&home)
-            .join("accel-core")
-            .to_str()
-            .unwrap()
-            .to_string();
-        dep.get_mut("accel-core").unwrap().path = Some(core_path);
-    }
-    install_file(work, &config::into_config(dep).to_string(), "Cargo.toml");
+    install_file(work, &deps.to_string(), "Cargo.toml");
     install_file(work, PTX_BUILDER_XARGO, "Xargo.toml");
     install_file(work, PTX_BUILDER_TARGET, "nvptx64-nvidia-cuda.json");
 }

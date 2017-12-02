@@ -104,15 +104,18 @@ fn func2kernel(func: &Function) -> String {
     let output = &func.output;
     let block = &func.block;
 
+    let deps = parse_depends(func);
+    let crates: Vec<Ident> = deps.iter()
+        .map(|c| c.name().replace("-", "_").into())
+        .collect();
     let kernel =
         quote!{
         #![feature(abi_ptx)]
         #![no_std]
-        extern crate accel_core;
+        #(extern crate #crates;), *
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
-    let deps = parse_depends(func);
     compile(&kernel.to_string(), deps)
 }
 

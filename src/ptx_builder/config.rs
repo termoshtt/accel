@@ -40,6 +40,10 @@ pub struct Crate {
 }
 
 impl Crate {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn from_depends_str(dep: &str) -> Self {
         let pat: &[_] = &[' ', '"'];
         let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();

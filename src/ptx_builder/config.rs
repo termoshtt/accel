@@ -10,10 +10,6 @@ impl Depends {
     pub fn new() -> Self {
         Depends(Vec::new())
     }
-
-    pub fn parse_append(&mut self, deps: &str) {
-        self.push(Crate::parse(deps))
-    }
 }
 
 impl ToString for Depends {
@@ -44,32 +40,41 @@ pub struct Crate {
 }
 
 impl Crate {
-    pub fn parse(_dep: &str) -> Self {
-        // TODO moc
-        Self::new("parsed")
-    }
-
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-            version: None,
-            path: None,
+    pub fn from_depends_str(dep: &str) -> Self {
+        let pat: &[_] = &[' ', '"'];
+        let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
+        match tokens.len() {
+            // #[depends("accel-core")]
+            1 => Self {
+                name: tokens[0].to_owned(),
+                version: None,
+                path: None,
+            },
+            // #[depends("accel-core" = "0.1.0")]
+            2 => {
+                Self {
+                    name: tokens[0].to_owned(),
+                    version: Some(tokens[1].to_owned()),
+                    path: None,
+                }
+            }
+            _ => unreachable!("Invalid line: {}", dep),
         }
     }
 
-    pub fn with_version(name: &str, version: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-            version: Some(version.to_owned()),
-            path: None,
-        }
-    }
-
-    pub fn with_path(name: &str, path: &Path) -> Self {
-        Self {
-            name: name.to_owned(),
-            version: None,
-            path: Some(path.to_owned()),
+    pub fn from_depends_path_str(dep: &str) -> Self {
+        let pat: &[_] = &[' ', '"'];
+        let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
+        match tokens.len() {
+            // #[depends_path("accel-core" = "/some/path")]
+            2 => {
+                Self {
+                    name: tokens[0].to_owned(),
+                    version: None,
+                    path: Some(PathBuf::from(tokens[1])),
+                }
+            }
+            _ => unreachable!("Invalid line: {}", dep),
         }
     }
 }
@@ -118,7 +123,7 @@ impl Default for DevProfile {
     }
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 struct CrateInfo {
     pub path: Option<String>,
     pub version: String,

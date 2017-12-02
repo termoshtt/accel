@@ -81,12 +81,15 @@ fn parse_depends(func: &Function) -> Depends {
     for attr in &func.attrs {
         let path = &attr.path;
         let path = &quote!{#path}.to_string();
-        if path != "depends" {
-            unreachable!("Unsupported attribute: {:?}", path);
-        }
         let tts = &attr.tts[0];
         let tts = &quote!{#tts}.to_string();
-        deps.parse_append(tts);
+        let pene: &[_] = &['(', ')'];
+        let dep = tts.trim_matches(pene);
+        match path as &str {
+            "depends" => deps.push(Crate::from_depends_str(dep)),
+            "depends_path" => deps.push(Crate::from_depends_path_str(dep)),
+            _ => unreachable!("Unsupported attribute: {:?}", path),
+        }
     }
     deps
 }

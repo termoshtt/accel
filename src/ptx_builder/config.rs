@@ -1,65 +1,123 @@
 
 use std::collections::HashMap;
+use std::path::*;
 use toml;
 
+#[derive(Debug, NewType)]
+pub struct Depends(Vec<Crate>);
+
+impl Depends {
+    pub fn parse_append(&mut self, deps: &str) {
+        self.push(Crate::parse(deps))
+    }
+}
+
+impl ToString for Depends {
+    fn to_string(&self) -> String {
+        let dependencies = self.iter()
+            .cloned()
+            .map(|c| {
+                let name = c.name;
+                let version = c.version.unwrap_or("*".to_string());
+                let path = c.path.map(|p| p.to_str().unwrap().to_owned());
+                (name, CrateInfo { version, path })
+            })
+            .collect();
+        let cargo = CargoTOML {
+            package: Package::default(),
+            profile: Profile::default(),
+            dependencies,
+        };
+        toml::to_string(&cargo).unwrap()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Crate {
+    name: String,
+    version: Option<String>,
+    path: Option<PathBuf>,
+}
+
+impl Crate {
+    pub fn parse(_dep: &str) -> Self {
+        // TODO moc
+        Self::new("parsed")
+    }
+
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            version: None,
+            path: None,
+        }
+    }
+
+    pub fn with_version(name: &str, version: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            version: Some(version.to_owned()),
+            path: None,
+        }
+    }
+
+    pub fn with_path(name: &str, path: &Path) -> Self {
+        Self {
+            name: name.to_owned(),
+            version: None,
+            path: Some(path.to_owned()),
+        }
+    }
+}
+
 #[derive(Serialize)]
-pub struct CargoTOML {
+struct CargoTOML {
     package: Package,
     profile: Profile,
     dependencies: Dependencies,
 }
 
 #[derive(Serialize)]
-pub struct Package {
+struct Package {
     name: String,
     version: String,
 }
 
+impl Default for Package {
+    fn default() -> Self {
+        Package {
+            name: "ptx-builder".to_string(),
+            version: "0.1.0".to_string(),
+        }
+    }
+}
+
 #[derive(Serialize)]
-pub struct Profile {
+struct Profile {
     dev: DevProfile,
 }
 
+impl Default for Profile {
+    fn default() -> Self {
+        Profile { dev: DevProfile::default() }
+    }
+}
+
 #[derive(Serialize)]
-pub struct DevProfile {
+struct DevProfile {
     debug: bool,
 }
 
+impl Default for DevProfile {
+    fn default() -> Self {
+        DevProfile { debug: false }
+    }
+}
+
 #[derive(Serialize, Clone)]
-pub struct Crate {
+struct CrateInfo {
     pub path: Option<String>,
     pub version: String,
 }
 
-pub type Dependencies = HashMap<String, Crate>;
-
-pub fn default_dependencies() -> Dependencies {
-    [
-        (
-            "accel-core".to_string(),
-            Crate {
-                path: None,
-                version: "*".to_string(),
-            },
-        ),
-    ].iter()
-        .cloned()
-        .collect()
-}
-
-pub fn into_config(dependencies: Dependencies) -> CargoTOML {
-    CargoTOML {
-        package: Package {
-            name: "ptx-builder".to_string(),
-            version: "0.1.0".to_string(),
-        },
-        profile: Profile { dev: DevProfile { debug: false } },
-        dependencies,
-    }
-}
-
-impl CargoTOML {
-    pub fn to_string(&self) -> String {
-        toml::to_string(&self).unwrap()
-    }
-}
+type Dependencies = HashMap<String, CrateInfo>;

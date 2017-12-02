@@ -10,8 +10,11 @@ extern crate accel;
 
 use proc_macro::TokenStream;
 use syn::*;
+use accel::ptx_builder::*;
 
+#[derive(Debug)]
 struct Function {
+    attrs: Vec<syn::Attribute>,
     ident: Ident,
     vis: Visibility,
     block: Box<Block>,
@@ -23,7 +26,7 @@ struct Function {
 
 impl Function {
     fn parse(func: TokenStream) -> Self {
-        let Item { node, .. } = syn::parse(func.clone()).unwrap();
+        let Item { node, attrs } = syn::parse(func.clone()).unwrap();
         let ItemFn {
             ident,
             vis,
@@ -44,6 +47,7 @@ impl Function {
             *decl
         };
         Function {
+            attrs,
             ident,
             vis,
             block,
@@ -72,6 +76,21 @@ pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     func2caller(&ptx_str, &func)
 }
 
+fn parse_depends(func: &Function) -> Depends {
+    let mut deps = Depends::new();
+    for attr in &func.attrs {
+        let path = &attr.path;
+        let path = &quote!{#path}.to_string();
+        if path != "depends" {
+            unreachable!("Unsupported attribute: {:?}", path);
+        }
+        let tts = &attr.tts[0];
+        let tts = &quote!{#tts}.to_string();
+        deps.parse_append(tts);
+    }
+    deps
+}
+
 /// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
 fn func2kernel(func: &Function) -> String {
     let vis = &func.vis;
@@ -90,8 +109,8 @@ fn func2kernel(func: &Function) -> String {
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
-
-    accel::ptx_builder::compile(&kernel.to_string())
+    let deps = parse_depends(func);
+    compile(&kernel.to_string(), deps)
 }
 
 fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {

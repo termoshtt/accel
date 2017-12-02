@@ -7,6 +7,10 @@ use toml;
 pub struct Depends(Vec<Crate>);
 
 impl Depends {
+    pub fn new() -> Self {
+        Depends(Vec::new())
+    }
+
     pub fn parse_append(&mut self, deps: &str) {
         self.push(Crate::parse(deps))
     }

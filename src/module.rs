@@ -1,8 +1,7 @@
-//! Submodule for the resource of CUDA middle-IR (PTX/cubin)
+//! Resource of CUDA middle-IR (PTX/cubin)
 //!
-//! This module includes a wrapper of `cuLink*` and `cuModule*` APIs.
-//!
-//! http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html
+//! This module includes a wrapper of `cuLink*` and `cuModule*`
+//! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use ffi::cuda::*;
 use error::*;

@@ -1,3 +1,5 @@
+//! Execution control in
+//! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
 use ffi::cuda::*;
 use ffi::vector_types::*;

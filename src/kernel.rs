@@ -8,9 +8,7 @@ use std::os::raw::*;
 
 use super::module::*;
 
-/// Handler of CUDA Kernel function
-///
-/// This keep a reference to loaded module `'m`
+/// CUDA Kernel function
 #[derive(Debug)]
 pub struct Kernel<'m> {
     pub(crate) func: CUfunction,
@@ -18,7 +16,7 @@ pub struct Kernel<'m> {
 }
 
 impl<'m> Kernel<'m> {
-    /// Call CUDA kernel using `cuLaunchKernel`
+    /// Launch CUDA kernel using `cuLaunchKernel`
     pub unsafe fn launch(
         &mut self,
         args: *mut *mut c_void,
@@ -46,8 +44,7 @@ pub fn void_cast<T>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }
 
-/// Size of Block in CUDA thread hierarchy
-/// http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model
+/// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, NewType)]
 pub struct Block(dim3);
 
@@ -68,8 +65,7 @@ impl Block {
     }
 }
 
-/// Size of Grid in CUDA thread hierarchy
-/// http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model
+/// Size of Grid (grid of blocks) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, NewType)]
 pub struct Grid(dim3);
 

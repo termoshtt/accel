@@ -17,6 +17,7 @@ procedurals = "0.2.3"
 serde_derive = "1"
 serde = "1"
 toml = "0.4.5"
+flate2 = "0.2"
 
 [dependencies.cuda-sys]
 version = "0.1.0"

@@ -1,5 +1,7 @@
 
 mod config;
+pub mod bytecode;
+
 pub use self::config::{Crate, Depends};
 
 use std::path::*;

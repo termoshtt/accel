@@ -9,6 +9,7 @@ extern crate toml;
 #[macro_use]
 extern crate procedurals;
 extern crate glob;
+extern crate flate2;
 extern crate cuda_sys as ffi;
 
 pub mod error;

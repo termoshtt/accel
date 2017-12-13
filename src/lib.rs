@@ -10,6 +10,7 @@ extern crate toml;
 extern crate procedurals;
 extern crate glob;
 extern crate cuda_sys as ffi;
+extern crate tempdir;
 
 pub mod error;
 pub mod ptx_builder;

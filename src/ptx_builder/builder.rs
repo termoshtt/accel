@@ -23,9 +23,6 @@ impl Builder {
     pub fn new() -> Self {
         let path = env::var("ACCEL_PTX_BUILDER_DIR")
             .map(|s| PathBuf::from(&s))
-            .or(env::var("CARGO_TARGET_DIR").map(|s| {
-                Path::new(&s).join("ptx-builder")
-            }))
             .or(TempDir::new("ptx-builder").map(|dir| dir.into_path()))
             .unwrap();
         fs::create_dir_all(path.join("src")).unwrap();

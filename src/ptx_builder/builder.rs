@@ -112,16 +112,7 @@ impl Builder {
 
     fn build(&self) {
         process::Command::new("xargo")
-            .args(
-                &[
-                    "rustc",
-                    "--release",
-                    "--target",
-                    "nvptx64-nvidia-cuda",
-                    "--",
-                    "--emit=asm",
-                ],
-            )
+            .args(&["rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)
             .env("RUSTUP_TOOLCHAIN", NIGHTLY)
             .status()

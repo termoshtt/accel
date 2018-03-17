@@ -2,8 +2,8 @@
 #![recursion_limit = "128"]
 
 #[macro_use]
-extern crate futures_await_quote as quote;
-extern crate futures_await_syn as syn;
+extern crate quote;
+extern crate syn;
 extern crate proc_macro;
 
 extern crate accel;
@@ -14,30 +14,27 @@ use accel::ptx_builder::*;
 
 #[derive(Debug)]
 struct Function {
-    attrs: Vec<syn::Attribute>,
+    attrs: Vec<Attribute>,
     ident: Ident,
     vis: Visibility,
     block: Box<Block>,
-    unsafety: Unsafety,
-    inputs: delimited::Delimited<FnArg, tokens::Comma>,
-    output: FunctionRetTy,
-    fn_token: tokens::Fn_,
+    unsafety: Option<token::Unsafe>,
+    inputs: punctuated::Punctuated<FnArg, token::Comma>,
+    output: ReturnType,
+    fn_token: token::Fn,
 }
 
 impl Function {
     fn parse(func: TokenStream) -> Self {
-        let Item { node, attrs } = syn::parse(func.clone()).unwrap();
         let ItemFn {
+            attrs,
             ident,
             vis,
             block,
             decl,
             unsafety,
             ..
-        } = match node {
-            ItemKind::Fn(item) => item,
-            _ => unreachable!(""),
-        };
+        } = syn::parse(func.clone()).unwrap();
         let FnDecl {
             inputs,
             output,
@@ -61,7 +58,7 @@ impl Function {
     fn input_values(&self) -> Vec<&Pat> {
         self.inputs
             .iter()
-            .map(|arg| match arg.into_item() {
+            .map(|arg| match arg {
                 &FnArg::Captured(ref val) => &val.pat,
                 _ => unreachable!(""),
             })
@@ -81,7 +78,7 @@ fn parse_depends(func: &Function) -> Depends {
     for attr in &func.attrs {
         let path = &attr.path;
         let path = &quote!{#path}.to_string();
-        let tts = &attr.tts[0];
+        let tts = &attr.tts;
         let tts = &quote!{#tts}.to_string();
         let pene: &[_] = &['(', ')'];
         let dep = tts.trim_matches(pene);

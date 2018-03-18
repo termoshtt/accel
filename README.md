@@ -3,7 +3,7 @@ Accel: GPGPU Framework for Rust
 
 [![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)
 [![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)
-[![Build Status](https://travis-ci.org/termoshtt/accel.svg?branch=master)](https://travis-ci.org/termoshtt/accel)
+[![CircleCI](https://circleci.com/gh/termoshtt/accel.svg?style=shield)](https://circleci.com/gh/termoshtt/accel)
 
 CUDA-based GPGPU framework for Rust
 

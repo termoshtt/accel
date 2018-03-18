@@ -1,7 +1,4 @@
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-
 cargo-check:
   image: "registry.gitlab.com/termoshtt/rust-cuda"
   script:

@@ -16,10 +16,9 @@ proc-macro = true
 
 [dependencies]
 synom = "0.11.3"
-futures-await-quote = "0.4"
-proc-macro2 = { version = "0.1", features = ["unstable"] }
+quote = "0.4"
 
-[dependencies.futures-await-syn]
+[dependencies.syn]
 version = "0.12"
 features = ["full", "fold", "parsing", "printing", "extra-traits"]
 default-features = false

@@ -9,8 +9,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Check accel
+          name: Check cuda-sys
           command: |
+            cd cuda-sys
             cargo check
       - run:
           name: Check accel-core
@@ -21,14 +22,13 @@ jobs:
           name: Check accel-derive
           command: |
             cd accel-derive
-            cargo test
+            cargo check
       - run:
-          name: Check cuda-sys
+          name: Check accel
           command: |
-            cd cuda-sys
-            cargo test
+            cargo check
       - run:
           name: Check accel-example
           command: |
             cd accel-example
-            cargo test
+            cargo check

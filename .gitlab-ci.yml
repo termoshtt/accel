@@ -1,5 +1,15 @@
 
+cargo-check:
+  image: "termoshtt/rust-dev"
+  script:
+    - cargo install cargo-check
+    - cargo check
+    - cd accel-core/ && cargo check && cd -
+    - cd accel-derive/ && cargo check && cd -
+    - cd cuda-sys/ && cargo check && cd -
+
 cargo-run-gpu:
+  image: "registry.gitlab.com/termoshtt/rust-cuda"
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
     - nvidia-docker run --rm -u "$UID:100" -v $PWD:/source --env-file=.nvidia-docker.env registry.gitlab.com/termoshtt/rust-cuda cargo run --example add

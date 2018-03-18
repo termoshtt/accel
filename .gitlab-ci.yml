@@ -10,6 +10,6 @@ cargo-check:
 cargo-run-gpu:
   image: "registry.gitlab.com/termoshtt/rust-cuda"
   script:
-    - cargo run -v --example add
+    - cd accel-example && cargo run -v --example add
   tags:
     - nvidia-docker

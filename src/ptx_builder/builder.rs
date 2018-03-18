@@ -7,8 +7,6 @@ use std::{fs, env, process};
 use glob::glob;
 use tempdir::TempDir;
 
-const NIGHTLY: &'static str = "nightly-2017-11-18";
-
 pub fn compile(kernel: &str, deps: Depends) -> String {
     let mut builder = Builder::new();
     builder.compile(kernel, deps)
@@ -92,7 +90,6 @@ impl Builder {
 
     fn generate_config(&self) {
         self.save(&self.deps.to_string(), "Cargo.toml");
-        self.save(include_str!("Xargo.toml"), "Xargo.toml");
         self.save(
             include_str!("nvptx64-nvidia-cuda.json"),
             "nvptx64-nvidia-cuda.json",
@@ -109,9 +106,16 @@ impl Builder {
 
     fn build(&self) {
         process::Command::new("xargo")
-            .args(&["rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
+            .args(
+                &[
+                    "+nightly",
+                    "rustc",
+                    "--release",
+                    "--target",
+                    "nvptx64-nvidia-cuda",
+                ],
+            )
             .current_dir(&self.path)
-            .env("RUSTUP_TOOLCHAIN", NIGHTLY)
             .status()
             .unwrap();
     }

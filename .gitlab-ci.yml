@@ -1,5 +1,9 @@
+stage:
+  - build
+  - test
 
 cargo-check:
+  stage: build
   image: "registry.gitlab.com/termoshtt/rust-cuda"
   script:
     - cargo check
@@ -8,6 +12,7 @@ cargo-check:
     - cd cuda-sys/ && cargo check && cd -
 
 cargo-run-gpu:
+  stage: test
   image: "registry.gitlab.com/termoshtt/rust-cuda"
   script:
     - cd accel-example && cargo run -v --example add

@@ -1,0 +1,32 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: termoshtt/rust-cuda
+    steps:
+      - checkout
+      - run:
+          name: Check accel
+          command: |
+            cargo test
+      - run:
+          name: Check accel-core
+          command: |
+            cd accel-core
+            cargo check
+      - run:
+          name: Check accel-derive
+          command: |
+            cd accel-derive
+            cargo test
+      - run:
+          name: Check cuda-sys
+          command: |
+            cd cuda-sys
+            cargo test
+      - run:
+          name: Check accel-example
+          command: |
+            cd accel-example
+            cargo test

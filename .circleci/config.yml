@@ -1,0 +1,29 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: termoshtt/rust-cuda
+    environment:
+      - CUDA_LIBRARY_PATH: "/usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs"
+    steps:
+      - checkout
+      - run:
+          name: Check cuda-sys
+          command: |
+            cd cuda-sys
+            cargo check
+      - run:
+          name: Check accel-core
+          command: |
+            cd accel-core
+            cargo check
+      - run:
+          name: Check accel-derive
+          command: |
+            cd accel-derive
+            cargo check
+      - run:
+          name: Check accel
+          command: |
+            cargo check

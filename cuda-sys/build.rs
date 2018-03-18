@@ -3,7 +3,11 @@ use std::env;
 
 fn main() {
     match env::var("CUDA_LIBRARY_PATH") {
-        Ok(path) => println!("cargo:rustc-link-search=native={}", path),
+        Ok(path) => {
+            for p in path.split(":") {
+                println!("cargo:rustc-link-search=native={}", p);
+            }
+        },
         Err(_) => {}
     };
     println!("cargo:rustc-link-lib=dylib=cuda");

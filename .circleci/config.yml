@@ -27,8 +27,3 @@ jobs:
           name: Check accel
           command: |
             cargo check
-      - run:
-          name: Check accel-example
-          command: |
-            cd accel-example
-            cargo check

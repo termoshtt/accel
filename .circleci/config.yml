@@ -9,6 +9,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check format
+          command: |
+            cargo install rustfmt-nightly
+            cargo fmt --all -- --write-mode=diff
+      - run:
           name: Check cuda-sys
           command: |
             cd cuda-sys

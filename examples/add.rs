@@ -13,12 +13,12 @@ pub unsafe fn add(a: &[f64], b: &[f64], c: &mut [f64]) {
     let i = accel_core::index() as usize;
     let n = c.len();
     if i < n {
-        c[i] = a[i] + b[i]
+        c[i] = a[i] + b[i];
     }
 }
 
 fn main() {
-    let n = 32;
+    let n = 16;
     let mut a = UVec::new(n).unwrap();
     let mut b = UVec::new(n).unwrap();
     let mut c = UVec::new(n).unwrap();

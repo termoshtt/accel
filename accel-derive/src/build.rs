@@ -66,6 +66,7 @@ impl Builder {
             .collect();
         process::Command::new("llvm-link")
             .args(&bcs)
+            .arg("panic.ll")
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
             .status()
@@ -91,6 +92,7 @@ impl Builder {
             include_str!("nvptx64-nvidia-cuda.json"),
             "nvptx64-nvidia-cuda.json",
         );
+        self.save(include_str!("panic.ll"), "panic.ll");
     }
 
     fn clean(&self) {

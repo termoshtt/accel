@@ -9,10 +9,11 @@ use accel::*;
 #[kernel]
 #[depends("accel-core" = "0.2.0-alpha")]
 #[build_path_home(".rust2ptx")]
-pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
-    let i = accel_core::index();
-    if (i as usize) < n {
-        *c.offset(i) = *a.offset(i) + *b.offset(i);
+pub unsafe fn add(a: &[f64], b: &[f64], c: &mut [f64]) {
+    let i = accel_core::index() as usize;
+    let n = c.len();
+    if i < n {
+        c[i] = a[i] + b[i]
     }
 }
 
@@ -31,7 +32,7 @@ fn main() {
 
     let grid = Grid::x(1);
     let block = Block::x(n as u32);
-    add(grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n);
+    add(grid, block, &a, &b, &mut c);
 
     device::sync().unwrap();
     println!("c = {:?}", c.as_slice());

@@ -19,12 +19,7 @@ pub struct Kernel<'m> {
 
 impl<'m> Kernel<'m> {
     /// Launch CUDA kernel using `cuLaunchKernel`
-    pub unsafe fn launch(
-        &mut self,
-        args: *mut *mut c_void,
-        grid: Grid,
-        block: Block,
-    ) -> Result<()> {
+    pub unsafe fn launch(&mut self, args: *mut *mut c_void, grid: Grid, block: Block) -> Result<()> {
         cuLaunchKernel(
             self.func,
             grid.x,
@@ -33,7 +28,7 @@ impl<'m> Kernel<'m> {
             block.x,
             block.y,
             block.z,
-            0, // FIXME: no shared memory
+            0,          // FIXME: no shared memory
             null_mut(), // use default stream
             args,
             null_mut(), // no extra

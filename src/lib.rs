@@ -2,15 +2,15 @@
 //! ==============================
 //!
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate toml;
+extern crate cuda_sys as ffi;
+extern crate glob;
 #[macro_use]
 extern crate procedurals;
-extern crate glob;
-extern crate cuda_sys as ffi;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate tempdir;
+extern crate toml;
 
 pub mod error;
 pub mod ptx_builder;
@@ -20,4 +20,4 @@ pub mod module;
 pub mod device;
 
 pub use uvec::UVec;
-pub use kernel::{Grid, Block};
+pub use kernel::{Block, Grid};

@@ -1,9 +1,8 @@
-
 use super::config::Depends;
 
 use std::path::*;
 use std::io::{Read, Write};
-use std::{fs, env, process};
+use std::{env, fs, process};
 use glob::glob;
 use tempdir::TempDir;
 
@@ -106,15 +105,13 @@ impl Builder {
 
     fn build(&self) {
         process::Command::new("xargo")
-            .args(
-                &[
-                    "+nightly",
-                    "rustc",
-                    "--release",
-                    "--target",
-                    "nvptx64-nvidia-cuda",
-                ],
-            )
+            .args(&[
+                "+nightly",
+                "rustc",
+                "--release",
+                "--target",
+                "nvptx64-nvidia-cuda",
+            ])
             .current_dir(&self.path)
             .status()
             .unwrap();

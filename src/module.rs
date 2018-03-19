@@ -7,7 +7,7 @@ use ffi::cuda::*;
 use error::*;
 
 use std::ptr::null_mut;
-use std::os::raw::{c_uint, c_char, c_void};
+use std::os::raw::{c_char, c_uint, c_void};
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
@@ -68,8 +68,7 @@ impl Data {
     fn input_type(&self) -> CUjitInputType {
         match *self {
             Data::PTX(_) | Data::PTXFile(_) => CUjitInputType_enum::CU_JIT_INPUT_PTX,
-            Data::Cubin(_) |
-            Data::CubinFile(_) => CUjitInputType_enum::CU_JIT_INPUT_CUBIN,
+            Data::Cubin(_) | Data::CubinFile(_) => CUjitInputType_enum::CU_JIT_INPUT_CUBIN,
         }
     }
 }
@@ -80,9 +79,9 @@ pub struct Linker(CUlinkState);
 
 impl Drop for Linker {
     fn drop(&mut self) {
-        unsafe { cuLinkDestroy(self.0) }.check().expect(
-            "Failed to release Linker",
-        );
+        unsafe { cuLinkDestroy(self.0) }
+            .check()
+            .expect("Failed to release Linker");
     }
 }
 
@@ -163,8 +162,7 @@ impl Linker {
                 let n = bin.len();
                 self.add_data(data.input_type(), ptr, n, opt)?;
             },
-            Data::PTXFile(ref path) |
-            Data::CubinFile(ref path) => unsafe {
+            Data::PTXFile(ref path) | Data::CubinFile(ref path) => unsafe {
                 self.add_file(data.input_type(), path, opt)?;
             },
         };
@@ -179,8 +177,7 @@ impl Linker {
     pub fn complete(&mut self) -> Result<Data> {
         let mut cb = null_mut();
         unsafe {
-            cuLinkComplete(self.0, &mut cb as *mut _, null_mut())
-                .check()?;
+            cuLinkComplete(self.0, &mut cb as *mut _, null_mut()).check()?;
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
@@ -202,8 +199,7 @@ impl Module {
                 let ptr = bin.as_ptr() as *mut _;
                 Self::load_data(ptr)
             },
-            Data::PTXFile(ref path) |
-            Data::CubinFile(ref path) => Self::load_file(path),
+            Data::PTXFile(ref path) | Data::CubinFile(ref path) => Self::load_file(path),
         }
     }
 
@@ -241,9 +237,9 @@ impl Module {
 
 impl Drop for Module {
     fn drop(&mut self) {
-        unsafe { cuModuleUnload(self.0) }.check().expect(
-            "Failed to unload module",
-        );
+        unsafe { cuModuleUnload(self.0) }
+            .check()
+            .expect("Failed to unload module");
     }
 }
 

@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 use std::path::*;
 use toml;
@@ -55,13 +54,11 @@ impl Crate {
                 path: None,
             },
             // #[depends("accel-core" = "0.1.0")]
-            2 => {
-                Self {
-                    name: tokens[0].to_owned(),
-                    version: Some(tokens[1].to_owned()),
-                    path: None,
-                }
-            }
+            2 => Self {
+                name: tokens[0].to_owned(),
+                version: Some(tokens[1].to_owned()),
+                path: None,
+            },
             _ => unreachable!("Invalid line: {}", dep),
         }
     }
@@ -71,13 +68,11 @@ impl Crate {
         let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
         match tokens.len() {
             // #[depends_path("accel-core" = "/some/path")]
-            2 => {
-                Self {
-                    name: tokens[0].to_owned(),
-                    version: None,
-                    path: Some(PathBuf::from(tokens[1])),
-                }
-            }
+            2 => Self {
+                name: tokens[0].to_owned(),
+                version: None,
+                path: Some(PathBuf::from(tokens[1])),
+            },
             _ => unreachable!("Invalid line: {}", dep),
         }
     }
@@ -112,7 +107,9 @@ struct Profile {
 
 impl Default for Profile {
     fn default() -> Self {
-        Profile { dev: DevProfile::default() }
+        Profile {
+            dev: DevProfile::default(),
+        }
     }
 }
 

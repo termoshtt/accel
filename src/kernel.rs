@@ -33,7 +33,7 @@ impl<'m> Kernel<'m> {
             block.x,
             block.y,
             block.z,
-            0, // FIXME: no shared memory
+            0,          // FIXME: no shared memory
             null_mut(), // use default stream
             args,
             null_mut(), // no extra

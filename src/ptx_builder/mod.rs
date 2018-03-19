@@ -4,4 +4,4 @@ pub mod config;
 pub mod builder;
 
 pub use self::builder::compile;
-pub use self::config::{Depends, Crate};
+pub use self::config::{Crate, Depends};

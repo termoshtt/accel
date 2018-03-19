@@ -303,7 +303,12 @@ fn bindgen_test_layout_ushort1() {
     assert_eq!(
         unsafe { &(*(0 as *const ushort1)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ushort1), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort1),
+            "::",
+            stringify!(x)
+        )
     );
 }
 #[repr(C)]
@@ -358,12 +363,22 @@ fn bindgen_test_layout_ushort2() {
     assert_eq!(
         unsafe { &(*(0 as *const ushort2)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ushort2), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort2),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort2)).y as *const _ as usize },
         2usize,
-        concat!("Offset of field: ", stringify!(ushort2), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort2),
+            "::",
+            stringify!(y)
+        )
     );
 }
 #[repr(C)]
@@ -423,17 +438,32 @@ fn bindgen_test_layout_ushort3() {
     assert_eq!(
         unsafe { &(*(0 as *const ushort3)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ushort3), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort3),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort3)).y as *const _ as usize },
         2usize,
-        concat!("Offset of field: ", stringify!(ushort3), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort3),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort3)).z as *const _ as usize },
         4usize,
-        concat!("Offset of field: ", stringify!(ushort3), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort3),
+            "::",
+            stringify!(z)
+        )
     );
 }
 #[repr(C)]
@@ -502,22 +532,42 @@ fn bindgen_test_layout_ushort4() {
     assert_eq!(
         unsafe { &(*(0 as *const ushort4)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ushort4), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort4),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort4)).y as *const _ as usize },
         2usize,
-        concat!("Offset of field: ", stringify!(ushort4), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort4),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort4)).z as *const _ as usize },
         4usize,
-        concat!("Offset of field: ", stringify!(ushort4), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort4),
+            "::",
+            stringify!(z)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ushort4)).w as *const _ as usize },
         6usize,
-        concat!("Offset of field: ", stringify!(ushort4), "::", stringify!(w))
+        concat!(
+            "Offset of field: ",
+            stringify!(ushort4),
+            "::",
+            stringify!(w)
+        )
     );
 }
 #[repr(C)]
@@ -1148,7 +1198,12 @@ fn bindgen_test_layout_longlong1() {
     assert_eq!(
         unsafe { &(*(0 as *const longlong1)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(longlong1), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong1),
+            "::",
+            stringify!(x)
+        )
     );
 }
 #[repr(C)]
@@ -1171,7 +1226,12 @@ fn bindgen_test_layout_ulonglong1() {
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong1)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ulonglong1), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong1),
+            "::",
+            stringify!(x)
+        )
     );
 }
 #[repr(C)]
@@ -1190,12 +1250,22 @@ fn bindgen_test_layout_longlong2() {
     assert_eq!(
         unsafe { &(*(0 as *const longlong2)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(longlong2), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong2),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong2)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(longlong2), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong2),
+            "::",
+            stringify!(y)
+        )
     );
 }
 #[repr(C)]
@@ -1214,12 +1284,22 @@ fn bindgen_test_layout_ulonglong2() {
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong2)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ulonglong2), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong2),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong2)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(ulonglong2), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong2),
+            "::",
+            stringify!(y)
+        )
     );
 }
 #[repr(C)]
@@ -1244,17 +1324,32 @@ fn bindgen_test_layout_longlong3() {
     assert_eq!(
         unsafe { &(*(0 as *const longlong3)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(longlong3), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong3),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong3)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(longlong3), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong3),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong3)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(longlong3), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong3),
+            "::",
+            stringify!(z)
+        )
     );
 }
 #[repr(C)]
@@ -1279,17 +1374,32 @@ fn bindgen_test_layout_ulonglong3() {
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong3)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ulonglong3), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong3),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong3)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(ulonglong3), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong3),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong3)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(ulonglong3), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong3),
+            "::",
+            stringify!(z)
+        )
     );
 }
 #[repr(C)]
@@ -1310,22 +1420,42 @@ fn bindgen_test_layout_longlong4() {
     assert_eq!(
         unsafe { &(*(0 as *const longlong4)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(longlong4), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong4),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong4)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(longlong4), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong4),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong4)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(longlong4), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong4),
+            "::",
+            stringify!(z)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const longlong4)).w as *const _ as usize },
         24usize,
-        concat!("Offset of field: ", stringify!(longlong4), "::", stringify!(w))
+        concat!(
+            "Offset of field: ",
+            stringify!(longlong4),
+            "::",
+            stringify!(w)
+        )
     );
 }
 #[repr(C)]
@@ -1346,22 +1476,42 @@ fn bindgen_test_layout_ulonglong4() {
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong4)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(ulonglong4), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong4),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong4)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(ulonglong4), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong4),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong4)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(ulonglong4), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong4),
+            "::",
+            stringify!(z)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const ulonglong4)).w as *const _ as usize },
         24usize,
-        concat!("Offset of field: ", stringify!(ulonglong4), "::", stringify!(w))
+        concat!(
+            "Offset of field: ",
+            stringify!(ulonglong4),
+            "::",
+            stringify!(w)
+        )
     );
 }
 #[repr(C)]
@@ -1384,7 +1534,12 @@ fn bindgen_test_layout_double1() {
     assert_eq!(
         unsafe { &(*(0 as *const double1)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(double1), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(double1),
+            "::",
+            stringify!(x)
+        )
     );
 }
 #[repr(C)]
@@ -1403,12 +1558,22 @@ fn bindgen_test_layout_double2() {
     assert_eq!(
         unsafe { &(*(0 as *const double2)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(double2), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(double2),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double2)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(double2), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(double2),
+            "::",
+            stringify!(y)
+        )
     );
 }
 #[repr(C)]
@@ -1433,17 +1598,32 @@ fn bindgen_test_layout_double3() {
     assert_eq!(
         unsafe { &(*(0 as *const double3)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(double3), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(double3),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double3)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(double3), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(double3),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double3)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(double3), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(double3),
+            "::",
+            stringify!(z)
+        )
     );
 }
 #[repr(C)]
@@ -1464,22 +1644,42 @@ fn bindgen_test_layout_double4() {
     assert_eq!(
         unsafe { &(*(0 as *const double4)).x as *const _ as usize },
         0usize,
-        concat!("Offset of field: ", stringify!(double4), "::", stringify!(x))
+        concat!(
+            "Offset of field: ",
+            stringify!(double4),
+            "::",
+            stringify!(x)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double4)).y as *const _ as usize },
         8usize,
-        concat!("Offset of field: ", stringify!(double4), "::", stringify!(y))
+        concat!(
+            "Offset of field: ",
+            stringify!(double4),
+            "::",
+            stringify!(y)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double4)).z as *const _ as usize },
         16usize,
-        concat!("Offset of field: ", stringify!(double4), "::", stringify!(z))
+        concat!(
+            "Offset of field: ",
+            stringify!(double4),
+            "::",
+            stringify!(z)
+        )
     );
     assert_eq!(
         unsafe { &(*(0 as *const double4)).w as *const _ as usize },
         24usize,
-        concat!("Offset of field: ", stringify!(double4), "::", stringify!(w))
+        concat!(
+            "Offset of field: ",
+            stringify!(double4),
+            "::",
+            stringify!(w)
+        )
     );
 }
 #[repr(C)]

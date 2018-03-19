@@ -1,12 +1,9 @@
-
 use std::env;
 
 fn main() {
     match env::var("CUDA_LIBRARY_PATH") {
-        Ok(path) => {
-            for p in path.split(":") {
-                println!("cargo:rustc-link-search=native={}", p);
-            }
+        Ok(path) => for p in path.split(":") {
+            println!("cargo:rustc-link-search=native={}", p);
         },
         Err(_) => {}
     };

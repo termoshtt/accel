@@ -273,42 +273,22 @@ fn bindgen_test_layout_cudaPitchedPtr() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).ptr as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(ptr)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(ptr))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).pitch as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(pitch)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(pitch))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).xsize as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(xsize)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(xsize))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).ysize as *const _ as usize },
         24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(ysize)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(ysize))
     );
 }
 #[repr(C)]
@@ -333,32 +313,17 @@ fn bindgen_test_layout_cudaExtent() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).width as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(width)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(width))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).height as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(height)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(height))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).depth as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(depth)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(depth))
     );
 }
 #[repr(C)]
@@ -383,32 +348,17 @@ fn bindgen_test_layout_cudaPos() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).x as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(x)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(x))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).y as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(y)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(y))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).z as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(z)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(z))
     );
 }
 #[repr(C)]
@@ -638,11 +588,10 @@ pub struct cudaGraphicsResource {
     _unused: [u8; 0],
 }
 pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsNone: cudaGraphicsRegisterFlags = 0;
-pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsReadOnly: cudaGraphicsRegisterFlags =
-    1;
-pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsWriteDiscard : cudaGraphicsRegisterFlags = 2 ;
-pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsSurfaceLoadStore : cudaGraphicsRegisterFlags = 4 ;
-pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsTextureGather : cudaGraphicsRegisterFlags = 8 ;
+pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsReadOnly: cudaGraphicsRegisterFlags = 1;
+pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsWriteDiscard: cudaGraphicsRegisterFlags = 2;
+pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsSurfaceLoadStore: cudaGraphicsRegisterFlags = 4;
+pub const cudaGraphicsRegisterFlags_cudaGraphicsRegisterFlagsTextureGather: cudaGraphicsRegisterFlags = 8;
 pub type cudaGraphicsRegisterFlags = ::std::os::raw::c_uint;
 pub const cudaGraphicsMapFlags_cudaGraphicsMapFlagsNone: cudaGraphicsMapFlags = 0;
 pub const cudaGraphicsMapFlags_cudaGraphicsMapFlagsReadOnly: cudaGraphicsMapFlags = 1;
@@ -685,18 +634,16 @@ pub const cudaResourceViewFormat_cudaResViewFormatHalf4: cudaResourceViewFormat 
 pub const cudaResourceViewFormat_cudaResViewFormatFloat1: cudaResourceViewFormat = 22;
 pub const cudaResourceViewFormat_cudaResViewFormatFloat2: cudaResourceViewFormat = 23;
 pub const cudaResourceViewFormat_cudaResViewFormatFloat4: cudaResourceViewFormat = 24;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed1 : cudaResourceViewFormat = 25 ;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed2 : cudaResourceViewFormat = 26 ;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed3 : cudaResourceViewFormat = 27 ;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed4 : cudaResourceViewFormat = 28 ;
-pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed4: cudaResourceViewFormat =
-    29;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed5 : cudaResourceViewFormat = 30 ;
-pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed5: cudaResourceViewFormat =
-    31;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed6H : cudaResourceViewFormat = 32 ;
-pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed6H : cudaResourceViewFormat = 33 ;
-pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed7 : cudaResourceViewFormat = 34 ;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed1: cudaResourceViewFormat = 25;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed2: cudaResourceViewFormat = 26;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed3: cudaResourceViewFormat = 27;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed4: cudaResourceViewFormat = 28;
+pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed4: cudaResourceViewFormat = 29;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed5: cudaResourceViewFormat = 30;
+pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed5: cudaResourceViewFormat = 31;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed6H: cudaResourceViewFormat = 32;
+pub const cudaResourceViewFormat_cudaResViewFormatSignedBlockCompressed6H: cudaResourceViewFormat = 33;
+pub const cudaResourceViewFormat_cudaResViewFormatUnsignedBlockCompressed7: cudaResourceViewFormat = 34;
 pub type cudaResourceViewFormat = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -707,10 +654,10 @@ pub struct cudaResourceDesc {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union cudaResourceDesc__bindgen_ty_1 {
-    array: cudaResourceDesc__bindgen_ty_1__bindgen_ty_1 ,
-    mipmap: cudaResourceDesc__bindgen_ty_1__bindgen_ty_2 ,
-    linear: cudaResourceDesc__bindgen_ty_1__bindgen_ty_3 ,
-    pitch2D: cudaResourceDesc__bindgen_ty_1__bindgen_ty_4 ,
+    array: cudaResourceDesc__bindgen_ty_1__bindgen_ty_1,
+    mipmap: cudaResourceDesc__bindgen_ty_1__bindgen_ty_2,
+    linear: cudaResourceDesc__bindgen_ty_1__bindgen_ty_3,
+    pitch2D: cudaResourceDesc__bindgen_ty_1__bindgen_ty_4,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -722,10 +669,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_1() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_1>(),
         8usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_1)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_1))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_1>(),
@@ -736,10 +680,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_1() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_1)).array as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_1)).array as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
@@ -759,10 +700,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_2() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_2>(),
         8usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_2)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_2))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_2>(),
@@ -773,10 +711,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_2() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_2)).mipmap as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_2)).mipmap as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
@@ -798,10 +733,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_3() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_3>(),
         40usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_3))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_3>(),
@@ -812,10 +744,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_3() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).devPtr as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).devPtr as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
@@ -825,9 +754,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_3() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).desc as *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).desc as *const _ as usize },
         8usize,
         concat!(
             "Offset of field: ",
@@ -837,10 +764,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_3() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).sizeInBytes as
-                *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)).sizeInBytes as *const _ as usize },
         32usize,
         concat!(
             "Offset of field: ",
@@ -864,10 +788,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_4>(),
         56usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_4))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_4>(),
@@ -878,10 +799,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).devPtr as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).devPtr as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
@@ -891,9 +809,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).desc as *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).desc as *const _ as usize },
         8usize,
         concat!(
             "Offset of field: ",
@@ -903,10 +819,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).width as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).width as *const _ as usize },
         32usize,
         concat!(
             "Offset of field: ",
@@ -916,10 +829,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).height as *const _ as
-                usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).height as *const _ as usize },
         40usize,
         concat!(
             "Offset of field: ",
@@ -929,10 +839,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).pitchInBytes as
-                *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)).pitchInBytes as *const _ as usize },
         48usize,
         concat!(
             "Offset of field: ",
@@ -1020,12 +927,7 @@ fn bindgen_test_layout_cudaResourceDesc() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaResourceDesc)).res as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaResourceDesc),
-            "::",
-            stringify!(res)
-        )
+        concat!("Offset of field: ", stringify!(cudaResourceDesc), "::", stringify!(res))
     );
 }
 #[repr(C)]
@@ -1370,8 +1272,7 @@ pub type cudaMemoryAdvise = ::std::os::raw::c_uint;
 pub const cudaMemRangeAttribute_cudaMemRangeAttributeReadMostly: cudaMemRangeAttribute = 1;
 pub const cudaMemRangeAttribute_cudaMemRangeAttributePreferredLocation: cudaMemRangeAttribute = 2;
 pub const cudaMemRangeAttribute_cudaMemRangeAttributeAccessedBy: cudaMemRangeAttribute = 3;
-pub const cudaMemRangeAttribute_cudaMemRangeAttributeLastPrefetchLocation: cudaMemRangeAttribute =
-    4;
+pub const cudaMemRangeAttribute_cudaMemRangeAttributeLastPrefetchLocation: cudaMemRangeAttribute = 4;
 pub type cudaMemRangeAttribute = ::std::os::raw::c_uint;
 pub const cudaOutputMode_cudaKeyValuePair: cudaOutputMode = 0;
 pub const cudaOutputMode_cudaCSV: cudaOutputMode = 1;
@@ -1567,12 +1468,7 @@ fn bindgen_test_layout_cudaDeviceProp() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).name as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(name)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(name))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).totalGlobalMem as *const _ as usize },
@@ -1677,22 +1573,12 @@ fn bindgen_test_layout_cudaDeviceProp() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).major as *const _ as usize },
         328usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(major)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(major))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).minor as *const _ as usize },
         332usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(minor)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(minor))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).textureAlignment as *const _ as usize },
@@ -2195,9 +2081,7 @@ fn bindgen_test_layout_cudaDeviceProp() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaDeviceProp)).singleToDoublePrecisionPerfRatio as *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaDeviceProp)).singleToDoublePrecisionPerfRatio as *const _ as usize },
         636usize,
         concat!(
             "Offset of field: ",
@@ -2237,9 +2121,7 @@ fn bindgen_test_layout_cudaDeviceProp() {
         )
     );
     assert_eq!(
-        unsafe {
-            &(*(0 as *const cudaDeviceProp)).canUseHostPointerForRegisteredMem as *const _ as usize
-        },
+        unsafe { &(*(0 as *const cudaDeviceProp)).canUseHostPointerForRegisteredMem as *const _ as usize },
         652usize,
         concat!(
             "Offset of field: ",
@@ -2689,12 +2571,7 @@ fn bindgen_test_layout_cudaTextureDesc() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaTextureDesc)).sRGB as *const _ as usize },
         20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaTextureDesc),
-            "::",
-            stringify!(sRGB)
-        )
+        concat!("Offset of field: ", stringify!(cudaTextureDesc), "::", stringify!(sRGB))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaTextureDesc)).borderColor as *const _ as usize },
@@ -2833,22 +2710,13 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaIpcGetEventHandle(
-        handle: *mut cudaIpcEventHandle_t,
-        event: cudaEvent_t,
-    ) -> cudaError_t;
+    pub fn cudaIpcGetEventHandle(handle: *mut cudaIpcEventHandle_t, event: cudaEvent_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaIpcOpenEventHandle(
-        event: *mut cudaEvent_t,
-        handle: cudaIpcEventHandle_t,
-    ) -> cudaError_t;
+    pub fn cudaIpcOpenEventHandle(event: *mut cudaEvent_t, handle: cudaIpcEventHandle_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaIpcGetMemHandle(
-        handle: *mut cudaIpcMemHandle_t,
-        devPtr: *mut ::std::os::raw::c_void,
-    ) -> cudaError_t;
+    pub fn cudaIpcGetMemHandle(handle: *mut cudaIpcMemHandle_t, devPtr: *mut ::std::os::raw::c_void) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaIpcOpenMemHandle(
@@ -2894,10 +2762,7 @@ extern "C" {
     pub fn cudaGetDeviceCount(count: *mut ::std::os::raw::c_int) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaGetDeviceProperties(
-        prop: *mut cudaDeviceProp,
-        device: ::std::os::raw::c_int,
-    ) -> cudaError_t;
+    pub fn cudaGetDeviceProperties(prop: *mut cudaDeviceProp, device: ::std::os::raw::c_int) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaDeviceGetAttribute(
@@ -2915,10 +2780,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaChooseDevice(
-        device: *mut ::std::os::raw::c_int,
-        prop: *const cudaDeviceProp,
-    ) -> cudaError_t;
+    pub fn cudaChooseDevice(device: *mut ::std::os::raw::c_int, prop: *const cudaDeviceProp) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaSetDevice(device: ::std::os::raw::c_int) -> cudaError_t;
@@ -2927,10 +2789,7 @@ extern "C" {
     pub fn cudaGetDevice(device: *mut ::std::os::raw::c_int) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaSetValidDevices(
-        device_arr: *mut ::std::os::raw::c_int,
-        len: ::std::os::raw::c_int,
-    ) -> cudaError_t;
+    pub fn cudaSetValidDevices(device_arr: *mut ::std::os::raw::c_int, len: ::std::os::raw::c_int) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaSetDeviceFlags(flags: ::std::os::raw::c_uint) -> cudaError_t;
@@ -2942,10 +2801,7 @@ extern "C" {
     pub fn cudaStreamCreate(pStream: *mut cudaStream_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaStreamCreateWithFlags(
-        pStream: *mut cudaStream_t,
-        flags: ::std::os::raw::c_uint,
-    ) -> cudaError_t;
+    pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaStreamCreateWithPriority(
@@ -2955,33 +2811,20 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaStreamGetPriority(
-        hStream: cudaStream_t,
-        priority: *mut ::std::os::raw::c_int,
-    ) -> cudaError_t;
+    pub fn cudaStreamGetPriority(hStream: cudaStream_t, priority: *mut ::std::os::raw::c_int) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaStreamGetFlags(
-        hStream: cudaStream_t,
-        flags: *mut ::std::os::raw::c_uint,
-    ) -> cudaError_t;
+    pub fn cudaStreamGetFlags(hStream: cudaStream_t, flags: *mut ::std::os::raw::c_uint) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaStreamDestroy(stream: cudaStream_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaStreamWaitEvent(
-        stream: cudaStream_t,
-        event: cudaEvent_t,
-        flags: ::std::os::raw::c_uint,
-    ) -> cudaError_t;
+    pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
-pub type cudaStreamCallback_t =
-    ::std::option::Option<
-        unsafe extern "C" fn(stream: cudaStream_t,
-                             status: cudaError_t,
-                             userData: *mut ::std::os::raw::c_void),
-    >;
+pub type cudaStreamCallback_t = ::std::option::Option<
+    unsafe extern "C" fn(stream: cudaStream_t, status: cudaError_t, userData: *mut ::std::os::raw::c_void),
+>;
 extern "C" {
     pub fn cudaStreamAddCallback(
         stream: cudaStream_t,
@@ -3008,10 +2851,7 @@ extern "C" {
     pub fn cudaEventCreate(event: *mut cudaEvent_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaEventCreateWithFlags(
-        event: *mut cudaEvent_t,
-        flags: ::std::os::raw::c_uint,
-    ) -> cudaError_t;
+    pub fn cudaEventCreateWithFlags(event: *mut cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaEventRecord(event: cudaEvent_t, stream: cudaStream_t) -> cudaError_t;
@@ -3056,22 +2896,13 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaFuncSetCacheConfig(
-        func: *const ::std::os::raw::c_void,
-        cacheConfig: cudaFuncCache,
-    ) -> cudaError_t;
+    pub fn cudaFuncSetCacheConfig(func: *const ::std::os::raw::c_void, cacheConfig: cudaFuncCache) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaFuncSetSharedMemConfig(
-        func: *const ::std::os::raw::c_void,
-        config: cudaSharedMemConfig,
-    ) -> cudaError_t;
+    pub fn cudaFuncSetSharedMemConfig(func: *const ::std::os::raw::c_void, config: cudaSharedMemConfig) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaFuncGetAttributes(
-        attr: *mut cudaFuncAttributes,
-        func: *const ::std::os::raw::c_void,
-    ) -> cudaError_t;
+    pub fn cudaFuncGetAttributes(attr: *mut cudaFuncAttributes, func: *const ::std::os::raw::c_void) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaFuncSetAttribute(
@@ -3104,19 +2935,10 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaConfigureCall(
-        gridDim: dim3,
-        blockDim: dim3,
-        sharedMem: usize,
-        stream: cudaStream_t,
-    ) -> cudaError_t;
+    pub fn cudaConfigureCall(gridDim: dim3, blockDim: dim3, sharedMem: usize, stream: cudaStream_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaSetupArgument(
-        arg: *const ::std::os::raw::c_void,
-        size: usize,
-        offset: usize,
-    ) -> cudaError_t;
+    pub fn cudaSetupArgument(arg: *const ::std::os::raw::c_void, size: usize, offset: usize) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaLaunch(func: *const ::std::os::raw::c_void) -> cudaError_t;
@@ -3188,10 +3010,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaHostGetFlags(
-        pFlags: *mut ::std::os::raw::c_uint,
-        pHost: *mut ::std::os::raw::c_void,
-    ) -> cudaError_t;
+    pub fn cudaHostGetFlags(pFlags: *mut ::std::os::raw::c_uint, pHost: *mut ::std::os::raw::c_void) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaMalloc3D(pitchedDevPtr: *mut cudaPitchedPtr, extent: cudaExtent) -> cudaError_t;
@@ -3230,10 +3049,7 @@ extern "C" {
     pub fn cudaMemcpy3DAsync(p: *const cudaMemcpy3DParms, stream: cudaStream_t) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaMemcpy3DPeerAsync(
-        p: *const cudaMemcpy3DPeerParms,
-        stream: cudaStream_t,
-    ) -> cudaError_t;
+    pub fn cudaMemcpy3DPeerAsync(p: *const cudaMemcpy3DPeerParms, stream: cudaStream_t) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaMemGetInfo(free: *mut usize, total: *mut usize) -> cudaError_t;
@@ -3461,11 +3277,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaMemset(
-        devPtr: *mut ::std::os::raw::c_void,
-        value: ::std::os::raw::c_int,
-        count: usize,
-    ) -> cudaError_t;
+    pub fn cudaMemset(devPtr: *mut ::std::os::raw::c_void, value: ::std::os::raw::c_int, count: usize) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaMemset2D(
@@ -3477,11 +3289,8 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaMemset3D(
-        pitchedDevPtr: cudaPitchedPtr,
-        value: ::std::os::raw::c_int,
-        extent: cudaExtent,
-    ) -> cudaError_t;
+    pub fn cudaMemset3D(pitchedDevPtr: cudaPitchedPtr, value: ::std::os::raw::c_int, extent: cudaExtent)
+        -> cudaError_t;
 }
 extern "C" {
     pub fn cudaMemsetAsync(
@@ -3516,10 +3325,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaGetSymbolSize(
-        size: *mut usize,
-        symbol: *const ::std::os::raw::c_void,
-    ) -> cudaError_t;
+    pub fn cudaGetSymbolSize(size: *mut usize, symbol: *const ::std::os::raw::c_void) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaMemPrefetchAsync(
@@ -3570,10 +3376,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaDeviceEnablePeerAccess(
-        peerDevice: ::std::os::raw::c_int,
-        flags: ::std::os::raw::c_uint,
-    ) -> cudaError_t;
+    pub fn cudaDeviceEnablePeerAccess(peerDevice: ::std::os::raw::c_int, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaDeviceDisablePeerAccess(peerDevice: ::std::os::raw::c_int) -> cudaError_t;
@@ -3623,10 +3426,7 @@ extern "C" {
     ) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaGetChannelDesc(
-        desc: *mut cudaChannelFormatDesc,
-        array: cudaArray_const_t,
-    ) -> cudaError_t;
+    pub fn cudaGetChannelDesc(desc: *mut cudaChannelFormatDesc, array: cudaArray_const_t) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaCreateChannelDesc(
@@ -3675,10 +3475,7 @@ extern "C" {
     pub fn cudaUnbindTexture(texref: *const textureReference) -> cudaError_t;
 }
 extern "C" {
-    pub fn cudaGetTextureAlignmentOffset(
-        offset: *mut usize,
-        texref: *const textureReference,
-    ) -> cudaError_t;
+    pub fn cudaGetTextureAlignmentOffset(offset: *mut usize, texref: *const textureReference) -> cudaError_t;
 }
 extern "C" {
     pub fn cudaGetTextureReference(

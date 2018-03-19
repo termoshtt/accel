@@ -86,35 +86,14 @@ pub type cublasHandle_t = *mut cublasContext;
 extern "C" {
     pub fn cublasCreate_v2(handle: *mut cublasHandle_t) -> cublasStatus_t;
     pub fn cublasDestroy_v2(handle: cublasHandle_t) -> cublasStatus_t;
-    pub fn cublasGetVersion_v2(
-        handle: cublasHandle_t,
-        version: *mut ::std::os::raw::c_int,
-    ) -> cublasStatus_t;
-    pub fn cublasGetProperty(
-        type_: libraryPropertyType,
-        value: *mut ::std::os::raw::c_int,
-    ) -> cublasStatus_t;
+    pub fn cublasGetVersion_v2(handle: cublasHandle_t, version: *mut ::std::os::raw::c_int) -> cublasStatus_t;
+    pub fn cublasGetProperty(type_: libraryPropertyType, value: *mut ::std::os::raw::c_int) -> cublasStatus_t;
     pub fn cublasSetStream_v2(handle: cublasHandle_t, streamId: cudaStream_t) -> cublasStatus_t;
-    pub fn cublasGetStream_v2(
-        handle: cublasHandle_t,
-        streamId: *mut cudaStream_t,
-    ) -> cublasStatus_t;
-    pub fn cublasGetPointerMode_v2(
-        handle: cublasHandle_t,
-        mode: *mut cublasPointerMode_t,
-    ) -> cublasStatus_t;
-    pub fn cublasSetPointerMode_v2(
-        handle: cublasHandle_t,
-        mode: cublasPointerMode_t,
-    ) -> cublasStatus_t;
-    pub fn cublasGetAtomicsMode(
-        handle: cublasHandle_t,
-        mode: *mut cublasAtomicsMode_t,
-    ) -> cublasStatus_t;
-    pub fn cublasSetAtomicsMode(
-        handle: cublasHandle_t,
-        mode: cublasAtomicsMode_t,
-    ) -> cublasStatus_t;
+    pub fn cublasGetStream_v2(handle: cublasHandle_t, streamId: *mut cudaStream_t) -> cublasStatus_t;
+    pub fn cublasGetPointerMode_v2(handle: cublasHandle_t, mode: *mut cublasPointerMode_t) -> cublasStatus_t;
+    pub fn cublasSetPointerMode_v2(handle: cublasHandle_t, mode: cublasPointerMode_t) -> cublasStatus_t;
+    pub fn cublasGetAtomicsMode(handle: cublasHandle_t, mode: *mut cublasAtomicsMode_t) -> cublasStatus_t;
+    pub fn cublasSetAtomicsMode(handle: cublasHandle_t, mode: cublasAtomicsMode_t) -> cublasStatus_t;
     pub fn cublasGetMathMode(handle: cublasHandle_t, mode: *mut cublasMath_t) -> cublasStatus_t;
     pub fn cublasSetMathMode(handle: cublasHandle_t, mode: cublasMath_t) -> cublasStatus_t;
     pub fn cublasSetVector(
@@ -617,20 +596,10 @@ extern "C" {
         c: *const f64,
         s: *const f64,
     ) -> cublasStatus_t;
-    pub fn cublasSrotg_v2(
-        handle: cublasHandle_t,
-        a: *mut f32,
-        b: *mut f32,
-        c: *mut f32,
-        s: *mut f32,
-    ) -> cublasStatus_t;
-    pub fn cublasDrotg_v2(
-        handle: cublasHandle_t,
-        a: *mut f64,
-        b: *mut f64,
-        c: *mut f64,
-        s: *mut f64,
-    ) -> cublasStatus_t;
+    pub fn cublasSrotg_v2(handle: cublasHandle_t, a: *mut f32, b: *mut f32, c: *mut f32, s: *mut f32)
+        -> cublasStatus_t;
+    pub fn cublasDrotg_v2(handle: cublasHandle_t, a: *mut f64, b: *mut f64, c: *mut f64, s: *mut f64)
+        -> cublasStatus_t;
     pub fn cublasCrotg_v2(
         handle: cublasHandle_t,
         a: *mut cuComplex,

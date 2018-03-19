@@ -2,15 +2,15 @@
 //! ==============================
 //!
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate toml;
-#[macro_use]
-extern crate procedurals;
 extern crate cuda_sys as ffi;
 extern crate glob;
+#[macro_use]
+extern crate procedurals;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate tempdir;
+extern crate toml;
 
 pub mod error;
 pub mod ptx_builder;

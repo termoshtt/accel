@@ -89,7 +89,10 @@ impl Builder {
 
     fn generate_config(&self) {
         self.save(&self.deps.to_string(), "Cargo.toml");
-        self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json");
+        self.save(
+            include_str!("nvptx64-nvidia-cuda.json"),
+            "nvptx64-nvidia-cuda.json",
+        );
     }
 
     fn clean(&self) {
@@ -102,7 +105,13 @@ impl Builder {
 
     fn build(&self) {
         process::Command::new("xargo")
-            .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
+            .args(&[
+                "+nightly",
+                "rustc",
+                "--release",
+                "--target",
+                "nvptx64-nvidia-cuda",
+            ])
             .current_dir(&self.path)
             .status()
             .unwrap();

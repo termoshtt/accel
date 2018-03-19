@@ -92,25 +92,29 @@ impl Default for Package {
 
 #[derive(Serialize)]
 struct Profile {
-    dev: DevProfile,
+    release: ReleaseProfile,
 }
 
 impl Default for Profile {
     fn default() -> Self {
         Profile {
-            dev: DevProfile::default(),
+            release: ReleaseProfile::default(),
         }
     }
 }
 
 #[derive(Serialize)]
-struct DevProfile {
+struct ReleaseProfile {
     debug: bool,
+    panic: String,
 }
 
-impl Default for DevProfile {
+impl Default for ReleaseProfile {
     fn default() -> Self {
-        DevProfile { debug: false }
+        ReleaseProfile {
+            debug: false,
+            panic: "abort".to_string(),
+        }
     }
 }
 

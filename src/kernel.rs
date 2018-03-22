@@ -61,6 +61,31 @@ pub fn void_cast<T: ?Sized>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }
 
+/// Representaion of `core::slice`
+#[repr(C)]
+pub struct SliceRepr<T> {
+    pub data: *const T,
+    pub len: usize,
+}
+
+/// Get type-erased slice
+///
+/// ```
+/// # use accel::kernel::*;
+/// # use std::os::raw::c_void;
+/// let s: &[f64] = &[0.0; 4];
+/// let p  = s.as_ptr() as *mut c_void;
+/// let p1 = void_cast_slice(s);
+/// assert_ne!(p, p1);
+/// let repr = unsafe { &*(p1 as *mut SliceRepr<usize>) };
+/// assert_eq!(p, repr.data as *mut c_void);
+/// assert_eq!(repr.len, 4);
+/// ```
+pub fn void_cast_slice<T>(r: &[T]) -> *mut c_void {
+    let r = unsafe { ::std::mem::transmute::<_, SliceRepr<T>>(r) };
+    &r as *const SliceRepr<T> as *mut _
+}
+
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, NewType)]
 pub struct Block(dim3);

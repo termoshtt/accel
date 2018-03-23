@@ -8,6 +8,7 @@ use accel::*;
 
 #[kernel]
 #[depends("accel-core" = "0.2.0-alpha")]
+#[build_path_home(".rust2ptx")]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {

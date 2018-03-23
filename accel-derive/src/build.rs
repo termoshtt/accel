@@ -1,5 +1,4 @@
 use glob::glob;
-use std::env;
 use std::io::{Read, Write};
 use std::path::*;
 use std::{fs, process};
@@ -17,14 +16,12 @@ impl Builder {
     /// Initialize builder with path and dependes
     ///
     /// 1. `build_path` or `build_path_home`
-    /// 2. `$ACCEL_PTX_BUILDER_DIR` environmental variable
-    /// 3. use temporal directory
+    /// 2. use temporal directory, e.g. "/tmp/ptx-builder.XXXXXXX/"
     pub fn new(attrs: KernelAttribute) -> Self {
         let path = attrs.build_path.unwrap_or(
-            env::var("ACCEL_PTX_BUILDER_DIR")
-                .map(|s| PathBuf::from(&s))
-                .or(TempDir::new("ptx-builder").map(|dir| dir.into_path()))
-                .unwrap(),
+            TempDir::new("ptx-builder")
+                .expect("Failed to create temporal directory")
+                .into_path(),
         );
         fs::create_dir_all(path.join("src")).unwrap();
         Builder {

@@ -43,37 +43,27 @@ impl Crate {
         &self.name
     }
 
-    pub fn from_depends_str(dep: &str) -> Self {
-        let pat: &[_] = &[' ', '"'];
-        let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
-        match tokens.len() {
-            // #[depends("accel-core")]
-            1 => Self {
-                name: tokens[0].to_owned(),
-                version: None,
-                path: None,
-            },
-            // #[depends("accel-core" = "0.1.0")]
-            2 => Self {
-                name: tokens[0].to_owned(),
-                version: Some(tokens[1].to_owned()),
-                path: None,
-            },
-            _ => unreachable!("Invalid line: {}", dep),
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            version: None,
+            path: None,
         }
     }
 
-    pub fn from_depends_path_str(dep: &str) -> Self {
-        let pat: &[_] = &[' ', '"'];
-        let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
-        match tokens.len() {
-            // #[depends_path("accel-core" = "/some/path")]
-            2 => Self {
-                name: tokens[0].to_owned(),
-                version: None,
-                path: Some(PathBuf::from(tokens[1])),
-            },
-            _ => unreachable!("Invalid line: {}", dep),
+    pub fn with_version(name: &str, version: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            version: Some(version.to_string()),
+            path: None,
+        }
+    }
+
+    pub fn with_path<P: AsRef<Path>>(name: &str, path: P) -> Self {
+        Self {
+            name: name.to_string(),
+            version: None,
+            path: Some(path.as_ref().to_owned()),
         }
     }
 }

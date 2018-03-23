@@ -138,7 +138,7 @@ fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
                 let m = m.borrow();
                 let mut kernel = m.get_kernel(#kernel_name).expect("Failed to get Kernel");
                 let mut args = [#(void_cast(&#input_values)),*];
-                unsafe { kernel.launch(args.as_mut_ptr(), grid, block).exepct("Failed to launch kernel") };
+                unsafe { kernel.launch(args.as_mut_ptr(), grid, block).expect("Failed to launch kernel") };
             })
         }
     };

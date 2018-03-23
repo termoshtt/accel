@@ -16,4 +16,8 @@ procedurals = "0.2.3"
 
 [dependencies.cuda-sys]
 version = "0.1.0"
-path = "./cuda-sys"
+path = "cuda-sys"
+
+[dev-dependencies.accel-derive]
+version = "0.1.0"
+path = "accel-derive"

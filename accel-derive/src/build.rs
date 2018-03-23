@@ -36,6 +36,7 @@ impl Builder {
     pub fn compile(&mut self, kernel: &str) -> String {
         self.generate_config();
         self.save(kernel, "src/lib.rs");
+        self.format();
         self.clean();
         self.build();
         self.link();
@@ -97,6 +98,14 @@ impl Builder {
     fn clean(&self) {
         process::Command::new("rm")
             .args(&["-rf", "target"])
+            .current_dir(&self.path)
+            .status()
+            .unwrap();
+    }
+
+    fn format(&self) {
+        process::Command::new("cargo")
+            .args(&["fmt"])
             .current_dir(&self.path)
             .status()
             .unwrap();

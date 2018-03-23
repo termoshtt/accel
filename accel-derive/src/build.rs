@@ -14,6 +14,11 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Initialize builder with path and dependes
+    ///
+    /// 1. `build_path` or `build_path_home`
+    /// 2. `$ACCEL_PTX_BUILDER_DIR` environmental variable
+    /// 3. use temporal directory
     pub fn new(attrs: KernelAttribute) -> Self {
         let path = attrs.build_path.unwrap_or(
             env::var("ACCEL_PTX_BUILDER_DIR")
@@ -45,7 +50,7 @@ impl Builder {
 
     fn link(&self) {
         // extract rlibs using ar x
-        let pat_rlib = format!("{}/target/**/depends/*.rlib", self.path.display());
+        let pat_rlib = format!("{}/target/**/deps/*.rlib", self.path.display());
         for path in glob(&pat_rlib).unwrap() {
             let path = path.unwrap();
             process::Command::new("ar")
@@ -55,7 +60,7 @@ impl Builder {
                 .unwrap();
         }
         // link them
-        let pat_rsbc = format!("{}/target/**/depends/*.o", self.path.display());
+        let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
         let bcs: Vec<_> = glob(&pat_rsbc)
             .unwrap()
             .map(|x| x.unwrap().to_str().unwrap().to_owned())

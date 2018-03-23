@@ -22,9 +22,15 @@ impl Builder {
             .map(|s| PathBuf::from(&s))
             .or(TempDir::new("ptx-builder").map(|dir| dir.into_path()))
             .unwrap();
+        Self::on(&path)
+    }
+
+    pub fn on<P: AsRef<Path>>(p: P) -> Self {
+        let path = p.as_ref();
+        println!("Path = {:?}", path);
         fs::create_dir_all(path.join("src")).unwrap();
         Builder {
-            path,
+            path: path.to_owned(),
             deps: Depends::new(),
         }
     }

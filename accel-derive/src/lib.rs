@@ -1,92 +1,34 @@
 #![feature(proc_macro)]
 #![recursion_limit = "128"]
 
+extern crate glob;
 extern crate proc_macro;
 #[macro_use]
+extern crate procedurals;
+#[macro_use]
 extern crate quote;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate syn;
+extern crate tempdir;
+extern crate toml;
 
-extern crate accel;
+mod config;
+mod build;
+mod parse;
 
 use proc_macro::TokenStream;
 use syn::*;
-use accel::ptx_builder::*;
 
-#[derive(Debug)]
-struct Function {
-    attrs: Vec<Attribute>,
-    ident: Ident,
-    vis: Visibility,
-    block: Box<Block>,
-    unsafety: Option<token::Unsafe>,
-    inputs: punctuated::Punctuated<FnArg, token::Comma>,
-    output: ReturnType,
-    fn_token: token::Fn,
-}
-
-impl Function {
-    fn parse(func: TokenStream) -> Self {
-        let ItemFn {
-            attrs,
-            ident,
-            vis,
-            block,
-            decl,
-            unsafety,
-            ..
-        } = syn::parse(func.clone()).unwrap();
-        let FnDecl {
-            inputs,
-            output,
-            fn_token,
-            ..
-        } = { *decl };
-        Function {
-            attrs,
-            ident,
-            vis,
-            block,
-            unsafety,
-            inputs,
-            output,
-            fn_token,
-        }
-    }
-
-    fn input_values(&self) -> Vec<&Pat> {
-        self.inputs
-            .iter()
-            .map(|arg| match arg {
-                &FnArg::Captured(ref val) => &val.pat,
-                _ => unreachable!(""),
-            })
-            .collect()
-    }
-}
+use parse::*;
+use build::*;
 
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     let func = Function::parse(func);
     let ptx_str = func2kernel(&func);
     func2caller(&ptx_str, &func)
-}
-
-fn parse_depends(func: &Function) -> Depends {
-    let mut deps = Depends::new();
-    for attr in &func.attrs {
-        let path = &attr.path;
-        let path = &quote!{#path}.to_string();
-        let tts = &attr.tts;
-        let tts = &quote!{#tts}.to_string();
-        let pene: &[_] = &['(', ')'];
-        let dep = tts.trim_matches(pene);
-        match path as &str {
-            "depends" => deps.push(Crate::from_depends_str(dep)),
-            "depends_path" => deps.push(Crate::from_depends_path_str(dep)),
-            _ => unreachable!("Unsupported attribute: {:?}", path),
-        }
-    }
-    deps
 }
 
 /// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
@@ -99,18 +41,22 @@ fn func2kernel(func: &Function) -> String {
     let output = &func.output;
     let block = &func.block;
 
-    let deps = parse_depends(func);
-    let crates: Vec<Ident> = deps.iter()
+    let attrs = parse_attrs(func);
+    let mut builder = Builder::new(attrs);
+
+    let crates: Vec<Ident> = builder
+        .depends
+        .iter()
         .map(|c| c.name().replace("-", "_").into())
         .collect();
-    let kernel = quote!{
+    let kernel_str = quote!{
         #![feature(abi_ptx)]
         #![no_std]
         #(extern crate #crates;), *
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
-    };
-    compile(&kernel.to_string(), deps)
+    }.to_string();
+    builder.compile(&kernel_str)
 }
 
 fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {

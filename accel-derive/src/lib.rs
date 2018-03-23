@@ -1,10 +1,10 @@
 #![feature(proc_macro)]
 #![recursion_limit = "128"]
 
+extern crate proc_macro;
 #[macro_use]
 extern crate quote;
 extern crate syn;
-extern crate proc_macro;
 
 extern crate accel;
 
@@ -40,9 +40,7 @@ impl Function {
             output,
             fn_token,
             ..
-        } = {
-            *decl
-        };
+        } = { *decl };
         Function {
             attrs,
             ident,
@@ -105,8 +103,7 @@ fn func2kernel(func: &Function) -> String {
     let crates: Vec<Ident> = deps.iter()
         .map(|c| c.name().replace("-", "_").into())
         .collect();
-    let kernel =
-        quote!{
+    let kernel = quote!{
         #![feature(abi_ptx)]
         #![no_std]
         #(extern crate #crates;), *
@@ -126,8 +123,7 @@ fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
     let input_values = func.input_values();
     let kernel_name = quote!{ #ident }.to_string();
 
-    let caller =
-        quote!{
+    let caller = quote!{
         mod ptx_mod {
             use ::std::cell::RefCell;
             use ::accel::module::Module;

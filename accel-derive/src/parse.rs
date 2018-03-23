@@ -62,6 +62,18 @@ pub struct KernelAttribute {
     pub build_path: Option<PathBuf>,
 }
 
+/// Parse attributes of kernel
+///
+/// For attributes are allowed:
+///
+/// - `depends`: add dependent crate
+///    - `#[depends("accel-core")]` equals to `accel-core = "*"` in Cargo.toml
+///    - `#[depends("accel-core" = "0.1.0")]` equals to `accel-core = "0.1.0"`
+/// - `depends_path`: add dependent crate from local
+///    - `#[depends_path("accel-core" = "/some/path")]`
+///      equals to `accel-core = { path = "/some/path" }`
+/// - `#[build_path("/some/path")]`: build PTX on "/some/path"
+/// - `#[build_path_home("path/to/work")]`: build PTX on "$HOME/path/to/work"
 pub fn parse_attrs(func: &Function) -> KernelAttribute {
     let mut attrs = KernelAttribute {
         depends: Depends::new(),

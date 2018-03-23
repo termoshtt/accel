@@ -75,7 +75,8 @@ fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
             use ::accel::module::Module;
             thread_local! {
                 #[allow(non_upper_case_globals)]
-                pub static #ident: RefCell<Module> = RefCell::new(Module::from_str(#ptx_str).expect("Load module failed"));
+                pub static #ident: RefCell<Module>
+                    = RefCell::new(Module::from_str(#ptx_str).expect("Load module failed"));
             }
         }
         #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {

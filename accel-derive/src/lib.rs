@@ -129,16 +129,16 @@ fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
             use ::accel::module::Module;
             thread_local! {
                 #[allow(non_upper_case_globals)]
-                pub static #ident: RefCell<Module> = RefCell::new(Module::from_str(#ptx_str).unwrap());
+                pub static #ident: RefCell<Module> = RefCell::new(Module::from_str(#ptx_str).expect("Load module failed"));
             }
         }
         #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {
             use ::accel::kernel::void_cast;
             ptx_mod::#ident.with(|m| {
                 let m = m.borrow();
-                let mut kernel = m.get_kernel(#kernel_name).unwrap();
+                let mut kernel = m.get_kernel(#kernel_name).expect("Failed to get Kernel");
                 let mut args = [#(void_cast(&#input_values)),*];
-                unsafe { kernel.launch(args.as_mut_ptr(), grid, block).unwrap() };
+                unsafe { kernel.launch(args.as_mut_ptr(), grid, block).exepct("Failed to launch kernel") };
             })
         }
     };

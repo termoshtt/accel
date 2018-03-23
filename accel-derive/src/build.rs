@@ -35,7 +35,6 @@ impl Builder {
         self.save(kernel, "src/lib.rs");
         self.format();
         self.clean();
-        self.format();
         self.build();
         self.link();
         self.load_ptx()

@@ -37,7 +37,27 @@ impl<'m> Kernel<'m> {
 }
 
 /// Get type-erased pointer
-pub fn void_cast<T>(r: &T) -> *mut c_void {
+///
+/// ```
+/// # use accel::kernel::void_cast;
+/// let a = 1_usize;
+/// let p = void_cast(&a);
+/// unsafe { assert_eq!(*(p as *mut usize), 1) };
+/// ```
+///
+/// This returns the pointer for slice, and the length of slice is dropped:
+///
+/// ```
+/// # use accel::kernel::void_cast;
+/// # use std::os::raw::c_void;
+/// let s: &[f64] = &[0.0; 4];
+/// let p = s.as_ptr() as *mut c_void;
+/// let p1 = void_cast(s);
+/// let p2 = void_cast(&s);
+/// assert_eq!(p, p1);
+/// assert_ne!(p, p2); // Result of slice and &slice are different!
+/// ```
+pub fn void_cast<T: ?Sized>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }
 

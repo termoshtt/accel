@@ -81,25 +81,35 @@ pub fn parse_attrs(func: &Function) -> KernelAttribute {
     };
     for attr in &func.attrs {
         let path = &attr.path;
-        let path = &quote!{#path}.to_string();
+        let path = quote!{#path}.to_string();
         let tts = &attr.tts;
-        let tts = &quote!{#tts}.to_string();
-        let pene: &[_] = &['(', ')'];
-        let dep = tts.trim_matches(pene);
-        match path as &str {
-            "depends" => attrs.depends.push(depends_to_crate(dep)),
-            "depends_path" => attrs.depends.push(depends_path_to_crate(dep)),
-            "build_path" => attrs.build_path = Some(PathBuf::from(path)),
-            "build_path_home" => attrs.build_path = Some(env::home_dir().expect("No home dir").join(path).to_owned()),
+        let tts = quote!{#tts}.to_string();
+        let attr = tts.trim_matches(PENE);
+        match path.as_str() {
+            "depends" => attrs.depends.push(depends_to_crate(&attr)),
+            "depends_path" => attrs.depends.push(depends_path_to_crate(&attr)),
+            "build_path" => attrs.build_path = Some(build_path(&attr)),
+            "build_path_home" => attrs.build_path = Some(build_path_home(&attr)),
             _ => unreachable!("Unsupported attribute: {:?}", path),
         }
     }
     attrs
 }
 
+const PENE: &[char] = &['(', ')'];
+const QUOTE: &[char] = &[' ', '"'];
+
+fn build_path(path: &str) -> PathBuf {
+    PathBuf::from(path.trim_matches(QUOTE))
+}
+
+fn build_path_home(path: &str) -> PathBuf {
+    let path = path.trim_matches(QUOTE);
+    env::home_dir().expect("No home dir").join(path).to_owned()
+}
+
 fn depends_to_crate(dep: &str) -> Crate {
-    let pat: &[_] = &[' ', '"'];
-    let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
+    let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(QUOTE)).collect();
     match tokens.len() {
         // #[depends("accel-core")] case
         1 => Crate::new(tokens[0]),
@@ -110,8 +120,7 @@ fn depends_to_crate(dep: &str) -> Crate {
 }
 
 fn depends_path_to_crate(dep: &str) -> Crate {
-    let pat: &[_] = &[' ', '"'];
-    let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(pat)).collect();
+    let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(QUOTE)).collect();
     match tokens.len() {
         // #[depends_path("accel-core" = "/some/path")] case
         2 => Crate::with_path(tokens[0], tokens[1]),

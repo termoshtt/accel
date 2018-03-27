@@ -1,6 +1,4 @@
-#![allow(non_camel_case_types)]
-#![allow(non_upper_case_globals)]
-#![allow(non_snake_case)]
+#![allow(non_camel_case_types, non_upper_case_globals, non_snake_case)]
 
 pub const __CUDA_API_VERSION: ::std::os::raw::c_uint = 8000;
 pub const CUDA_VERSION: ::std::os::raw::c_uint = 8000;
@@ -144,11 +142,6 @@ pub type CUsurfObject = ::std::os::raw::c_ulonglong;
 pub struct CUuuid_st {
     pub bytes: [::std::os::raw::c_char; 16usize],
 }
-#[test]
-fn bindgen_test_layout_CUuuid_st() {
-    assert_eq!(::std::mem::size_of::<CUuuid_st>(), 16usize);
-    assert_eq!(::std::mem::align_of::<CUuuid_st>(), 1usize);
-}
 impl Clone for CUuuid_st {
     fn clone(&self) -> Self {
         *self
@@ -159,20 +152,10 @@ pub type CUuuid = CUuuid_st;
 pub struct CUipcEventHandle_st {
     pub reserved: [::std::os::raw::c_char; 64usize],
 }
-#[test]
-fn bindgen_test_layout_CUipcEventHandle_st() {
-    assert_eq!(::std::mem::size_of::<CUipcEventHandle_st>(), 64usize);
-    assert_eq!(::std::mem::align_of::<CUipcEventHandle_st>(), 1usize);
-}
 pub type CUipcEventHandle = CUipcEventHandle_st;
 #[repr(C)]
 pub struct CUipcMemHandle_st {
     pub reserved: [::std::os::raw::c_char; 64usize],
-}
-#[test]
-fn bindgen_test_layout_CUipcMemHandle_st() {
-    assert_eq!(::std::mem::size_of::<CUipcMemHandle_st>(), 64usize);
-    assert_eq!(::std::mem::align_of::<CUipcMemHandle_st>(), 1usize);
 }
 pub type CUipcMemHandle = CUipcMemHandle_st;
 #[repr(u32)]
@@ -267,32 +250,10 @@ pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindge
     pub value: cuuint32_t,
     pub pad: cuuint64_t,
 }
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1>(),
-        8usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1>(),
-        8usize
-    );
-}
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1 {
     fn clone(&self) -> Self {
         *self
     }
-}
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st>(),
-        40usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st>(),
-        8usize
-    );
 }
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st {
     fn clone(&self) -> Self {
@@ -314,32 +275,10 @@ pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindg
     pub value: cuuint32_t,
     pub pad: cuuint64_t,
 }
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1>(),
-        8usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1>(),
-        8usize
-    );
-}
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1 {
     fn clone(&self) -> Self {
         *self
     }
-}
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st>(),
-        40usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st>(),
-        8usize
-    );
 }
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st {
     fn clone(&self) -> Self {
@@ -352,32 +291,10 @@ pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_s
     pub operation: CUstreamBatchMemOpType,
     pub flags: ::std::os::raw::c_uint,
 }
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st>(),
-        8usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st>(),
-        4usize
-    );
-}
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st {
     fn clone(&self) -> Self {
         *self
     }
-}
-#[test]
-fn bindgen_test_layout_CUstreamBatchMemOpParams_union() {
-    assert_eq!(
-        ::std::mem::size_of::<CUstreamBatchMemOpParams_union>(),
-        48usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUstreamBatchMemOpParams_union>(),
-        8usize
-    );
 }
 impl Clone for CUstreamBatchMemOpParams_union {
     fn clone(&self) -> Self {
@@ -541,11 +458,6 @@ pub struct CUdevprop_st {
     pub regsPerBlock: ::std::os::raw::c_int,
     pub clockRate: ::std::os::raw::c_int,
     pub textureAlign: ::std::os::raw::c_int,
-}
-#[test]
-fn bindgen_test_layout_CUdevprop_st() {
-    assert_eq!(::std::mem::size_of::<CUdevprop_st>(), 56usize);
-    assert_eq!(::std::mem::align_of::<CUdevprop_st>(), 4usize);
 }
 impl Clone for CUdevprop_st {
     fn clone(&self) -> Self {
@@ -861,11 +773,6 @@ pub struct CUDA_MEMCPY2D_st {
     pub WidthInBytes: usize,
     pub Height: usize,
 }
-#[test]
-fn bindgen_test_layout_CUDA_MEMCPY2D_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY2D_st>(), 128usize);
-    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY2D_st>(), 8usize);
-}
 impl Clone for CUDA_MEMCPY2D_st {
     fn clone(&self) -> Self {
         *self
@@ -900,11 +807,6 @@ pub struct CUDA_MEMCPY3D_st {
     pub WidthInBytes: usize,
     pub Height: usize,
     pub Depth: usize,
-}
-#[test]
-fn bindgen_test_layout_CUDA_MEMCPY3D_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY3D_st>(), 200usize);
-    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY3D_st>(), 8usize);
 }
 impl Clone for CUDA_MEMCPY3D_st {
     fn clone(&self) -> Self {
@@ -941,11 +843,6 @@ pub struct CUDA_MEMCPY3D_PEER_st {
     pub Height: usize,
     pub Depth: usize,
 }
-#[test]
-fn bindgen_test_layout_CUDA_MEMCPY3D_PEER_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_MEMCPY3D_PEER_st>(), 200usize);
-    assert_eq!(::std::mem::align_of::<CUDA_MEMCPY3D_PEER_st>(), 8usize);
-}
 impl Clone for CUDA_MEMCPY3D_PEER_st {
     fn clone(&self) -> Self {
         *self
@@ -959,11 +856,6 @@ pub struct CUDA_ARRAY_DESCRIPTOR_st {
     pub Height: usize,
     pub Format: CUarray_format,
     pub NumChannels: ::std::os::raw::c_uint,
-}
-#[test]
-fn bindgen_test_layout_CUDA_ARRAY_DESCRIPTOR_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_ARRAY_DESCRIPTOR_st>(), 24usize);
-    assert_eq!(::std::mem::align_of::<CUDA_ARRAY_DESCRIPTOR_st>(), 8usize);
 }
 impl Clone for CUDA_ARRAY_DESCRIPTOR_st {
     fn clone(&self) -> Self {
@@ -980,11 +872,6 @@ pub struct CUDA_ARRAY3D_DESCRIPTOR_st {
     pub Format: CUarray_format,
     pub NumChannels: ::std::os::raw::c_uint,
     pub Flags: ::std::os::raw::c_uint,
-}
-#[test]
-fn bindgen_test_layout_CUDA_ARRAY3D_DESCRIPTOR_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_ARRAY3D_DESCRIPTOR_st>(), 40usize);
-    assert_eq!(::std::mem::align_of::<CUDA_ARRAY3D_DESCRIPTOR_st>(), 8usize);
 }
 impl Clone for CUDA_ARRAY3D_DESCRIPTOR_st {
     fn clone(&self) -> Self {
@@ -1013,17 +900,6 @@ pub union CUDA_RESOURCE_DESC_st__bindgen_ty_1 {
 pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1 {
     pub hArray: CUarray,
 }
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1>(),
-        8usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1>(),
-        8usize
-    );
-}
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1 {
     fn clone(&self) -> Self {
         *self
@@ -1033,17 +909,6 @@ impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_1 {
 #[derive(Debug, Copy)]
 pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2 {
     pub hMipmappedArray: CUmipmappedArray,
-}
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2>(),
-        8usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2>(),
-        8usize
-    );
 }
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_2 {
     fn clone(&self) -> Self {
@@ -1057,17 +922,6 @@ pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3 {
     pub format: CUarray_format,
     pub numChannels: ::std::os::raw::c_uint,
     pub sizeInBytes: usize,
-}
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3>(),
-        24usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3>(),
-        8usize
-    );
 }
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_3 {
     fn clone(&self) -> Self {
@@ -1084,17 +938,6 @@ pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4 {
     pub height: usize,
     pub pitchInBytes: usize,
 }
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4>(),
-        40usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4>(),
-        8usize
-    );
-}
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4 {
     fn clone(&self) -> Self {
         *self
@@ -1105,42 +948,15 @@ impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_4 {
 pub struct CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5 {
     pub reserved: [::std::os::raw::c_int; 32usize],
 }
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5>(),
-        128usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5>(),
-        4usize
-    );
-}
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1__bindgen_ty_5 {
     fn clone(&self) -> Self {
         *self
     }
 }
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st__bindgen_ty_1() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1>(),
-        128usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_RESOURCE_DESC_st__bindgen_ty_1>(),
-        8usize
-    );
-}
 impl Clone for CUDA_RESOURCE_DESC_st__bindgen_ty_1 {
     fn clone(&self) -> Self {
         *self
     }
-}
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_DESC_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_RESOURCE_DESC_st>(), 144usize);
-    assert_eq!(::std::mem::align_of::<CUDA_RESOURCE_DESC_st>(), 8usize);
 }
 impl Clone for CUDA_RESOURCE_DESC_st {
     fn clone(&self) -> Self {
@@ -1161,11 +977,6 @@ pub struct CUDA_TEXTURE_DESC_st {
     pub maxMipmapLevelClamp: f32,
     pub borderColor: [f32; 4usize],
     pub reserved: [::std::os::raw::c_int; 12usize],
-}
-#[test]
-fn bindgen_test_layout_CUDA_TEXTURE_DESC_st() {
-    assert_eq!(::std::mem::size_of::<CUDA_TEXTURE_DESC_st>(), 104usize);
-    assert_eq!(::std::mem::align_of::<CUDA_TEXTURE_DESC_st>(), 4usize);
 }
 impl Clone for CUDA_TEXTURE_DESC_st {
     fn clone(&self) -> Self {
@@ -1226,14 +1037,6 @@ pub struct CUDA_RESOURCE_VIEW_DESC_st {
     pub lastLayer: ::std::os::raw::c_uint,
     pub reserved: [::std::os::raw::c_uint; 16usize],
 }
-#[test]
-fn bindgen_test_layout_CUDA_RESOURCE_VIEW_DESC_st() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_RESOURCE_VIEW_DESC_st>(),
-        112usize
-    );
-    assert_eq!(::std::mem::align_of::<CUDA_RESOURCE_VIEW_DESC_st>(), 8usize);
-}
 impl Clone for CUDA_RESOURCE_VIEW_DESC_st {
     fn clone(&self) -> Self {
         *self
@@ -1245,17 +1048,6 @@ pub type CUDA_RESOURCE_VIEW_DESC = CUDA_RESOURCE_VIEW_DESC_st;
 pub struct CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
     pub p2pToken: ::std::os::raw::c_ulonglong,
     pub vaSpaceToken: ::std::os::raw::c_uint,
-}
-#[test]
-fn bindgen_test_layout_CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st() {
-    assert_eq!(
-        ::std::mem::size_of::<CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st>(),
-        16usize
-    );
-    assert_eq!(
-        ::std::mem::align_of::<CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st>(),
-        8usize
-    );
 }
 impl Clone for CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
     fn clone(&self) -> Self {

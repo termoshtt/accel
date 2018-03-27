@@ -11,3 +11,5 @@ fn cuda_version() {
     }
     println!("driver version = {}", d_ver);
 }
+
+mod cuda_tests;

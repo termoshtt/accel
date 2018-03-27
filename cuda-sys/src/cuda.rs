@@ -1265,127 +1265,90 @@ impl Clone for CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
 pub type CUDA_POINTER_ATTRIBUTE_P2P_TOKENS = CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st;
 extern "C" {
     pub fn cuGetErrorString(error: CUresult, pStr: *mut *const ::std::os::raw::c_char) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGetErrorName(error: CUresult, pStr: *mut *const ::std::os::raw::c_char) -> CUresult;
-}
-extern "C" {
+
     pub fn cuInit(Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDriverGetVersion(driverVersion: *mut ::std::os::raw::c_int) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGet(device: *mut CUdevice, ordinal: ::std::os::raw::c_int) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetCount(count: *mut ::std::os::raw::c_int) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetName(name: *mut ::std::os::raw::c_char, len: ::std::os::raw::c_int, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceTotalMem_v2(bytes: *mut usize, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetAttribute(pi: *mut ::std::os::raw::c_int, attrib: CUdevice_attribute, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetProperties(prop: *mut CUdevprop, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceComputeCapability(
         major: *mut ::std::os::raw::c_int,
         minor: *mut ::std::os::raw::c_int,
         dev: CUdevice,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDevicePrimaryCtxRetain(pctx: *mut CUcontext, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDevicePrimaryCtxRelease(dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDevicePrimaryCtxSetFlags(dev: CUdevice, flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDevicePrimaryCtxGetState(
         dev: CUdevice,
         flags: *mut ::std::os::raw::c_uint,
         active: *mut ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDevicePrimaryCtxReset(dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxCreate_v2(pctx: *mut CUcontext, flags: ::std::os::raw::c_uint, dev: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxDestroy_v2(ctx: CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxPushCurrent_v2(ctx: CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxPopCurrent_v2(pctx: *mut CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxSetCurrent(ctx: CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetCurrent(pctx: *mut CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetDevice(device: *mut CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetFlags(flags: *mut ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxSynchronize() -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxSetLimit(limit: CUlimit, value: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetLimit(pvalue: *mut usize, limit: CUlimit) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetCacheConfig(pconfig: *mut CUfunc_cache) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxSetCacheConfig(config: CUfunc_cache) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetSharedMemConfig(pConfig: *mut CUsharedconfig) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxSetSharedMemConfig(config: CUsharedconfig) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetApiVersion(ctx: CUcontext, version: *mut ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxGetStreamPriorityRange(
         leastPriority: *mut ::std::os::raw::c_int,
         greatestPriority: *mut ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxAttach(pctx: *mut CUcontext, flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxDetach(ctx: CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleLoad(module: *mut CUmodule, fname: *const ::std::os::raw::c_char) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleLoadData(module: *mut CUmodule, image: *const ::std::os::raw::c_void) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleLoadDataEx(
         module: *mut CUmodule,
         image: *const ::std::os::raw::c_void,
@@ -1393,44 +1356,36 @@ extern "C" {
         options: *mut CUjit_option,
         optionValues: *mut *mut ::std::os::raw::c_void,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleLoadFatBinary(module: *mut CUmodule, fatCubin: *const ::std::os::raw::c_void) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleUnload(hmod: CUmodule) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleGetFunction(hfunc: *mut CUfunction, hmod: CUmodule, name: *const ::std::os::raw::c_char)
         -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleGetGlobal_v2(
         dptr: *mut CUdeviceptr,
         bytes: *mut usize,
         hmod: CUmodule,
         name: *const ::std::os::raw::c_char,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleGetTexRef(pTexRef: *mut CUtexref, hmod: CUmodule, name: *const ::std::os::raw::c_char) -> CUresult;
-}
-extern "C" {
+
     pub fn cuModuleGetSurfRef(
         pSurfRef: *mut CUsurfref,
         hmod: CUmodule,
         name: *const ::std::os::raw::c_char,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLinkCreate_v2(
         numOptions: ::std::os::raw::c_uint,
         options: *mut CUjit_option,
         optionValues: *mut *mut ::std::os::raw::c_void,
         stateOut: *mut CUlinkState,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLinkAddData_v2(
         state: CUlinkState,
         type_: CUjitInputType,
@@ -1441,8 +1396,7 @@ extern "C" {
         options: *mut CUjit_option,
         optionValues: *mut *mut ::std::os::raw::c_void,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLinkAddFile_v2(
         state: CUlinkState,
         type_: CUjitInputType,
@@ -1451,24 +1405,19 @@ extern "C" {
         options: *mut CUjit_option,
         optionValues: *mut *mut ::std::os::raw::c_void,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLinkComplete(
         state: CUlinkState,
         cubinOut: *mut *mut ::std::os::raw::c_void,
         sizeOut: *mut usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLinkDestroy(state: CUlinkState) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemGetInfo_v2(free: *mut usize, total: *mut usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemAlloc_v2(dptr: *mut CUdeviceptr, bytesize: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemAllocPitch_v2(
         dptr: *mut CUdeviceptr,
         pPitch: *mut usize,
@@ -1476,82 +1425,63 @@ extern "C" {
         Height: usize,
         ElementSizeBytes: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemFree_v2(dptr: CUdeviceptr) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemGetAddressRange_v2(pbase: *mut CUdeviceptr, psize: *mut usize, dptr: CUdeviceptr) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemAllocHost_v2(pp: *mut *mut ::std::os::raw::c_void, bytesize: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemFreeHost(p: *mut ::std::os::raw::c_void) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemHostAlloc(
         pp: *mut *mut ::std::os::raw::c_void,
         bytesize: usize,
         Flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemHostGetDevicePointer_v2(
         pdptr: *mut CUdeviceptr,
         p: *mut ::std::os::raw::c_void,
         Flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemHostGetFlags(pFlags: *mut ::std::os::raw::c_uint, p: *mut ::std::os::raw::c_void) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemAllocManaged(dptr: *mut CUdeviceptr, bytesize: usize, flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetByPCIBusId(dev: *mut CUdevice, pciBusId: *const ::std::os::raw::c_char) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetPCIBusId(
         pciBusId: *mut ::std::os::raw::c_char,
         len: ::std::os::raw::c_int,
         dev: CUdevice,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuIpcGetEventHandle(pHandle: *mut CUipcEventHandle, event: CUevent) -> CUresult;
-}
-extern "C" {
+
     pub fn cuIpcOpenEventHandle(phEvent: *mut CUevent, handle: CUipcEventHandle) -> CUresult;
-}
-extern "C" {
+
     pub fn cuIpcGetMemHandle(pHandle: *mut CUipcMemHandle, dptr: CUdeviceptr) -> CUresult;
-}
-extern "C" {
+
     pub fn cuIpcOpenMemHandle(
         pdptr: *mut CUdeviceptr,
         handle: CUipcMemHandle,
         Flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuIpcCloseMemHandle(dptr: CUdeviceptr) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemHostRegister_v2(
         p: *mut ::std::os::raw::c_void,
         bytesize: usize,
         Flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemHostUnregister(p: *mut ::std::os::raw::c_void) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy(dst: CUdeviceptr, src: CUdeviceptr, ByteCount: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyPeer(
         dstDevice: CUdeviceptr,
         dstContext: CUcontext,
@@ -1559,43 +1489,35 @@ extern "C" {
         srcContext: CUcontext,
         ByteCount: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyHtoD_v2(
         dstDevice: CUdeviceptr,
         srcHost: *const ::std::os::raw::c_void,
         ByteCount: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyDtoH_v2(dstHost: *mut ::std::os::raw::c_void, srcDevice: CUdeviceptr, ByteCount: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyDtoD_v2(dstDevice: CUdeviceptr, srcDevice: CUdeviceptr, ByteCount: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyDtoA_v2(dstArray: CUarray, dstOffset: usize, srcDevice: CUdeviceptr, ByteCount: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyAtoD_v2(dstDevice: CUdeviceptr, srcArray: CUarray, srcOffset: usize, ByteCount: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyHtoA_v2(
         dstArray: CUarray,
         dstOffset: usize,
         srcHost: *const ::std::os::raw::c_void,
         ByteCount: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyAtoH_v2(
         dstHost: *mut ::std::os::raw::c_void,
         srcArray: CUarray,
         srcOffset: usize,
         ByteCount: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyAtoA_v2(
         dstArray: CUarray,
         dstOffset: usize,
@@ -1603,23 +1525,17 @@ extern "C" {
         srcOffset: usize,
         ByteCount: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy2D_v2(pCopy: *const CUDA_MEMCPY2D) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy2DUnaligned_v2(pCopy: *const CUDA_MEMCPY2D) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy3D_v2(pCopy: *const CUDA_MEMCPY3D) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy3DPeer(pCopy: *const CUDA_MEMCPY3D_PEER) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyAsync(dst: CUdeviceptr, src: CUdeviceptr, ByteCount: usize, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyPeerAsync(
         dstDevice: CUdeviceptr,
         dstContext: CUcontext,
@@ -1628,32 +1544,28 @@ extern "C" {
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyHtoDAsync_v2(
         dstDevice: CUdeviceptr,
         srcHost: *const ::std::os::raw::c_void,
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyDtoHAsync_v2(
         dstHost: *mut ::std::os::raw::c_void,
         srcDevice: CUdeviceptr,
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyDtoDAsync_v2(
         dstDevice: CUdeviceptr,
         srcDevice: CUdeviceptr,
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyHtoAAsync_v2(
         dstArray: CUarray,
         dstOffset: usize,
@@ -1661,8 +1573,7 @@ extern "C" {
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpyAtoHAsync_v2(
         dstHost: *mut ::std::os::raw::c_void,
         srcArray: CUarray,
@@ -1670,26 +1581,19 @@ extern "C" {
         ByteCount: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy2DAsync_v2(pCopy: *const CUDA_MEMCPY2D, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy3DAsync_v2(pCopy: *const CUDA_MEMCPY3D, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemcpy3DPeerAsync(pCopy: *const CUDA_MEMCPY3D_PEER, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD8_v2(dstDevice: CUdeviceptr, uc: ::std::os::raw::c_uchar, N: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD16_v2(dstDevice: CUdeviceptr, us: ::std::os::raw::c_ushort, N: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD32_v2(dstDevice: CUdeviceptr, ui: ::std::os::raw::c_uint, N: usize) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D8_v2(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1697,8 +1601,7 @@ extern "C" {
         Width: usize,
         Height: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D16_v2(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1706,8 +1609,7 @@ extern "C" {
         Width: usize,
         Height: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D32_v2(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1715,32 +1617,28 @@ extern "C" {
         Width: usize,
         Height: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD8Async(
         dstDevice: CUdeviceptr,
         uc: ::std::os::raw::c_uchar,
         N: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD16Async(
         dstDevice: CUdeviceptr,
         us: ::std::os::raw::c_ushort,
         N: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD32Async(
         dstDevice: CUdeviceptr,
         ui: ::std::os::raw::c_uint,
         N: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D8Async(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1749,8 +1647,7 @@ extern "C" {
         Height: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D16Async(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1759,8 +1656,7 @@ extern "C" {
         Height: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemsetD2D32Async(
         dstDevice: CUdeviceptr,
         dstPitch: usize,
@@ -1769,53 +1665,41 @@ extern "C" {
         Height: usize,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuArrayCreate_v2(pHandle: *mut CUarray, pAllocateArray: *const CUDA_ARRAY_DESCRIPTOR) -> CUresult;
-}
-extern "C" {
+
     pub fn cuArrayGetDescriptor_v2(pArrayDescriptor: *mut CUDA_ARRAY_DESCRIPTOR, hArray: CUarray) -> CUresult;
-}
-extern "C" {
+
     pub fn cuArrayDestroy(hArray: CUarray) -> CUresult;
-}
-extern "C" {
+
     pub fn cuArray3DCreate_v2(pHandle: *mut CUarray, pAllocateArray: *const CUDA_ARRAY3D_DESCRIPTOR) -> CUresult;
-}
-extern "C" {
+
     pub fn cuArray3DGetDescriptor_v2(pArrayDescriptor: *mut CUDA_ARRAY3D_DESCRIPTOR, hArray: CUarray) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMipmappedArrayCreate(
         pHandle: *mut CUmipmappedArray,
         pMipmappedArrayDesc: *const CUDA_ARRAY3D_DESCRIPTOR,
         numMipmapLevels: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMipmappedArrayGetLevel(
         pLevelArray: *mut CUarray,
         hMipmappedArray: CUmipmappedArray,
         level: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMipmappedArrayDestroy(hMipmappedArray: CUmipmappedArray) -> CUresult;
-}
-extern "C" {
+
     pub fn cuPointerGetAttribute(
         data: *mut ::std::os::raw::c_void,
         attribute: CUpointer_attribute,
         ptr: CUdeviceptr,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemPrefetchAsync(devPtr: CUdeviceptr, count: usize, dstDevice: CUdevice, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemAdvise(devPtr: CUdeviceptr, count: usize, advice: CUmem_advise, device: CUdevice) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemRangeGetAttribute(
         data: *mut ::std::os::raw::c_void,
         dataSize: usize,
@@ -1823,8 +1707,7 @@ extern "C" {
         devPtr: CUdeviceptr,
         count: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuMemRangeGetAttributes(
         data: *mut *mut ::std::os::raw::c_void,
         dataSizes: *mut usize,
@@ -1833,122 +1716,97 @@ extern "C" {
         devPtr: CUdeviceptr,
         count: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuPointerSetAttribute(
         value: *const ::std::os::raw::c_void,
         attribute: CUpointer_attribute,
         ptr: CUdeviceptr,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuPointerGetAttributes(
         numAttributes: ::std::os::raw::c_uint,
         attributes: *mut CUpointer_attribute,
         data: *mut *mut ::std::os::raw::c_void,
         ptr: CUdeviceptr,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamCreate(phStream: *mut CUstream, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamCreateWithPriority(
         phStream: *mut CUstream,
         flags: ::std::os::raw::c_uint,
         priority: ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamGetPriority(hStream: CUstream, priority: *mut ::std::os::raw::c_int) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamGetFlags(hStream: CUstream, flags: *mut ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamWaitEvent(hStream: CUstream, hEvent: CUevent, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamAddCallback(
         hStream: CUstream,
         callback: CUstreamCallback,
         userData: *mut ::std::os::raw::c_void,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamAttachMemAsync(
         hStream: CUstream,
         dptr: CUdeviceptr,
         length: usize,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamQuery(hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamSynchronize(hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamDestroy_v2(hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventCreate(phEvent: *mut CUevent, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventRecord(hEvent: CUevent, hStream: CUstream) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventQuery(hEvent: CUevent) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventSynchronize(hEvent: CUevent) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventDestroy_v2(hEvent: CUevent) -> CUresult;
-}
-extern "C" {
+
     pub fn cuEventElapsedTime(pMilliseconds: *mut f32, hStart: CUevent, hEnd: CUevent) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamWaitValue32(
         stream: CUstream,
         addr: CUdeviceptr,
         value: cuuint32_t,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamWriteValue32(
         stream: CUstream,
         addr: CUdeviceptr,
         value: cuuint32_t,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuStreamBatchMemOp(
         stream: CUstream,
         count: ::std::os::raw::c_uint,
         paramArray: *mut CUstreamBatchMemOpParams,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuFuncGetAttribute(
         pi: *mut ::std::os::raw::c_int,
         attrib: CUfunction_attribute,
         hfunc: CUfunction,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuFuncSetCacheConfig(hfunc: CUfunction, config: CUfunc_cache) -> CUresult;
-}
-extern "C" {
+
     pub fn cuFuncSetSharedMemConfig(hfunc: CUfunction, config: CUsharedconfig) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLaunchKernel(
         f: CUfunction,
         gridDimX: ::std::os::raw::c_uint,
@@ -1962,65 +1820,53 @@ extern "C" {
         kernelParams: *mut *mut ::std::os::raw::c_void,
         extra: *mut *mut ::std::os::raw::c_void,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuFuncSetBlockShape(
         hfunc: CUfunction,
         x: ::std::os::raw::c_int,
         y: ::std::os::raw::c_int,
         z: ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuFuncSetSharedSize(hfunc: CUfunction, bytes: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuParamSetSize(hfunc: CUfunction, numbytes: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuParamSeti(hfunc: CUfunction, offset: ::std::os::raw::c_int, value: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuParamSetf(hfunc: CUfunction, offset: ::std::os::raw::c_int, value: f32) -> CUresult;
-}
-extern "C" {
+
     pub fn cuParamSetv(
         hfunc: CUfunction,
         offset: ::std::os::raw::c_int,
         ptr: *mut ::std::os::raw::c_void,
         numbytes: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLaunch(f: CUfunction) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLaunchGrid(
         f: CUfunction,
         grid_width: ::std::os::raw::c_int,
         grid_height: ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuLaunchGridAsync(
         f: CUfunction,
         grid_width: ::std::os::raw::c_int,
         grid_height: ::std::os::raw::c_int,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuParamSetTexRef(hfunc: CUfunction, texunit: ::std::os::raw::c_int, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuOccupancyMaxActiveBlocksPerMultiprocessor(
         numBlocks: *mut ::std::os::raw::c_int,
         func: CUfunction,
         blockSize: ::std::os::raw::c_int,
         dynamicSMemSize: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
         numBlocks: *mut ::std::os::raw::c_int,
         func: CUfunction,
@@ -2028,8 +1874,7 @@ extern "C" {
         dynamicSMemSize: usize,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuOccupancyMaxPotentialBlockSize(
         minGridSize: *mut ::std::os::raw::c_int,
         blockSize: *mut ::std::os::raw::c_int,
@@ -2038,8 +1883,7 @@ extern "C" {
         dynamicSMemSize: usize,
         blockSizeLimit: ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuOccupancyMaxPotentialBlockSizeWithFlags(
         minGridSize: *mut ::std::os::raw::c_int,
         blockSize: *mut ::std::os::raw::c_int,
@@ -2049,219 +1893,170 @@ extern "C" {
         blockSizeLimit: ::std::os::raw::c_int,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetArray(hTexRef: CUtexref, hArray: CUarray, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetMipmappedArray(
         hTexRef: CUtexref,
         hMipmappedArray: CUmipmappedArray,
         Flags: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetAddress_v2(
         ByteOffset: *mut usize,
         hTexRef: CUtexref,
         dptr: CUdeviceptr,
         bytes: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetAddress2D_v3(
         hTexRef: CUtexref,
         desc: *const CUDA_ARRAY_DESCRIPTOR,
         dptr: CUdeviceptr,
         Pitch: usize,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetFormat(
         hTexRef: CUtexref,
         fmt: CUarray_format,
         NumPackedComponents: ::std::os::raw::c_int,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetAddressMode(hTexRef: CUtexref, dim: ::std::os::raw::c_int, am: CUaddress_mode) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetFilterMode(hTexRef: CUtexref, fm: CUfilter_mode) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetMipmapFilterMode(hTexRef: CUtexref, fm: CUfilter_mode) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetMipmapLevelBias(hTexRef: CUtexref, bias: f32) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetMipmapLevelClamp(
         hTexRef: CUtexref,
         minMipmapLevelClamp: f32,
         maxMipmapLevelClamp: f32,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetMaxAnisotropy(hTexRef: CUtexref, maxAniso: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetBorderColor(hTexRef: CUtexref, pBorderColor: *mut f32) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefSetFlags(hTexRef: CUtexref, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetAddress_v2(pdptr: *mut CUdeviceptr, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetArray(phArray: *mut CUarray, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetMipmappedArray(phMipmappedArray: *mut CUmipmappedArray, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetAddressMode(pam: *mut CUaddress_mode, hTexRef: CUtexref, dim: ::std::os::raw::c_int) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetFilterMode(pfm: *mut CUfilter_mode, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetFormat(
         pFormat: *mut CUarray_format,
         pNumChannels: *mut ::std::os::raw::c_int,
         hTexRef: CUtexref,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetMipmapFilterMode(pfm: *mut CUfilter_mode, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetMipmapLevelBias(pbias: *mut f32, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetMipmapLevelClamp(
         pminMipmapLevelClamp: *mut f32,
         pmaxMipmapLevelClamp: *mut f32,
         hTexRef: CUtexref,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetMaxAnisotropy(pmaxAniso: *mut ::std::os::raw::c_int, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetBorderColor(pBorderColor: *mut f32, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefGetFlags(pFlags: *mut ::std::os::raw::c_uint, hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefCreate(pTexRef: *mut CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexRefDestroy(hTexRef: CUtexref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuSurfRefSetArray(hSurfRef: CUsurfref, hArray: CUarray, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuSurfRefGetArray(phArray: *mut CUarray, hSurfRef: CUsurfref) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexObjectCreate(
         pTexObject: *mut CUtexObject,
         pResDesc: *const CUDA_RESOURCE_DESC,
         pTexDesc: *const CUDA_TEXTURE_DESC,
         pResViewDesc: *const CUDA_RESOURCE_VIEW_DESC,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexObjectDestroy(texObject: CUtexObject) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexObjectGetResourceDesc(pResDesc: *mut CUDA_RESOURCE_DESC, texObject: CUtexObject) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexObjectGetTextureDesc(pTexDesc: *mut CUDA_TEXTURE_DESC, texObject: CUtexObject) -> CUresult;
-}
-extern "C" {
+
     pub fn cuTexObjectGetResourceViewDesc(
         pResViewDesc: *mut CUDA_RESOURCE_VIEW_DESC,
         texObject: CUtexObject,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuSurfObjectCreate(pSurfObject: *mut CUsurfObject, pResDesc: *const CUDA_RESOURCE_DESC) -> CUresult;
-}
-extern "C" {
+
     pub fn cuSurfObjectDestroy(surfObject: CUsurfObject) -> CUresult;
-}
-extern "C" {
+
     pub fn cuSurfObjectGetResourceDesc(pResDesc: *mut CUDA_RESOURCE_DESC, surfObject: CUsurfObject) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceCanAccessPeer(
         canAccessPeer: *mut ::std::os::raw::c_int,
         dev: CUdevice,
         peerDev: CUdevice,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuDeviceGetP2PAttribute(
         value: *mut ::std::os::raw::c_int,
         attrib: CUdevice_P2PAttribute,
         srcDevice: CUdevice,
         dstDevice: CUdevice,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxEnablePeerAccess(peerContext: CUcontext, Flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuCtxDisablePeerAccess(peerContext: CUcontext) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsUnregisterResource(resource: CUgraphicsResource) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsSubResourceGetMappedArray(
         pArray: *mut CUarray,
         resource: CUgraphicsResource,
         arrayIndex: ::std::os::raw::c_uint,
         mipLevel: ::std::os::raw::c_uint,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsResourceGetMappedMipmappedArray(
         pMipmappedArray: *mut CUmipmappedArray,
         resource: CUgraphicsResource,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsResourceGetMappedPointer_v2(
         pDevPtr: *mut CUdeviceptr,
         pSize: *mut usize,
         resource: CUgraphicsResource,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsResourceSetMapFlags_v2(resource: CUgraphicsResource, flags: ::std::os::raw::c_uint) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsMapResources(
         count: ::std::os::raw::c_uint,
         resources: *mut CUgraphicsResource,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGraphicsUnmapResources(
         count: ::std::os::raw::c_uint,
         resources: *mut CUgraphicsResource,
         hStream: CUstream,
     ) -> CUresult;
-}
-extern "C" {
+
     pub fn cuGetExportTable(
         ppExportTable: *mut *const ::std::os::raw::c_void,
         pExportTableId: *const CUuuid,

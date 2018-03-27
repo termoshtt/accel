@@ -2755,158 +2755,116 @@ pub type libraryPropertyType_t = ::std::os::raw::c_uint;
 pub use self::libraryPropertyType_t as libraryPropertyType;
 extern "C" {
     pub fn cudaDeviceReset() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceSynchronize() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceSetLimit(limit: cudaLimit, value: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetLimit(pValue: *mut usize, limit: cudaLimit) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetCacheConfig(pCacheConfig: *mut cudaFuncCache) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetStreamPriorityRange(
         leastPriority: *mut ::std::os::raw::c_int,
         greatestPriority: *mut ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceSetCacheConfig(cacheConfig: cudaFuncCache) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetSharedMemConfig(pConfig: *mut cudaSharedMemConfig) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceSetSharedMemConfig(config: cudaSharedMemConfig) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetByPCIBusId(
         device: *mut ::std::os::raw::c_int,
         pciBusId: *const ::std::os::raw::c_char,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetPCIBusId(
         pciBusId: *mut ::std::os::raw::c_char,
         len: ::std::os::raw::c_int,
         device: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaIpcGetEventHandle(handle: *mut cudaIpcEventHandle_t, event: cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaIpcOpenEventHandle(event: *mut cudaEvent_t, handle: cudaIpcEventHandle_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaIpcGetMemHandle(handle: *mut cudaIpcMemHandle_t, devPtr: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaIpcOpenMemHandle(
         devPtr: *mut *mut ::std::os::raw::c_void,
         handle: cudaIpcMemHandle_t,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaIpcCloseMemHandle(devPtr: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadExit() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadSynchronize() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadSetLimit(limit: cudaLimit, value: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadGetLimit(pValue: *mut usize, limit: cudaLimit) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadGetCacheConfig(pCacheConfig: *mut cudaFuncCache) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaThreadSetCacheConfig(cacheConfig: cudaFuncCache) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetLastError() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaPeekAtLastError() -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetErrorName(error: cudaError_t) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
+
     pub fn cudaGetErrorString(error: cudaError_t) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
+
     pub fn cudaGetDeviceCount(count: *mut ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetDeviceProperties(prop: *mut cudaDeviceProp, device: ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetAttribute(
         value: *mut ::std::os::raw::c_int,
         attr: cudaDeviceAttr,
         device: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceGetP2PAttribute(
         value: *mut ::std::os::raw::c_int,
         attr: cudaDeviceP2PAttr,
         srcDevice: ::std::os::raw::c_int,
         dstDevice: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaChooseDevice(device: *mut ::std::os::raw::c_int, prop: *const cudaDeviceProp) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetDevice(device: ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetDevice(device: *mut ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetValidDevices(device_arr: *mut ::std::os::raw::c_int, len: ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetDeviceFlags(flags: ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetDeviceFlags(flags: *mut ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamCreate(pStream: *mut cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamCreateWithPriority(
         pStream: *mut cudaStream_t,
         flags: ::std::os::raw::c_uint,
         priority: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamGetPriority(hStream: cudaStream_t, priority: *mut ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamGetFlags(hStream: cudaStream_t, flags: *mut ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamDestroy(stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 pub type cudaStreamCallback_t = ::std::option::Option<
@@ -2919,43 +2877,32 @@ extern "C" {
         userData: *mut ::std::os::raw::c_void,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamSynchronize(stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamQuery(stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaStreamAttachMemAsync(
         stream: cudaStream_t,
         devPtr: *mut ::std::os::raw::c_void,
         length: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventCreate(event: *mut cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventCreateWithFlags(event: *mut cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventRecord(event: cudaEvent_t, stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventQuery(event: cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventSynchronize(event: cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventDestroy(event: cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaEventElapsedTime(ms: *mut f32, start: cudaEvent_t, end: cudaEvent_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaLaunchKernel(
         func: *const ::std::os::raw::c_void,
         gridDim: dim3,
@@ -2964,8 +2911,7 @@ extern "C" {
         sharedMem: usize,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaLaunchCooperativeKernel(
         func: *const ::std::os::raw::c_void,
         gridDim: dim3,
@@ -2974,45 +2920,36 @@ extern "C" {
         sharedMem: usize,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaLaunchCooperativeKernelMultiDevice(
         launchParamsList: *mut cudaLaunchParams,
         numDevices: ::std::os::raw::c_uint,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFuncSetCacheConfig(func: *const ::std::os::raw::c_void, cacheConfig: cudaFuncCache) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFuncSetSharedMemConfig(func: *const ::std::os::raw::c_void, config: cudaSharedMemConfig) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFuncGetAttributes(attr: *mut cudaFuncAttributes, func: *const ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFuncSetAttribute(
         func: *const ::std::os::raw::c_void,
         attr: cudaFuncAttribute,
         value: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetDoubleForDevice(d: *mut f64) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetDoubleForHost(d: *mut f64) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaOccupancyMaxActiveBlocksPerMultiprocessor(
         numBlocks: *mut ::std::os::raw::c_int,
         func: *const ::std::os::raw::c_void,
         blockSize: ::std::os::raw::c_int,
         dynamicSMemSize: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
         numBlocks: *mut ::std::os::raw::c_int,
         func: *const ::std::os::raw::c_void,
@@ -3020,38 +2957,30 @@ extern "C" {
         dynamicSMemSize: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaConfigureCall(gridDim: dim3, blockDim: dim3, sharedMem: usize, stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaSetupArgument(arg: *const ::std::os::raw::c_void, size: usize, offset: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaLaunch(func: *const ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMallocManaged(
         devPtr: *mut *mut ::std::os::raw::c_void,
         size: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMalloc(devPtr: *mut *mut ::std::os::raw::c_void, size: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMallocHost(ptr: *mut *mut ::std::os::raw::c_void, size: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMallocPitch(
         devPtr: *mut *mut ::std::os::raw::c_void,
         pitch: *mut usize,
         width: usize,
         height: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMallocArray(
         array: *mut cudaArray_t,
         desc: *const cudaChannelFormatDesc,
@@ -3059,58 +2988,46 @@ extern "C" {
         height: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFree(devPtr: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFreeHost(ptr: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFreeArray(array: cudaArray_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaFreeMipmappedArray(mipmappedArray: cudaMipmappedArray_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaHostAlloc(
         pHost: *mut *mut ::std::os::raw::c_void,
         size: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaHostRegister(
         ptr: *mut ::std::os::raw::c_void,
         size: usize,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaHostUnregister(ptr: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaHostGetDevicePointer(
         pDevice: *mut *mut ::std::os::raw::c_void,
         pHost: *mut ::std::os::raw::c_void,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaHostGetFlags(pFlags: *mut ::std::os::raw::c_uint, pHost: *mut ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMalloc3D(pitchedDevPtr: *mut cudaPitchedPtr, extent: cudaExtent) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMalloc3DArray(
         array: *mut cudaArray_t,
         desc: *const cudaChannelFormatDesc,
         extent: cudaExtent,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMallocMipmappedArray(
         mipmappedArray: *mut cudaMipmappedArray_t,
         desc: *const cudaChannelFormatDesc,
@@ -3118,46 +3035,37 @@ extern "C" {
         numLevels: ::std::os::raw::c_uint,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetMipmappedArrayLevel(
         levelArray: *mut cudaArray_t,
         mipmappedArray: cudaMipmappedArray_const_t,
         level: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy3D(p: *const cudaMemcpy3DParms) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy3DPeer(p: *const cudaMemcpy3DPeerParms) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy3DAsync(p: *const cudaMemcpy3DParms, stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy3DPeerAsync(p: *const cudaMemcpy3DPeerParms, stream: cudaStream_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemGetInfo(free: *mut usize, total: *mut usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaArrayGetInfo(
         desc: *mut cudaChannelFormatDesc,
         extent: *mut cudaExtent,
         flags: *mut ::std::os::raw::c_uint,
         array: cudaArray_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy(
         dst: *mut ::std::os::raw::c_void,
         src: *const ::std::os::raw::c_void,
         count: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyPeer(
         dst: *mut ::std::os::raw::c_void,
         dstDevice: ::std::os::raw::c_int,
@@ -3165,8 +3073,7 @@ extern "C" {
         srcDevice: ::std::os::raw::c_int,
         count: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyToArray(
         dst: cudaArray_t,
         wOffset: usize,
@@ -3175,8 +3082,7 @@ extern "C" {
         count: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyFromArray(
         dst: *mut ::std::os::raw::c_void,
         src: cudaArray_const_t,
@@ -3185,8 +3091,7 @@ extern "C" {
         count: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyArrayToArray(
         dst: cudaArray_t,
         wOffsetDst: usize,
@@ -3197,8 +3102,7 @@ extern "C" {
         count: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2D(
         dst: *mut ::std::os::raw::c_void,
         dpitch: usize,
@@ -3208,8 +3112,7 @@ extern "C" {
         height: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DToArray(
         dst: cudaArray_t,
         wOffset: usize,
@@ -3220,8 +3123,7 @@ extern "C" {
         height: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DFromArray(
         dst: *mut ::std::os::raw::c_void,
         dpitch: usize,
@@ -3232,8 +3134,7 @@ extern "C" {
         height: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DArrayToArray(
         dst: cudaArray_t,
         wOffsetDst: usize,
@@ -3245,8 +3146,7 @@ extern "C" {
         height: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyToSymbol(
         symbol: *const ::std::os::raw::c_void,
         src: *const ::std::os::raw::c_void,
@@ -3254,8 +3154,7 @@ extern "C" {
         offset: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyFromSymbol(
         dst: *mut ::std::os::raw::c_void,
         symbol: *const ::std::os::raw::c_void,
@@ -3263,8 +3162,7 @@ extern "C" {
         offset: usize,
         kind: cudaMemcpyKind,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyAsync(
         dst: *mut ::std::os::raw::c_void,
         src: *const ::std::os::raw::c_void,
@@ -3272,8 +3170,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyPeerAsync(
         dst: *mut ::std::os::raw::c_void,
         dstDevice: ::std::os::raw::c_int,
@@ -3282,8 +3179,7 @@ extern "C" {
         count: usize,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyToArrayAsync(
         dst: cudaArray_t,
         wOffset: usize,
@@ -3293,8 +3189,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyFromArrayAsync(
         dst: *mut ::std::os::raw::c_void,
         src: cudaArray_const_t,
@@ -3304,8 +3199,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DAsync(
         dst: *mut ::std::os::raw::c_void,
         dpitch: usize,
@@ -3316,8 +3210,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DToArrayAsync(
         dst: cudaArray_t,
         wOffset: usize,
@@ -3329,8 +3222,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpy2DFromArrayAsync(
         dst: *mut ::std::os::raw::c_void,
         dpitch: usize,
@@ -3342,8 +3234,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyToSymbolAsync(
         symbol: *const ::std::os::raw::c_void,
         src: *const ::std::os::raw::c_void,
@@ -3352,8 +3243,7 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemcpyFromSymbolAsync(
         dst: *mut ::std::os::raw::c_void,
         symbol: *const ::std::os::raw::c_void,
@@ -3362,11 +3252,9 @@ extern "C" {
         kind: cudaMemcpyKind,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemset(devPtr: *mut ::std::os::raw::c_void, value: ::std::os::raw::c_int, count: usize) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemset2D(
         devPtr: *mut ::std::os::raw::c_void,
         pitch: usize,
@@ -3374,20 +3262,17 @@ extern "C" {
         width: usize,
         height: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemset3D(pitchedDevPtr: cudaPitchedPtr, value: ::std::os::raw::c_int, extent: cudaExtent)
         -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemsetAsync(
         devPtr: *mut ::std::os::raw::c_void,
         value: ::std::os::raw::c_int,
         count: usize,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemset2DAsync(
         devPtr: *mut ::std::os::raw::c_void,
         pitch: usize,
@@ -3396,41 +3281,35 @@ extern "C" {
         height: usize,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemset3DAsync(
         pitchedDevPtr: cudaPitchedPtr,
         value: ::std::os::raw::c_int,
         extent: cudaExtent,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetSymbolAddress(
         devPtr: *mut *mut ::std::os::raw::c_void,
         symbol: *const ::std::os::raw::c_void,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetSymbolSize(size: *mut usize, symbol: *const ::std::os::raw::c_void) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemPrefetchAsync(
         devPtr: *const ::std::os::raw::c_void,
         count: usize,
         dstDevice: ::std::os::raw::c_int,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemAdvise(
         devPtr: *const ::std::os::raw::c_void,
         count: usize,
         advice: cudaMemoryAdvise,
         device: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemRangeGetAttribute(
         data: *mut ::std::os::raw::c_void,
         dataSize: usize,
@@ -3438,8 +3317,7 @@ extern "C" {
         devPtr: *const ::std::os::raw::c_void,
         count: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaMemRangeGetAttributes(
         data: *mut *mut ::std::os::raw::c_void,
         dataSizes: *mut usize,
@@ -3448,74 +3326,61 @@ extern "C" {
         devPtr: *const ::std::os::raw::c_void,
         count: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaPointerGetAttributes(
         attributes: *mut cudaPointerAttributes,
         ptr: *const ::std::os::raw::c_void,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceCanAccessPeer(
         canAccessPeer: *mut ::std::os::raw::c_int,
         device: ::std::os::raw::c_int,
         peerDevice: ::std::os::raw::c_int,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceEnablePeerAccess(peerDevice: ::std::os::raw::c_int, flags: ::std::os::raw::c_uint) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDeviceDisablePeerAccess(peerDevice: ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsUnregisterResource(resource: cudaGraphicsResource_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsResourceSetMapFlags(
         resource: cudaGraphicsResource_t,
         flags: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsMapResources(
         count: ::std::os::raw::c_int,
         resources: *mut cudaGraphicsResource_t,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsUnmapResources(
         count: ::std::os::raw::c_int,
         resources: *mut cudaGraphicsResource_t,
         stream: cudaStream_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsResourceGetMappedPointer(
         devPtr: *mut *mut ::std::os::raw::c_void,
         size: *mut usize,
         resource: cudaGraphicsResource_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsSubResourceGetMappedArray(
         array: *mut cudaArray_t,
         resource: cudaGraphicsResource_t,
         arrayIndex: ::std::os::raw::c_uint,
         mipLevel: ::std::os::raw::c_uint,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGraphicsResourceGetMappedMipmappedArray(
         mipmappedArray: *mut cudaMipmappedArray_t,
         resource: cudaGraphicsResource_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetChannelDesc(desc: *mut cudaChannelFormatDesc, array: cudaArray_const_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaCreateChannelDesc(
         x: ::std::os::raw::c_int,
         y: ::std::os::raw::c_int,
@@ -3523,8 +3388,7 @@ extern "C" {
         w: ::std::os::raw::c_int,
         f: cudaChannelFormatKind,
     ) -> cudaChannelFormatDesc;
-}
-extern "C" {
+
     pub fn cudaBindTexture(
         offset: *mut usize,
         texref: *const textureReference,
@@ -3532,8 +3396,7 @@ extern "C" {
         desc: *const cudaChannelFormatDesc,
         size: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaBindTexture2D(
         offset: *mut usize,
         texref: *const textureReference,
@@ -3543,97 +3406,79 @@ extern "C" {
         height: usize,
         pitch: usize,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaBindTextureToArray(
         texref: *const textureReference,
         array: cudaArray_const_t,
         desc: *const cudaChannelFormatDesc,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaBindTextureToMipmappedArray(
         texref: *const textureReference,
         mipmappedArray: cudaMipmappedArray_const_t,
         desc: *const cudaChannelFormatDesc,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaUnbindTexture(texref: *const textureReference) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetTextureAlignmentOffset(offset: *mut usize, texref: *const textureReference) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetTextureReference(
         texref: *mut *const textureReference,
         symbol: *const ::std::os::raw::c_void,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaBindSurfaceToArray(
         surfref: *const surfaceReference,
         array: cudaArray_const_t,
         desc: *const cudaChannelFormatDesc,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetSurfaceReference(
         surfref: *mut *const surfaceReference,
         symbol: *const ::std::os::raw::c_void,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaCreateTextureObject(
         pTexObject: *mut cudaTextureObject_t,
         pResDesc: *const cudaResourceDesc,
         pTexDesc: *const cudaTextureDesc,
         pResViewDesc: *const cudaResourceViewDesc,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDestroyTextureObject(texObject: cudaTextureObject_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetTextureObjectResourceDesc(
         pResDesc: *mut cudaResourceDesc,
         texObject: cudaTextureObject_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetTextureObjectTextureDesc(
         pTexDesc: *mut cudaTextureDesc,
         texObject: cudaTextureObject_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetTextureObjectResourceViewDesc(
         pResViewDesc: *mut cudaResourceViewDesc,
         texObject: cudaTextureObject_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaCreateSurfaceObject(
         pSurfObject: *mut cudaSurfaceObject_t,
         pResDesc: *const cudaResourceDesc,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDestroySurfaceObject(surfObject: cudaSurfaceObject_t) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetSurfaceObjectResourceDesc(
         pResDesc: *mut cudaResourceDesc,
         surfObject: cudaSurfaceObject_t,
     ) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaDriverGetVersion(driverVersion: *mut ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaRuntimeGetVersion(runtimeVersion: *mut ::std::os::raw::c_int) -> cudaError_t;
-}
-extern "C" {
+
     pub fn cudaGetExportTable(
         ppExportTable: *mut *const ::std::os::raw::c_void,
         pExportTableId: *const cudaUUID_t,

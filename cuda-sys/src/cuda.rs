@@ -21,8 +21,6 @@ pub const CU_TRSF_NORMALIZED_COORDINATES: ::std::os::raw::c_uint = 2;
 pub const CU_TRSF_SRGB: ::std::os::raw::c_uint = 16;
 pub const CU_PARAM_TR_DEFAULT: ::std::os::raw::c_int = -1;
 
-pub type cuuint32_t = u32;
-pub type cuuint64_t = u64;
 pub type CUdeviceptr = ::std::os::raw::c_ulonglong;
 pub type CUdevice = ::std::os::raw::c_int;
 #[repr(C)]
@@ -233,7 +231,7 @@ pub union CUstreamBatchMemOpParams_union {
     pub waitValue: CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st,
     pub writeValue: CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st,
     pub flushRemoteWrites: CUstreamBatchMemOpParams_union_CUstreamMemOpFlushRemoteWritesParams_st,
-    pub pad: [cuuint64_t; 6usize],
+    pub pad: [u64; 6usize],
 }
 #[repr(C)]
 #[derive(Copy)]
@@ -247,8 +245,8 @@ pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st {
 #[repr(C)]
 #[derive(Copy)]
 pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1 {
-    pub value: cuuint32_t,
-    pub pad: cuuint64_t,
+    pub value: u32,
+    pub pad: u64,
 }
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWaitValueParams_st__bindgen_ty_1 {
     fn clone(&self) -> Self {
@@ -272,8 +270,8 @@ pub struct CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st {
 #[repr(C)]
 #[derive(Copy)]
 pub union CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1 {
-    pub value: cuuint32_t,
-    pub pad: cuuint64_t,
+    pub value: u32,
+    pub pad: u64,
 }
 impl Clone for CUstreamBatchMemOpParams_union_CUstreamMemOpWriteValueParams_st__bindgen_ty_1 {
     fn clone(&self) -> Self {
@@ -1571,14 +1569,14 @@ extern "C" {
     pub fn cuStreamWaitValue32(
         stream: CUstream,
         addr: CUdeviceptr,
-        value: cuuint32_t,
+        value: u32,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
 
     pub fn cuStreamWriteValue32(
         stream: CUstream,
         addr: CUdeviceptr,
-        value: cuuint32_t,
+        value: u32,
         flags: ::std::os::raw::c_uint,
     ) -> CUresult;
 

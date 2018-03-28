@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 
 use vector_types::*;
-use cuda_runtime::*;
+use cudart::*;
 
 pub type cuFloatComplex = float2;
 pub type cuDoubleComplex = double2;

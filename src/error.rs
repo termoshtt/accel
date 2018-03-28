@@ -1,7 +1,7 @@
 #![allow(non_camel_case_types)]
 
 pub use ffi::cuda::cudaError_t as cudaError;
-pub use ffi::cuda_runtime::cudaError_t as cudaRuntimeError;
+pub use ffi::cudart::cudaError_t as cudaRuntimeError;
 pub use ffi::cublas::cublasStatus_t as cublasError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;

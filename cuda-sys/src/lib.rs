@@ -1,6 +1,6 @@
 pub mod vector_types;
 pub mod cuda;
-pub mod cuda_runtime;
+pub mod cudart;
 pub mod cublas;
 
 #[test]
@@ -11,3 +11,6 @@ fn cuda_version() {
     }
     println!("driver version = {}", d_ver);
 }
+
+mod cuda_tests;
+mod cudart_tests;

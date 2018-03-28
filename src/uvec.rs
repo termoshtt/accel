@@ -1,4 +1,4 @@
-use ffi::cuda_runtime::*;
+use ffi::cudart::*;
 use super::error::*;
 
 use std::os::raw::*;

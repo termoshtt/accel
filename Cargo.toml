@@ -15,7 +15,7 @@ categories    = []
 procedurals = "0.2.3"
 
 [dependencies.cuda-sys]
-version = "0.1.0"
+version = "0.2.0-alpha"
 path = "cuda-sys"
 
 [dev-dependencies.accel-derive]

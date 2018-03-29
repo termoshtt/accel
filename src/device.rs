@@ -56,6 +56,32 @@ impl Device {
         Ok(ComputeCapability::new(prop.major, prop.minor))
     }
 
+    pub fn cores(&self) -> Result<u32> {
+        let cc = self.compute_capability()?;
+        Ok(match (cc.major, cc.minor) {
+            (3, 0) => 192, // Kepler Generation (SM 3.0) GK10x class
+            (3, 2) => 192, // Kepler Generation (SM 3.2) GK10x class
+            (3, 5) => 192, // Kepler Generation (SM 3.5) GK11x class
+            (3, 7) => 192, // Kepler Generation (SM 3.7) GK21x class
+            (5, 0) => 128, // Maxwell Generation (SM 5.0) GM10x class
+            (5, 2) => 128, // Maxwell Generation (SM 5.2) GM20x class
+            (5, 3) => 128, // Maxwell Generation (SM 5.3) GM20x class
+            (6, 0) => 64,  // Pascal Generation (SM 6.0) GP100 class
+            (6, 1) => 128, // Pascal Generation (SM 6.1) GP10x class
+            (6, 2) => 128, // Pascal Generation (SM 6.2) GP10x class
+            (7, 0) => 64,  // Volta Generation (SM 7.0) GV100 class
+            _ => unreachable!("Unsupported Core"),
+        })
+    }
+
+    pub fn flops(&self) -> Result<f64> {
+        let prop = self.get_property()?;
+        let cores = self.cores()? as f64;
+        let mpc = prop.multiProcessorCount as f64;
+        let rate = prop.clockRate as f64;
+        Ok(mpc * rate * cores)
+    }
+
     pub fn compute_mode(&self) -> Result<ComputeMode> {
         let prop = self.get_property()?;
         Ok(prop.computeMode)

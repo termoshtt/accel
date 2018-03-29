@@ -23,6 +23,11 @@ impl Device {
         Ok(Device(id))
     }
 
+    pub fn set(id: i32) -> Result<Self> {
+        unsafe { cudaSetDevice(id) }.check()?;
+        Ok(Device(id))
+    }
+
     pub fn get_property(&self) -> Result<DeviceProp> {
         unsafe {
             let mut prop = mem::uninitialized();
@@ -33,8 +38,7 @@ impl Device {
 
     pub fn get_attr(&self, attr: cudaDeviceAttr) -> Result<i32> {
         let mut value = 0;
-        unsafe { cudaDeviceGetAttribute(&mut value as *mut _, attr, self.0) }
-            .check()?;
+        unsafe { cudaDeviceGetAttribute(&mut value as *mut _, attr, self.0) }.check()?;
         Ok(value)
     }
 }

@@ -415,103 +415,6 @@ pub type cudaMemRangeAttribute = ::std::os::raw::c_uint;
 pub const cudaOutputMode_cudaKeyValuePair: cudaOutputMode = 0;
 pub const cudaOutputMode_cudaCSV: cudaOutputMode = 1;
 pub type cudaOutputMode = ::std::os::raw::c_uint;
-pub const cudaDeviceAttr_cudaDevAttrMaxThreadsPerBlock: cudaDeviceAttr = 1;
-pub const cudaDeviceAttr_cudaDevAttrMaxBlockDimX: cudaDeviceAttr = 2;
-pub const cudaDeviceAttr_cudaDevAttrMaxBlockDimY: cudaDeviceAttr = 3;
-pub const cudaDeviceAttr_cudaDevAttrMaxBlockDimZ: cudaDeviceAttr = 4;
-pub const cudaDeviceAttr_cudaDevAttrMaxGridDimX: cudaDeviceAttr = 5;
-pub const cudaDeviceAttr_cudaDevAttrMaxGridDimY: cudaDeviceAttr = 6;
-pub const cudaDeviceAttr_cudaDevAttrMaxGridDimZ: cudaDeviceAttr = 7;
-pub const cudaDeviceAttr_cudaDevAttrMaxSharedMemoryPerBlock: cudaDeviceAttr = 8;
-pub const cudaDeviceAttr_cudaDevAttrTotalConstantMemory: cudaDeviceAttr = 9;
-pub const cudaDeviceAttr_cudaDevAttrWarpSize: cudaDeviceAttr = 10;
-pub const cudaDeviceAttr_cudaDevAttrMaxPitch: cudaDeviceAttr = 11;
-pub const cudaDeviceAttr_cudaDevAttrMaxRegistersPerBlock: cudaDeviceAttr = 12;
-pub const cudaDeviceAttr_cudaDevAttrClockRate: cudaDeviceAttr = 13;
-pub const cudaDeviceAttr_cudaDevAttrTextureAlignment: cudaDeviceAttr = 14;
-pub const cudaDeviceAttr_cudaDevAttrGpuOverlap: cudaDeviceAttr = 15;
-pub const cudaDeviceAttr_cudaDevAttrMultiProcessorCount: cudaDeviceAttr = 16;
-pub const cudaDeviceAttr_cudaDevAttrKernelExecTimeout: cudaDeviceAttr = 17;
-pub const cudaDeviceAttr_cudaDevAttrIntegrated: cudaDeviceAttr = 18;
-pub const cudaDeviceAttr_cudaDevAttrCanMapHostMemory: cudaDeviceAttr = 19;
-pub const cudaDeviceAttr_cudaDevAttrComputeMode: cudaDeviceAttr = 20;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture1DWidth: cudaDeviceAttr = 21;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DWidth: cudaDeviceAttr = 22;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DHeight: cudaDeviceAttr = 23;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DWidth: cudaDeviceAttr = 24;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DHeight: cudaDeviceAttr = 25;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DDepth: cudaDeviceAttr = 26;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLayeredWidth: cudaDeviceAttr = 27;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLayeredHeight: cudaDeviceAttr = 28;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLayeredLayers: cudaDeviceAttr = 29;
-pub const cudaDeviceAttr_cudaDevAttrSurfaceAlignment: cudaDeviceAttr = 30;
-pub const cudaDeviceAttr_cudaDevAttrConcurrentKernels: cudaDeviceAttr = 31;
-pub const cudaDeviceAttr_cudaDevAttrEccEnabled: cudaDeviceAttr = 32;
-pub const cudaDeviceAttr_cudaDevAttrPciBusId: cudaDeviceAttr = 33;
-pub const cudaDeviceAttr_cudaDevAttrPciDeviceId: cudaDeviceAttr = 34;
-pub const cudaDeviceAttr_cudaDevAttrTccDriver: cudaDeviceAttr = 35;
-pub const cudaDeviceAttr_cudaDevAttrMemoryClockRate: cudaDeviceAttr = 36;
-pub const cudaDeviceAttr_cudaDevAttrGlobalMemoryBusWidth: cudaDeviceAttr = 37;
-pub const cudaDeviceAttr_cudaDevAttrL2CacheSize: cudaDeviceAttr = 38;
-pub const cudaDeviceAttr_cudaDevAttrMaxThreadsPerMultiProcessor: cudaDeviceAttr = 39;
-pub const cudaDeviceAttr_cudaDevAttrAsyncEngineCount: cudaDeviceAttr = 40;
-pub const cudaDeviceAttr_cudaDevAttrUnifiedAddressing: cudaDeviceAttr = 41;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture1DLayeredWidth: cudaDeviceAttr = 42;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture1DLayeredLayers: cudaDeviceAttr = 43;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DGatherWidth: cudaDeviceAttr = 45;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DGatherHeight: cudaDeviceAttr = 46;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DWidthAlt: cudaDeviceAttr = 47;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DHeightAlt: cudaDeviceAttr = 48;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture3DDepthAlt: cudaDeviceAttr = 49;
-pub const cudaDeviceAttr_cudaDevAttrPciDomainId: cudaDeviceAttr = 50;
-pub const cudaDeviceAttr_cudaDevAttrTexturePitchAlignment: cudaDeviceAttr = 51;
-pub const cudaDeviceAttr_cudaDevAttrMaxTextureCubemapWidth: cudaDeviceAttr = 52;
-pub const cudaDeviceAttr_cudaDevAttrMaxTextureCubemapLayeredWidth: cudaDeviceAttr = 53;
-pub const cudaDeviceAttr_cudaDevAttrMaxTextureCubemapLayeredLayers: cudaDeviceAttr = 54;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface1DWidth: cudaDeviceAttr = 55;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface2DWidth: cudaDeviceAttr = 56;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface2DHeight: cudaDeviceAttr = 57;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface3DWidth: cudaDeviceAttr = 58;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface3DHeight: cudaDeviceAttr = 59;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface3DDepth: cudaDeviceAttr = 60;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface1DLayeredWidth: cudaDeviceAttr = 61;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface1DLayeredLayers: cudaDeviceAttr = 62;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface2DLayeredWidth: cudaDeviceAttr = 63;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface2DLayeredHeight: cudaDeviceAttr = 64;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurface2DLayeredLayers: cudaDeviceAttr = 65;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurfaceCubemapWidth: cudaDeviceAttr = 66;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurfaceCubemapLayeredWidth: cudaDeviceAttr = 67;
-pub const cudaDeviceAttr_cudaDevAttrMaxSurfaceCubemapLayeredLayers: cudaDeviceAttr = 68;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture1DLinearWidth: cudaDeviceAttr = 69;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLinearWidth: cudaDeviceAttr = 70;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLinearHeight: cudaDeviceAttr = 71;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DLinearPitch: cudaDeviceAttr = 72;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DMipmappedWidth: cudaDeviceAttr = 73;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture2DMipmappedHeight: cudaDeviceAttr = 74;
-pub const cudaDeviceAttr_cudaDevAttrComputeCapabilityMajor: cudaDeviceAttr = 75;
-pub const cudaDeviceAttr_cudaDevAttrComputeCapabilityMinor: cudaDeviceAttr = 76;
-pub const cudaDeviceAttr_cudaDevAttrMaxTexture1DMipmappedWidth: cudaDeviceAttr = 77;
-pub const cudaDeviceAttr_cudaDevAttrStreamPrioritiesSupported: cudaDeviceAttr = 78;
-pub const cudaDeviceAttr_cudaDevAttrGlobalL1CacheSupported: cudaDeviceAttr = 79;
-pub const cudaDeviceAttr_cudaDevAttrLocalL1CacheSupported: cudaDeviceAttr = 80;
-pub const cudaDeviceAttr_cudaDevAttrMaxSharedMemoryPerMultiprocessor: cudaDeviceAttr = 81;
-pub const cudaDeviceAttr_cudaDevAttrMaxRegistersPerMultiprocessor: cudaDeviceAttr = 82;
-pub const cudaDeviceAttr_cudaDevAttrManagedMemory: cudaDeviceAttr = 83;
-pub const cudaDeviceAttr_cudaDevAttrIsMultiGpuBoard: cudaDeviceAttr = 84;
-pub const cudaDeviceAttr_cudaDevAttrMultiGpuBoardGroupID: cudaDeviceAttr = 85;
-pub const cudaDeviceAttr_cudaDevAttrHostNativeAtomicSupported: cudaDeviceAttr = 86;
-pub const cudaDeviceAttr_cudaDevAttrSingleToDoublePrecisionPerfRatio: cudaDeviceAttr = 87;
-pub const cudaDeviceAttr_cudaDevAttrPageableMemoryAccess: cudaDeviceAttr = 88;
-pub const cudaDeviceAttr_cudaDevAttrConcurrentManagedAccess: cudaDeviceAttr = 89;
-pub const cudaDeviceAttr_cudaDevAttrComputePreemptionSupported: cudaDeviceAttr = 90;
-pub const cudaDeviceAttr_cudaDevAttrCanUseHostPointerForRegisteredMem: cudaDeviceAttr = 91;
-pub const cudaDeviceAttr_cudaDevAttrReserved92: cudaDeviceAttr = 92;
-pub const cudaDeviceAttr_cudaDevAttrReserved93: cudaDeviceAttr = 93;
-pub const cudaDeviceAttr_cudaDevAttrReserved94: cudaDeviceAttr = 94;
-pub const cudaDeviceAttr_cudaDevAttrCooperativeLaunch: cudaDeviceAttr = 95;
-pub const cudaDeviceAttr_cudaDevAttrCooperativeMultiDeviceLaunch: cudaDeviceAttr = 96;
-pub const cudaDeviceAttr_cudaDevAttrMaxSharedMemoryPerBlockOptin: cudaDeviceAttr = 97;
-pub type cudaDeviceAttr = ::std::os::raw::c_uint;
 pub const cudaDeviceP2PAttr_cudaDevP2PAttrPerformanceRank: cudaDeviceP2PAttr = 1;
 pub const cudaDeviceP2PAttr_cudaDevP2PAttrAccessSupported: cudaDeviceP2PAttr = 2;
 pub const cudaDeviceP2PAttr_cudaDevP2PAttrNativeAtomicSupported: cudaDeviceP2PAttr = 3;
@@ -591,6 +494,108 @@ pub struct cudaDeviceProp {
     pub cooperativeMultiDeviceLaunch: ::std::os::raw::c_int,
     pub sharedMemPerBlockOptin: usize,
 }
+
+#[repr(u32)]
+#[derive(Copy, Clone)]
+pub enum cudaDeviceAttr {
+    MaxThreadsPerBlock = 1,
+    MaxBlockDimX = 2,
+    MaxBlockDimY = 3,
+    MaxBlockDimZ = 4,
+    MaxGridDimX = 5,
+    MaxGridDimY = 6,
+    MaxGridDimZ = 7,
+    MaxSharedMemoryPerBlock = 8,
+    TotalConstantMemory = 9,
+    WarpSize = 10,
+    MaxPitch = 11,
+    MaxRegistersPerBlock = 12,
+    ClockRate = 13,
+    TextureAlignment = 14,
+    GpuOverlap = 15,
+    MultiProcessorCount = 16,
+    KernelExecTimeout = 17,
+    Integrated = 18,
+    CanMapHostMemory = 19,
+    ComputeMode = 20,
+    MaxTexture1DWidth = 21,
+    MaxTexture2DWidth = 22,
+    MaxTexture2DHeight = 23,
+    MaxTexture3DWidth = 24,
+    MaxTexture3DHeight = 25,
+    MaxTexture3DDepth = 26,
+    MaxTexture2DLayeredWidth = 27,
+    MaxTexture2DLayeredHeight = 28,
+    MaxTexture2DLayeredLayers = 29,
+    SurfaceAlignment = 30,
+    ConcurrentKernels = 31,
+    EccEnabled = 32,
+    PciBusId = 33,
+    PciDeviceId = 34,
+    TccDriver = 35,
+    MemoryClockRate = 36,
+    GlobalMemoryBusWidth = 37,
+    L2CacheSize = 38,
+    MaxThreadsPerMultiProcessor = 39,
+    AsyncEngineCount = 40,
+    UnifiedAddressing = 41,
+    MaxTexture1DLayeredWidth = 42,
+    MaxTexture1DLayeredLayers = 43,
+    MaxTexture2DGatherWidth = 45,
+    MaxTexture2DGatherHeight = 46,
+    MaxTexture3DWidthAlt = 47,
+    MaxTexture3DHeightAlt = 48,
+    MaxTexture3DDepthAlt = 49,
+    PciDomainId = 50,
+    TexturePitchAlignment = 51,
+    MaxTextureCubemapWidth = 52,
+    MaxTextureCubemapLayeredWidth = 53,
+    MaxTextureCubemapLayeredLayers = 54,
+    MaxSurface1DWidth = 55,
+    MaxSurface2DWidth = 56,
+    MaxSurface2DHeight = 57,
+    MaxSurface3DWidth = 58,
+    MaxSurface3DHeight = 59,
+    MaxSurface3DDepth = 60,
+    MaxSurface1DLayeredWidth = 61,
+    MaxSurface1DLayeredLayers = 62,
+    MaxSurface2DLayeredWidth = 63,
+    MaxSurface2DLayeredHeight = 64,
+    MaxSurface2DLayeredLayers = 65,
+    MaxSurfaceCubemapWidth = 66,
+    MaxSurfaceCubemapLayeredWidth = 67,
+    MaxSurfaceCubemapLayeredLayers = 68,
+    MaxTexture1DLinearWidth = 69,
+    MaxTexture2DLinearWidth = 70,
+    MaxTexture2DLinearHeight = 71,
+    MaxTexture2DLinearPitch = 72,
+    MaxTexture2DMipmappedWidth = 73,
+    MaxTexture2DMipmappedHeight = 74,
+    ComputeCapabilityMajor = 75,
+    ComputeCapabilityMinor = 76,
+    MaxTexture1DMipmappedWidth = 77,
+    StreamPrioritiesSupported = 78,
+    GlobalL1CacheSupported = 79,
+    LocalL1CacheSupported = 80,
+    MaxSharedMemoryPerMultiprocessor = 81,
+    MaxRegistersPerMultiprocessor = 82,
+    ManagedMemory = 83,
+    IsMultiGpuBoard = 84,
+    MultiGpuBoardGroupID = 85,
+    HostNativeAtomicSupported = 86,
+    SingleToDoublePrecisionPerfRatio = 87,
+    PageableMemoryAccess = 88,
+    ConcurrentManagedAccess = 89,
+    ComputePreemptionSupported = 90,
+    CanUseHostPointerForRegisteredMem = 91,
+    Reserved92 = 92,
+    Reserved93 = 93,
+    Reserved94 = 94,
+    CooperativeLaunch = 95,
+    CooperativeMultiDeviceLaunch = 96,
+    MaxSharedMemoryPerBlockOptin = 97,
+}
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct cudaIpcEventHandle_st {
@@ -828,7 +833,9 @@ extern "C" {
     pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 pub type cudaStreamCallback_t = ::std::option::Option<
-    unsafe extern "C" fn(stream: cudaStream_t, status: cudaError_t, userData: *mut ::std::os::raw::c_void),
+    unsafe extern "C" fn(stream: cudaStream_t,
+                         status: cudaError_t,
+                         userData: *mut ::std::os::raw::c_void),
 >;
 extern "C" {
     pub fn cudaStreamAddCallback(

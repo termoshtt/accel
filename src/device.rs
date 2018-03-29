@@ -46,6 +46,24 @@ impl Device {
         Ok(Device(id))
     }
 
+    pub fn get_fastest() -> Result<Self> {
+        let n = num_devices()? as i32;
+        let mut fastest = None;
+        let mut max_flops = 0.0;
+        for i in 0..n {
+            let dev = Device::set(i)?;
+            if dev.compute_mode()? == ComputeMode::Prohibited {
+                continue;
+            }
+            let flops = dev.flops()?;
+            if flops > max_flops {
+                max_flops = flops;
+                fastest = Some(i);
+            }
+        }
+        Device::set(fastest.expect("No usable GPU"))
+    }
+
     pub fn set(id: i32) -> Result<Self> {
         unsafe { cudaSetDevice(id) }.check()?;
         Ok(Device(id))

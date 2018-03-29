@@ -391,7 +391,7 @@ pub const cudaSharedCarveout_cudaSharedmemCarveoutMaxL1: cudaSharedCarveout = 0;
 pub type cudaSharedCarveout = ::std::os::raw::c_int;
 
 #[repr(i32)]
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum cudaComputeMode {
     Default = 0,
     Exclusive = 1,

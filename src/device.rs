@@ -12,6 +12,7 @@ pub fn sync() -> Result<()> {
 /// Compute Capability of GPU
 ///
 /// ```
+/// use accel::device::ComputeCapability;
 /// let cc40 = ComputeCapability::new(4, 0);
 /// let cc35 = ComputeCapability::new(3, 5);
 /// let cc30 = ComputeCapability::new(3, 0);
@@ -19,7 +20,7 @@ pub fn sync() -> Result<()> {
 /// assert!(cc40 > cc35);
 /// assert_eq!(cc40, cc40);
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct ComputeCapability {
     pub major: i32,
     pub minor: i32,

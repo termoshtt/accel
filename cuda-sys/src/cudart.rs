@@ -389,11 +389,16 @@ pub const cudaSharedCarveout_cudaSharedmemCarveoutDefault: cudaSharedCarveout = 
 pub const cudaSharedCarveout_cudaSharedmemCarveoutMaxShared: cudaSharedCarveout = 100;
 pub const cudaSharedCarveout_cudaSharedmemCarveoutMaxL1: cudaSharedCarveout = 0;
 pub type cudaSharedCarveout = ::std::os::raw::c_int;
-pub const cudaComputeMode_cudaComputeModeDefault: cudaComputeMode = 0;
-pub const cudaComputeMode_cudaComputeModeExclusive: cudaComputeMode = 1;
-pub const cudaComputeMode_cudaComputeModeProhibited: cudaComputeMode = 2;
-pub const cudaComputeMode_cudaComputeModeExclusiveProcess: cudaComputeMode = 3;
-pub type cudaComputeMode = ::std::os::raw::c_uint;
+
+#[repr(i32)]
+#[derive(Clone, Copy, Debug)]
+pub enum cudaComputeMode {
+    Default = 0,
+    Exclusive = 1,
+    Prohibited = 2,
+    ExclusiveProcess = 3,
+}
+
 pub const cudaLimit_cudaLimitStackSize: cudaLimit = 0;
 pub const cudaLimit_cudaLimitPrintfFifoSize: cudaLimit = 1;
 pub const cudaLimit_cudaLimitMallocHeapSize: cudaLimit = 2;
@@ -442,7 +447,7 @@ pub struct cudaDeviceProp {
     pub kernelExecTimeoutEnabled: ::std::os::raw::c_int,
     pub integrated: ::std::os::raw::c_int,
     pub canMapHostMemory: ::std::os::raw::c_int,
-    pub computeMode: ::std::os::raw::c_int,
+    pub computeMode: cudaComputeMode,
     pub maxTexture1D: ::std::os::raw::c_int,
     pub maxTexture1DMipmap: ::std::os::raw::c_int,
     pub maxTexture1DLinear: ::std::os::raw::c_int,
@@ -833,9 +838,7 @@ extern "C" {
     pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: ::std::os::raw::c_uint) -> cudaError_t;
 }
 pub type cudaStreamCallback_t = ::std::option::Option<
-    unsafe extern "C" fn(stream: cudaStream_t,
-                         status: cudaError_t,
-                         userData: *mut ::std::os::raw::c_void),
+    unsafe extern "C" fn(stream: cudaStream_t, status: cudaError_t, userData: *mut ::std::os::raw::c_void),
 >;
 extern "C" {
     pub fn cudaStreamAddCallback(

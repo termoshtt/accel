@@ -3,6 +3,7 @@ use error::*;
 use std::mem;
 
 pub use ffi::cudart::cudaDeviceProp as DeviceProp;
+pub use ffi::cudart::cudaComputeMode as ComputeMode;
 
 pub fn sync() -> Result<()> {
     unsafe { cudaDeviceSynchronize() }.check()
@@ -53,6 +54,11 @@ impl Device {
     pub fn compute_capability(&self) -> Result<ComputeCapability> {
         let prop = self.get_property()?;
         Ok(ComputeCapability::new(prop.major, prop.minor))
+    }
+
+    pub fn compute_mode(&self) -> Result<ComputeMode> {
+        let prop = self.get_property()?;
+        Ok(prop.computeMode)
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {

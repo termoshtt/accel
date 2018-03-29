@@ -8,6 +8,28 @@ pub fn sync() -> Result<()> {
     unsafe { cudaDeviceSynchronize() }.check()
 }
 
+/// Compute Capability of GPU
+///
+/// ```
+/// let cc40 = ComputeCapability::new(4, 0);
+/// let cc35 = ComputeCapability::new(3, 5);
+/// let cc30 = ComputeCapability::new(3, 0);
+/// assert!(cc30 < cc35);
+/// assert!(cc40 > cc35);
+/// assert_eq!(cc40, cc40);
+/// ```
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub struct ComputeCapability {
+    pub major: i32,
+    pub minor: i32,
+}
+
+impl ComputeCapability {
+    pub fn new(major: i32, minor: i32) -> Self {
+        ComputeCapability { major, minor }
+    }
+}
+
 pub fn num_devices() -> Result<usize> {
     let mut count = 0;
     unsafe { cudaGetDeviceCount(&mut count as *mut _) }.check()?;
@@ -26,6 +48,11 @@ impl Device {
     pub fn set(id: i32) -> Result<Self> {
         unsafe { cudaSetDevice(id) }.check()?;
         Ok(Device(id))
+    }
+
+    pub fn compute_capability(&self) -> Result<ComputeCapability> {
+        let prop = self.get_property()?;
+        Ok(ComputeCapability::new(prop.major, prop.minor))
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {

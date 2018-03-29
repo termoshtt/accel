@@ -81,42 +81,22 @@ fn bindgen_test_layout_cudaPitchedPtr() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).ptr as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(ptr)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(ptr))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).pitch as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(pitch)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(pitch))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).xsize as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(xsize)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(xsize))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPitchedPtr)).ysize as *const _ as usize },
         24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPitchedPtr),
-            "::",
-            stringify!(ysize)
-        )
+        concat!("Offset of field: ", stringify!(cudaPitchedPtr), "::", stringify!(ysize))
     );
 }
 #[test]
@@ -134,32 +114,17 @@ fn bindgen_test_layout_cudaExtent() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).width as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(width)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(width))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).height as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(height)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(height))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaExtent)).depth as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaExtent),
-            "::",
-            stringify!(depth)
-        )
+        concat!("Offset of field: ", stringify!(cudaExtent), "::", stringify!(depth))
     );
 }
 #[test]
@@ -177,32 +142,17 @@ fn bindgen_test_layout_cudaPos() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).x as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(x)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(x))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).y as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(y)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(y))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaPos)).z as *const _ as usize },
         16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaPos),
-            "::",
-            stringify!(z)
-        )
+        concat!("Offset of field: ", stringify!(cudaPos), "::", stringify!(z))
     );
 }
 #[test]
@@ -406,10 +356,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_1() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_1>(),
         8usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_1)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_1))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_1>(),
@@ -435,10 +382,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_2() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_2>(),
         8usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_2)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_2))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_2>(),
@@ -464,10 +408,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_3() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_3>(),
         40usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_3)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_3))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_3>(),
@@ -513,10 +454,7 @@ fn bindgen_test_layout_cudaResourceDesc__bindgen_ty_1__bindgen_ty_4() {
     assert_eq!(
         ::std::mem::size_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_4>(),
         56usize,
-        concat!(
-            "Size of: ",
-            stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_4)
-        )
+        concat!("Size of: ", stringify!(cudaResourceDesc__bindgen_ty_1__bindgen_ty_4))
     );
     assert_eq!(
         ::std::mem::align_of::<cudaResourceDesc__bindgen_ty_1__bindgen_ty_4>(),
@@ -655,12 +593,7 @@ fn bindgen_test_layout_cudaResourceDesc() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaResourceDesc)).res as *const _ as usize },
         8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaResourceDesc),
-            "::",
-            stringify!(res)
-        )
+        concat!("Offset of field: ", stringify!(cudaResourceDesc), "::", stringify!(res))
     );
 }
 #[test]
@@ -947,12 +880,7 @@ fn bindgen_test_layout_cudaDeviceProp() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).name as *const _ as usize },
         0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(name)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(name))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).totalGlobalMem as *const _ as usize },
@@ -1057,22 +985,12 @@ fn bindgen_test_layout_cudaDeviceProp() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).major as *const _ as usize },
         328usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(major)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(major))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).minor as *const _ as usize },
         332usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaDeviceProp),
-            "::",
-            stringify!(minor)
-        )
+        concat!("Offset of field: ", stringify!(cudaDeviceProp), "::", stringify!(minor))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaDeviceProp)).textureAlignment as *const _ as usize },
@@ -1965,12 +1883,7 @@ fn bindgen_test_layout_cudaTextureDesc() {
     assert_eq!(
         unsafe { &(*(0 as *const cudaTextureDesc)).sRGB as *const _ as usize },
         20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(cudaTextureDesc),
-            "::",
-            stringify!(sRGB)
-        )
+        concat!("Offset of field: ", stringify!(cudaTextureDesc), "::", stringify!(sRGB))
     );
     assert_eq!(
         unsafe { &(*(0 as *const cudaTextureDesc)).borderColor as *const _ as usize },

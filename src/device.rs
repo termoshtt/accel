@@ -55,7 +55,7 @@ impl Device {
         for i in 0..n {
             let dev = Device::set(i)?;
             if dev.compute_mode()? != ComputeMode::Prohibited {
-                devs.append(dev)
+                devs.push_back(dev)
             }
         }
         Ok(devs)
@@ -89,7 +89,7 @@ impl Device {
     pub fn name(&self) -> Result<String> {
         use std::ffi::CStr;
         let prop = self.get_property()?;
-        let name = Cstr::from_bytes_with_nul(&prop.name);
+        let name = CStr::from_bytes_with_nul(&prop.name);
         Ok(name.to_string())
     }
 

@@ -38,6 +38,7 @@ pub fn num_devices() -> Result<usize> {
     Ok(count as usize)
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct Device(::std::os::raw::c_int);
 
 impl Device {
@@ -47,22 +48,31 @@ impl Device {
         Ok(Device(id))
     }
 
-    pub fn get_fastest() -> Result<Self> {
+    /// List usbale GPUs
+    pub fn usables() -> Result<Vec<Self>> {
         let n = num_devices()? as i32;
-        let mut fastest = None;
-        let mut max_flops = 0.0;
+        let mut devs = Vec::new();
         for i in 0..n {
             let dev = Device::set(i)?;
-            if dev.compute_mode()? == ComputeMode::Prohibited {
-                continue;
+            if dev.compute_mode()? != ComputeMode::Prohibited {
+                devs.push(dev)
             }
+        }
+        Ok(devs)
+    }
+
+    /// Get fastest GPU
+    pub fn get_fastest() -> Result<Self> {
+        let mut fastest = None;
+        let mut max_flops = 0.0;
+        for dev in Self::usables()? {
             let flops = dev.flops()?;
             if flops > max_flops {
                 max_flops = flops;
-                fastest = Some(i);
+                fastest = Some(dev);
             }
         }
-        Device::set(fastest.expect("No usable GPU"))
+        Ok(fastest.expect("No usable GPU"))
     }
 
     pub fn set(id: i32) -> Result<Self> {
@@ -73,6 +83,22 @@ impl Device {
     pub fn compute_capability(&self) -> Result<ComputeCapability> {
         let prop = self.get_property()?;
         Ok(ComputeCapability::new(prop.major, prop.minor))
+    }
+
+    pub fn name(&self) -> Result<String> {
+        let prop = self.get_property()?;
+        let name: Vec<u8> = prop.name
+            .iter()
+            .filter_map(|&c| {
+                let c = c as u8;
+                if c == b'\0' {
+                    None
+                } else {
+                    Some(c)
+                }
+            })
+            .collect();
+        Ok(String::from_utf8(name).expect("Invalid GPU name").trim().to_string())
     }
 
     pub fn cores(&self) -> Result<u32> {
@@ -97,7 +123,7 @@ impl Device {
         let prop = self.get_property()?;
         let cores = self.cores()? as f64;
         let mpc = prop.multiProcessorCount as f64;
-        let rate = prop.clockRate as f64;
+        let rate = prop.clockRate as f64 * 1024.0; // clockRate is [kHz]
         Ok(mpc * rate * cores)
     }
 

@@ -8,12 +8,13 @@ pub struct Stream(*mut CUstream_st);
 impl Stream {
     pub fn blocking() -> Self {
         let mut st = null_mut();
-        unsafe { cudaStreamCreateWithFlags(&mut st as *mut _, cudaStreamDefault) }.check();
+        unsafe { cudaStreamCreateWithFlags(&mut st as *mut _, cudaStreamFlags::Default) }.check();
         Stream(st)
     }
+
     pub fn non_blocking() -> Self {
         let mut st = null_mut();
-        unsafe { cudaStreamCreateWithFlags(&mut st as *mut _, cudaStreamNonBlocking) }.check();
+        unsafe { cudaStreamCreateWithFlags(&mut st as *mut _, cudaStreamFlags::NonBlocking) }.check();
         Stream(st)
     }
 }

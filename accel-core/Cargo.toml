@@ -10,3 +10,6 @@ keywords      = ["GPGPU", "CUDA", "platform-intrinsic"]
 license       = "MIT"
 readme        = "README.md"
 categories    = []
+
+[dependencies]
+bitflags = "1.0"

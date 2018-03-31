@@ -114,11 +114,32 @@ pub struct CUevent_st {
 }
 pub type cudaEvent_t = *mut CUevent_st;
 
-pub const cudaStreamDefault: u32 = 0;
-pub const cudaStreamNonBlocking: u32 = 1;
+bitflags! {
+    #[repr(C)]
+    pub struct cudaStreamFlags: u32 {
+        const Default = 0b00000000;
+        const NonBlocking = 0b00000001;
+    }
+}
+
+bitflags! {
+    #[repr(C)]
+    pub struct cudaEventFlags: u32 {
+        const Default = 0b00000000;
+        const BlockingSync= 0b00000001;
+        const DisableTiming= 0b00000010;
+        const Interprocess= 0b00000100;
+    }
+}
 
 extern "C" {
-    pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: u32) -> cudaError_t;
+    // device steram APIs
+    pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: cudaStreamFlags) -> cudaError_t;
     pub fn cudaStreamDestroy(stream: cudaStream_t) -> cudaError_t;
     pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: u32) -> cudaError_t;
+
+    // device event APIs
+    pub fn cudaEventCreateWithFlags(event: *mut cudaEvent_t, flags: cudaEventFlags) -> cudaError_t;
+    pub fn cudaEventDestroy(event: cudaEvent_t) -> cudaError_t;
+    pub fn cudaEventRecord(event: cudaEvent_t, stream: cudaStream_t) -> cudaError_t;
 }

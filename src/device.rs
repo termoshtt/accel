@@ -55,7 +55,7 @@ impl Device {
         for i in 0..n {
             let dev = Device::set(i)?;
             if dev.compute_mode()? != ComputeMode::Prohibited {
-                devs.push_back(dev)
+                devs.push(dev)
             }
         }
         Ok(devs)
@@ -63,7 +63,6 @@ impl Device {
 
     /// Get fastest GPU
     pub fn get_fastest() -> Result<Self> {
-        let n = num_devices()? as i32;
         let mut fastest = None;
         let mut max_flops = 0.0;
         for dev in Self::usables()? {
@@ -87,10 +86,19 @@ impl Device {
     }
 
     pub fn name(&self) -> Result<String> {
-        use std::ffi::CStr;
         let prop = self.get_property()?;
-        let name = CStr::from_bytes_with_nul(&prop.name);
-        Ok(name.to_string())
+        let name: Vec<u8> = prop.name
+            .iter()
+            .filter_map(|&c| {
+                let c = c as u8;
+                if c == b'\0' {
+                    None
+                } else {
+                    Some(c)
+                }
+            })
+            .collect();
+        Ok(String::from_utf8(name).expect("Invalid GPU name").trim().to_string())
     }
 
     pub fn cores(&self) -> Result<u32> {
@@ -115,7 +123,7 @@ impl Device {
         let prop = self.get_property()?;
         let cores = self.cores()? as f64;
         let mpc = prop.multiProcessorCount as f64;
-        let rate = prop.clockRate as f64;
+        let rate = prop.clockRate as f64 * 1024.0; // clockRate is [kHz]
         Ok(mpc * rate * cores)
     }
 

@@ -1,6 +1,9 @@
 #![feature(platform_intrinsics)]
 #![no_std]
 
+pub mod stream;
+mod cuda;
+
 pub struct Dim3 {
     x: i32,
     y: i32,

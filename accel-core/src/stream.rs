@@ -19,6 +19,10 @@ impl Stream {
         unsafe { cudaStreamCreateWithFlags(&mut st as *mut _, cudaStreamFlags::NonBlocking) }.check();
         Stream(st)
     }
+
+    pub fn wait(&self, event: &Event) {
+        unsafe { cudaStreamWaitEvent(self.0, event.0, 0) }.check();
+    }
 }
 
 impl Drop for Stream {
@@ -34,6 +38,10 @@ impl Event {
         let mut st = null_mut();
         unsafe { cudaEventCreateWithFlags(&mut st as *mut _, flags) }.check();
         Event(st)
+    }
+
+    pub fn record(&mut self, stream: &Stream) {
+        unsafe { cudaEventRecord(self.0, stream.0) }.check();
     }
 }
 

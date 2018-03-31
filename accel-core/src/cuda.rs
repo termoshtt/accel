@@ -136,7 +136,11 @@ extern "C" {
     // device steram APIs
     pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: cudaStreamFlags) -> cudaError_t;
     pub fn cudaStreamDestroy(stream: cudaStream_t) -> cudaError_t;
-    pub fn cudaStreamWaitEvent(stream: cudaStream_t, event: cudaEvent_t, flags: u32) -> cudaError_t;
+    pub fn cudaStreamWaitEvent(
+        stream: cudaStream_t,
+        event: cudaEvent_t,
+        flags: u32, /* must be zero */
+    ) -> cudaError_t;
 
     // device event APIs
     pub fn cudaEventCreateWithFlags(event: *mut cudaEvent_t, flags: cudaEventFlags) -> cudaError_t;

@@ -3,7 +3,9 @@
 use core::ptr::null_mut;
 use cuda::*;
 
-pub struct Stream(*mut CUstream_st);
+pub use cuda::cudaEventFlags as EventFlags;
+
+pub struct Stream(cudaStream_t);
 
 impl Stream {
     pub fn blocking() -> Self {
@@ -22,5 +24,21 @@ impl Stream {
 impl Drop for Stream {
     fn drop(&mut self) {
         unsafe { cudaStreamDestroy(self.0) }.check();
+    }
+}
+
+pub struct Event(cudaEvent_t);
+
+impl Event {
+    pub fn new(flags: EventFlags) -> Self {
+        let mut st = null_mut();
+        unsafe { cudaEventCreateWithFlags(&mut st as *mut _, flags) }.check();
+        Event(st)
+    }
+}
+
+impl Drop for Event {
+    fn drop(&mut self) {
+        unsafe { cudaEventDestroy(self.0) }.check();
     }
 }

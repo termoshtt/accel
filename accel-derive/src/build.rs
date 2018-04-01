@@ -54,8 +54,7 @@ impl Builder {
             process::Command::new("ar")
                 .args(&["x", path.file_name().unwrap().to_str().unwrap()])
                 .current_dir(path.parent().unwrap())
-                .status()
-                .unwrap();
+                .check_run("ar failed");
         }
         // link them
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
@@ -67,14 +66,12 @@ impl Builder {
             .args(&bcs)
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
-            .status()
-            .unwrap();
+            .check_run("llvm-link failed");
         // compile bytecode to PTX
         process::Command::new("llc")
             .args(&["-mcpu=sm_20", "kernel.bc", "-o", "kernel.ptx"])
             .current_dir(&self.path)
-            .status()
-            .unwrap();
+            .check_run("llc failed");
     }
 
     fn load_ptx(&self) -> String {
@@ -93,23 +90,41 @@ impl Builder {
         process::Command::new("rm")
             .args(&["-rf", "target"])
             .current_dir(&self.path)
-            .status()
-            .unwrap();
+            .check_run("cleanup failed");
     }
 
     fn format(&self) {
         process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .status()
-            .unwrap();
+            .check_run("Format failed");
     }
 
     fn build(&self) {
         process::Command::new("xargo")
             .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)
-            .status()
-            .unwrap();
+            .check_run("xargo failed");
+    }
+}
+
+trait CheckRun {
+    fn check_run(&mut self, comment: &str);
+}
+
+impl CheckRun for process::Command {
+    fn check_run(&mut self, comment: &str) {
+        let st = match self.status() {
+            Ok(st) => st,
+            Err(e) => panic!("{}: Error = {}", comment, e),
+        };
+        match st.code() {
+            Some(c) => {
+                if c != 0 {
+                    panic!("{}: Return Code = {}", comment, c);
+                }
+            }
+            None => {}
+        }
     }
 }

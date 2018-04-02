@@ -5,29 +5,32 @@ use std::{fs, process};
 use tempdir::TempDir;
 
 use config::Depends;
-use parse::KernelAttribute;
 
 pub struct Builder {
-    pub path: PathBuf,
-    pub depends: Depends,
+    path: PathBuf,
+    depends: Depends,
 }
 
 impl Builder {
-    /// Initialize builder with path and dependes
-    ///
-    /// 1. `build_path` or `build_path_home`
-    /// 2. use temporal directory, e.g. "/tmp/ptx-builder.XXXXXXX/"
-    pub fn new(attrs: KernelAttribute) -> Self {
-        let path = attrs.build_path.unwrap_or(
-            TempDir::new("ptx-builder")
-                .expect("Failed to create temporal directory")
-                .into_path(),
-        );
+    pub fn new(depends: Depends) -> Self {
+        let path = TempDir::new("ptx-builder")
+            .expect("Failed to create temporal directory")
+            .into_path();
+        Self::with_path(&path, depends)
+    }
+
+    pub fn with_path<P: AsRef<Path>>(path: P, depends: Depends) -> Self {
+        let path = path.as_ref();
         fs::create_dir_all(path.join("src")).unwrap();
         Builder {
             path: path.to_owned(),
-            depends: attrs.depends,
+            depends: depends,
         }
+    }
+
+    /// List of dependencies for `extern crate`
+    pub fn crates_for_extern(&self) -> Vec<String> {
+        self.depends.iter().map(|c| c.name().replace("-", "_")).collect()
     }
 
     pub fn compile(&mut self, kernel: &str) -> String {

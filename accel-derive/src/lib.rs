@@ -19,7 +19,6 @@ mod build;
 mod parse;
 
 use proc_macro::TokenStream;
-use syn::*;
 
 use parse::*;
 use build::*;
@@ -42,13 +41,12 @@ fn func2kernel(func: &Function) -> String {
     let block = &func.block;
 
     let attrs = parse_attrs(func);
-    let mut builder = Builder::new(attrs);
+    let mut builder = match attrs.build_path {
+        Some(path) => Builder::with_path(&path, attrs.depends),
+        None => Builder::new(attrs.depends),
+    };
 
-    let crates: Vec<Ident> = builder
-        .depends
-        .iter()
-        .map(|c| c.name().replace("-", "_").into())
-        .collect();
+    let crates = builder.crates_for_extern();
     let kernel_str = quote!{
         #![feature(abi_ptx)]
         #![no_std]

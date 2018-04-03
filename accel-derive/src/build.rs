@@ -1,10 +1,17 @@
 use glob::glob;
 use std::io::{Read, Write};
 use std::path::*;
-use std::{fs, process};
+use std::{fs, io, process};
 use tempdir::TempDir;
 
 pub use config::{Crate, Depends};
+
+#[derive(Debug, From)]
+pub enum CompileError {
+    ErrorCode((&'static str, i32)),
+    Err(io::Error),
+}
+pub type Result<T> = ::std::result::Result<T, CompileError>;
 
 /// Compile Rust string into PTX string
 pub struct Builder {
@@ -34,23 +41,24 @@ impl Builder {
         self.depends.iter().map(|c| c.name().replace("-", "_")).collect()
     }
 
-    pub fn compile(&mut self, kernel: &str) -> String {
-        self.generate_config();
-        self.save(kernel, "src/lib.rs");
-        self.format();
+    pub fn compile(&mut self, kernel: &str) -> Result<String> {
+        self.generate_config()?;
+        self.save(kernel, "src/lib.rs")?;
+        self.format()?;
         self.clean();
-        self.build();
-        self.link();
+        self.build()?;
+        self.link()?;
         self.load_ptx()
     }
 
     /// save string as a file on the Builder directory
-    fn save(&self, contents: &str, filename: &str) {
-        let mut f = fs::File::create(self.path.join(filename)).unwrap();
-        f.write(contents.as_bytes()).unwrap();
+    fn save(&self, contents: &str, filename: &str) -> Result<()> {
+        let mut f = fs::File::create(self.path.join(filename))?;
+        f.write(contents.as_bytes())?;
+        Ok(())
     }
 
-    fn link(&self) {
+    fn link(&self) -> Result<()> {
         // extract rlibs using ar x
         let pat_rlib = format!("{}/target/**/deps/*.rlib", self.path.display());
         for path in glob(&pat_rlib).unwrap() {
@@ -58,7 +66,7 @@ impl Builder {
             process::Command::new("ar")
                 .args(&["x", path.file_name().unwrap().to_str().unwrap()])
                 .current_dir(path.parent().unwrap())
-                .check_run("ar failed");
+                .check_run("ar failed")?;
         }
         // link them
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
@@ -70,24 +78,26 @@ impl Builder {
             .args(&bcs)
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
-            .check_run("llvm-link failed");
+            .check_run("llvm-link failed")?;
         // compile bytecode to PTX
         process::Command::new("llc")
             .args(&["-mcpu=sm_20", "kernel.bc", "-o", "kernel.ptx"])
             .current_dir(&self.path)
-            .check_run("llc failed");
+            .check_run("llc failed")?;
+        Ok(())
     }
 
-    fn load_ptx(&self) -> String {
-        let mut f = fs::File::open(self.path.join("kernel.ptx")).unwrap();
+    fn load_ptx(&self) -> Result<String> {
+        let mut f = fs::File::open(self.path.join("kernel.ptx"))?;
         let mut res = String::new();
         f.read_to_string(&mut res).unwrap();
-        res
+        Ok(res)
     }
 
-    fn generate_config(&self) {
-        self.save(&self.depends.to_string(), "Cargo.toml");
-        self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json");
+    fn generate_config(&self) -> Result<()> {
+        self.save(&self.depends.to_string(), "Cargo.toml")?;
+        self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")?;
+        Ok(())
     }
 
     fn clean(&self) {
@@ -98,38 +108,37 @@ impl Builder {
         };
     }
 
-    fn format(&self) {
+    fn format(&self) -> Result<()> {
         process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .check_run("Format failed");
+            .check_run("Format failed")
     }
 
-    fn build(&self) {
+    fn build(&self) -> Result<()> {
         process::Command::new("xargo")
             .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)
-            .check_run("xargo failed");
+            .check_run("xargo failed")
     }
 }
 
 trait CheckRun {
-    fn check_run(&mut self, comment: &str);
+    fn check_run(&mut self, comment: &'static str) -> Result<()>;
 }
 
 impl CheckRun for process::Command {
-    fn check_run(&mut self, comment: &str) {
-        let st = match self.status() {
-            Ok(st) => st,
-            Err(e) => panic!("{}: Error = {}", comment, e),
-        };
+    fn check_run(&mut self, comment: &'static str) -> Result<()> {
+        let st = self.status()?;
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    panic!("{}: Return Code = {}", comment, c);
+                    Err(CompileError::ErrorCode((comment, c)).into())
+                } else {
+                    Ok(())
                 }
             }
-            None => {}
+            None => Ok(()),
         }
     }
 }

@@ -6,6 +6,8 @@ extern crate proc_macro;
 #[macro_use]
 extern crate procedurals;
 #[macro_use]
+extern crate derive_more;
+#[macro_use]
 extern crate quote;
 extern crate serde;
 #[macro_use]
@@ -54,7 +56,7 @@ fn func2kernel(func: &Function) -> String {
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     }.to_string();
-    builder.compile(&kernel_str)
+    builder.compile(&kernel_str).expect("Failed to compile")
 }
 
 fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {

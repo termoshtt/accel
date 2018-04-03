@@ -4,7 +4,7 @@ use std::path::*;
 use std::{fs, io, process};
 use tempdir::TempDir;
 
-pub use config::{Crate, Depends};
+use config::Depends;
 
 #[derive(Debug, From)]
 pub enum CompileError {

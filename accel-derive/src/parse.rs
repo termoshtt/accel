@@ -3,7 +3,8 @@ use syn::*;
 use std::path::*;
 use std::env;
 
-use config::*;
+use config::{Crate, Depends};
+use build::Builder;
 
 #[derive(Debug)]
 pub struct Function {
@@ -55,9 +56,17 @@ impl Function {
             })
             .collect()
     }
+
+    pub fn create_builder(&self) -> Builder {
+        let attrs = parse_attrs(self);
+        match attrs.build_path {
+            Some(path) => Builder::with_path(&path, attrs.depends),
+            None => Builder::new(attrs.depends),
+        }
+    }
 }
 
-pub struct KernelAttribute {
+struct KernelAttribute {
     pub depends: Depends,
     pub build_path: Option<PathBuf>,
 }
@@ -74,7 +83,7 @@ pub struct KernelAttribute {
 ///      equals to `accel-core = { path = "/some/path" }`
 /// - `#[build_path("/some/path")]`: build PTX on "/some/path"
 /// - `#[build_path_home("path/to/work")]`: build PTX on "$HOME/path/to/work"
-pub fn parse_attrs(func: &Function) -> KernelAttribute {
+fn parse_attrs(func: &Function) -> KernelAttribute {
     let mut attrs = KernelAttribute {
         depends: Depends::new(),
         build_path: None,

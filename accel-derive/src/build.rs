@@ -4,8 +4,9 @@ use std::path::*;
 use std::{fs, process};
 use tempdir::TempDir;
 
-use config::Depends;
+pub use config::{Crate, Depends};
 
+/// Compile Rust string into PTX string
 pub struct Builder {
     path: PathBuf,
     depends: Depends,
@@ -90,10 +91,11 @@ impl Builder {
     }
 
     fn clean(&self) {
-        process::Command::new("rm")
-            .args(&["-rf", "target"])
-            .current_dir(&self.path)
-            .check_run("cleanup failed");
+        let path = self.path.join("target");
+        match fs::remove_dir_all(&path) {
+            Ok(_) => {}
+            Err(_) => eprintln!("Already clean (dir = {})", path.display()),
+        };
     }
 
     fn format(&self) {
@@ -129,5 +131,26 @@ impl CheckRun for process::Command {
             }
             None => {}
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compile() {
+        let src = r#"
+        pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
+            let i = accel_core::index();
+            if (i as usize) < n {
+                *c.offset(i) = *a.offset(i) + *b.offset(i);
+            }
+        }
+        "#;
+        let depends = Depends::from(&[Crate::with_version("accel-core", "0.2.0-alpha")]);
+        let mut builder = Builder::new(depends);
+        let ptx = builder.compile(src);
+        println!("PTX = {:?}", ptx);
     }
 }

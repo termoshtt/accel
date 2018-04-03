@@ -159,7 +159,7 @@ mod tests {
         "#;
         let depends = Depends::from(&[Crate::with_version("accel-core", "0.2.0-alpha")]);
         let mut builder = Builder::new(depends);
-        let ptx = builder.compile(src);
+        let ptx = builder.compile(src).unwrap();
         println!("PTX = {:?}", ptx);
     }
 }

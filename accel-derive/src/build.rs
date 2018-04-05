@@ -6,12 +6,33 @@ use tempdir::TempDir;
 
 use config::Depends;
 
+#[derive(Debug, Clone, Copy)]
+pub enum Step {
+    Ready,
+    Format,
+    Link,
+    Build,
+    Load,
+}
+
 #[derive(Debug, From)]
 pub enum CompileError {
-    ErrorCode((&'static str, i32)),
-    Err(io::Error),
+    ExternalComandError((Step, i32)),
+    IOError((Step, io::Error)),
 }
 pub type Result<T> = ::std::result::Result<T, CompileError>;
+
+trait Logging {
+    type T;
+    fn log(self, step: Step) -> Result<Self::T>;
+}
+
+impl<T> Logging for io::Result<T> {
+    type T = T;
+    fn log(self, step: Step) -> Result<Self::T> {
+        self.map_err(|e| (step, e).into())
+    }
+}
 
 /// Compile Rust string into PTX string
 pub struct Builder {
@@ -43,7 +64,7 @@ impl Builder {
 
     pub fn compile(&mut self, kernel: &str) -> Result<String> {
         self.generate_config()?;
-        self.save(kernel, "src/lib.rs")?;
+        self.save(kernel, "src/lib.rs").log(Step::Ready)?;
         self.format()?;
         self.clean();
         self.build()?;
@@ -52,7 +73,7 @@ impl Builder {
     }
 
     /// save string as a file on the Builder directory
-    fn save(&self, contents: &str, filename: &str) -> Result<()> {
+    fn save(&self, contents: &str, filename: &str) -> io::Result<()> {
         let mut f = fs::File::create(self.path.join(filename))?;
         f.write(contents.as_bytes())?;
         Ok(())
@@ -66,7 +87,7 @@ impl Builder {
             process::Command::new("ar")
                 .args(&["x", path.file_name().unwrap().to_str().unwrap()])
                 .current_dir(path.parent().unwrap())
-                .check_run("ar failed")?;
+                .check_run(Step::Link)?;
         }
         // link them
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
@@ -78,25 +99,26 @@ impl Builder {
             .args(&bcs)
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
-            .check_run("llvm-link failed")?;
+            .check_run(Step::Link)?;
         // compile bytecode to PTX
         process::Command::new("llc")
             .args(&["-mcpu=sm_20", "kernel.bc", "-o", "kernel.ptx"])
             .current_dir(&self.path)
-            .check_run("llc failed")?;
+            .check_run(Step::Link)?;
         Ok(())
     }
 
     fn load_ptx(&self) -> Result<String> {
-        let mut f = fs::File::open(self.path.join("kernel.ptx"))?;
+        let mut f = fs::File::open(self.path.join("kernel.ptx")).log(Step::Load)?;
         let mut res = String::new();
         f.read_to_string(&mut res).unwrap();
         Ok(res)
     }
 
     fn generate_config(&self) -> Result<()> {
-        self.save(&self.depends.to_string(), "Cargo.toml")?;
-        self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")?;
+        self.save(&self.depends.to_string(), "Cargo.toml").log(Step::Ready)?;
+        self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")
+            .log(Step::Ready)?;
         Ok(())
     }
 
@@ -112,28 +134,28 @@ impl Builder {
         process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .check_run("Format failed")
+            .check_run(Step::Format)
     }
 
     fn build(&self) -> Result<()> {
         process::Command::new("xargo")
             .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)
-            .check_run("xargo failed")
+            .check_run(Step::Build)
     }
 }
 
 trait CheckRun {
-    fn check_run(&mut self, comment: &'static str) -> Result<()>;
+    fn check_run(&mut self, step: Step) -> Result<()>;
 }
 
 impl CheckRun for process::Command {
-    fn check_run(&mut self, comment: &'static str) -> Result<()> {
-        let st = self.status()?;
+    fn check_run(&mut self, step: Step) -> Result<()> {
+        let st = self.status().log(step)?;
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    Err(CompileError::ErrorCode((comment, c)).into())
+                    Err(CompileError::ExternalComandError((step, c)).into())
                 } else {
                     Ok(())
                 }

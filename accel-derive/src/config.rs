@@ -9,6 +9,11 @@ impl Depends {
     pub fn new() -> Self {
         Depends(Vec::new())
     }
+
+    #[allow(dead_code)]
+    pub fn from(crates: &[Crate]) -> Self {
+        Depends(Vec::from(crates))
+    }
 }
 
 impl ToString for Depends {

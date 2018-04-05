@@ -18,14 +18,14 @@ jobs:
             cd cuda-sys
             cargo check
       - run:
-          name: Check accel-core
-          command: |
-            cd accel-core
-            cargo check
-      - run:
           name: Check accel-derive
           command: |
             cd accel-derive
+            cargo test -v
+      - run:
+          name: Check accel-core
+          command: |
+            cd accel-core
             cargo check
       - run:
           name: Check accel

@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
-use syn::Ident;
-use parse::*;
+use syn::{FnArg, Ident, ItemFn};
+use parse::parse_builder_attrs;
 use config::Crate;
 
 pub fn header(crates: &[Crate]) -> String {
@@ -12,16 +12,18 @@ pub fn header(crates: &[Crate]) -> String {
         #(extern crate #crates;), *
     };
     tt.to_string()
-}
 
-pub fn kernel(func: &Function) -> String {
+
+pub fn kernel(func: &ItemFn) -> String {
     let vis = &func.vis;
-    let fn_token = &func.fn_token;
     let ident = &func.ident;
     let unsafety = &func.unsafety;
-    let inputs = &func.inputs;
-    let output = &func.output;
     let block = &func.block;
+
+    let decl = &func.decl;
+    let fn_token = &decl.fn_token;
+    let inputs = &decl.inputs;
+    let output = &decl.output;
 
     let kernel = quote!{
         #[no_mangle]
@@ -31,20 +33,28 @@ pub fn kernel(func: &Function) -> String {
 }
 
 /// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
-pub fn func2kernel(func: &Function) -> String {
-    let mut builder = func.create_builder();
+pub fn func2kernel(func: &ItemFn) -> String {
+    let mut builder = parse_builder_attrs(&func.attrs);
     let lib = format!("{}\n{}", header(&builder.crates()), kernel(func));
     builder.compile(&lib).expect("Failed to compile")
 }
 
-pub fn func2caller(ptx_str: &str, func: &Function) -> TokenStream {
+pub fn func2caller(ptx_str: &str, func: &ItemFn) -> TokenStream {
     let vis = &func.vis;
-    let fn_token = &func.fn_token;
     let ident = &func.ident;
-    let inputs = &func.inputs;
-    let output = &func.output;
 
-    let input_values = func.input_values();
+    let decl = &func.decl;
+    let inputs = &decl.inputs;
+    let output = &decl.output;
+    let fn_token = &decl.fn_token;
+
+    let input_values: Vec<_> = inputs
+        .iter()
+        .map(|arg| match arg {
+            &FnArg::Captured(ref val) => &val.pat,
+            _ => unreachable!(""),
+        })
+        .collect();
     let kernel_name = quote!{ #ident }.to_string();
 
     let caller = quote!{

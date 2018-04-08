@@ -6,60 +6,8 @@ use std::env;
 use config::{Crate, Depends};
 use compile::Builder;
 
-#[derive(Debug)]
-pub struct Function {
-    pub attrs: Vec<Attribute>,
-    pub ident: Ident,
-    pub vis: Visibility,
-    pub block: Box<Block>,
-    pub unsafety: Option<token::Unsafe>,
-    pub inputs: punctuated::Punctuated<FnArg, token::Comma>,
-    pub output: ReturnType,
-    pub fn_token: token::Fn,
-}
-
-impl Function {
-    pub fn parse(func: TokenStream) -> Self {
-        let ItemFn {
-            attrs,
-            ident,
-            vis,
-            block,
-            decl,
-            unsafety,
-            ..
-        } = ::syn::parse(func.clone()).unwrap();
-        let FnDecl {
-            inputs,
-            output,
-            fn_token,
-            ..
-        } = { *decl };
-        Function {
-            attrs,
-            ident,
-            vis,
-            block,
-            unsafety,
-            inputs,
-            output,
-            fn_token,
-        }
-    }
-
-    pub fn input_values(&self) -> Vec<&Pat> {
-        self.inputs
-            .iter()
-            .map(|arg| match arg {
-                &FnArg::Captured(ref val) => &val.pat,
-                _ => unreachable!(""),
-            })
-            .collect()
-    }
-
-    pub fn create_builder(&self) -> Builder {
-        parse_builder_attrs(&self.attrs)
-    }
+pub fn parse_func(func: TokenStream) -> ItemFn {
+    parse(func).expect("Not a function")
 }
 
 /// Parse attributes of kernel

@@ -1,0 +1,26 @@
+[package]
+name = "nvptx"
+version = "0.1.0"
+authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+
+description   = "Rust to PTX compiler using LLVM/NVPTX target"
+documentation = "https://docs.rs/nvptx/"
+repository    = "https://github.com/termoshtt/accel"
+keywords      = ["GPGPU", "CUDA", "proc-macro"]
+license       = "MIT"
+readme        = "README.md"
+categories    = []
+
+[dependencies]
+quote = "0.5"
+toml = "0.4.5"
+tempdir = "0.3"
+glob = "0.2"
+procedurals = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+derive_more = "0.10"
+
+[dependencies.syn]
+version = "0.13"
+features = ["full", "extra-traits"]

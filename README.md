@@ -25,7 +25,7 @@ Pre-requirements
 ---------------
 
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
-- Install [LLVM](https://llvm.org/) 6.0 or later
+- Install [LLVM](https://llvm.org/) 6.0 or later (use `llc` and `llvm-link` to create PTX)
 - Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
 - Install [xargo](https://github.com/japaric/xargo), a sysroot manager
 
@@ -36,10 +36,6 @@ docker run -it --rm --runtime=nvidia termoshtt/rust-cuda
 ```
 
 See also [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
-
-```
-cargo install xargo
-```
 
 Example
 --------

@@ -3,9 +3,8 @@ use std::io::{Read, Write};
 use std::path::*;
 use std::{fs, io, process};
 use tempdir::TempDir;
-use syn::Ident;
 
-use config::Depends;
+use config::{Crate, Depends};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Step {
@@ -58,12 +57,8 @@ impl Builder {
         }
     }
 
-    /// List of dependencies for `extern crate`
-    pub fn crates_for_extern(&self) -> Vec<Ident> {
-        self.depends
-            .iter()
-            .map(|c| Ident::from(c.name().replace("-", "_")))
-            .collect()
+    pub fn crates(&self) -> &[Crate] {
+        &self.depends
     }
 
     pub fn compile(&mut self, kernel: &str) -> Result<String> {

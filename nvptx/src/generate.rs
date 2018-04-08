@@ -1,10 +1,11 @@
 use proc_macro::TokenStream;
 
+use syn::Ident;
 use parse::*;
-use compile::*;
+use config::Crate;
 
-pub fn header(builder: &Builder) -> String {
-    let crates = builder.crates_for_extern();
+pub fn header(crates: &[Crate]) -> String {
+    let crates: Vec<Ident> = crates.iter().map(|c| Ident::from(c.name().replace("-", "_"))).collect();
     let tt = quote!{
         #![feature(abi_ptx)]
         #![no_std]
@@ -32,7 +33,7 @@ pub fn kernel(func: &Function) -> String {
 /// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
 pub fn func2kernel(func: &Function) -> String {
     let mut builder = func.create_builder();
-    let lib = format!("{}\n{}", header(&builder), kernel(func));
+    let lib = format!("{}\n{}", header(&builder.crates()), kernel(func));
     builder.compile(&lib).expect("Failed to compile")
 }
 

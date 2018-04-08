@@ -4,7 +4,7 @@ use std::path::*;
 use std::env;
 
 use config::{Crate, Depends};
-use build::Builder;
+use compile::Builder;
 
 #[derive(Debug)]
 pub struct Function {

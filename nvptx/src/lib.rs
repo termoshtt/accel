@@ -16,6 +16,6 @@ extern crate tempdir;
 extern crate toml;
 
 pub mod config;
-pub mod build;
+pub mod compile;
 pub mod parse;
 pub mod generate;

@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
 use parse::*;
-use build::*;
+use compile::*;
 
 pub fn header(builder: &Builder) -> String {
     let crates = builder.crates_for_extern();

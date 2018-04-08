@@ -4,8 +4,6 @@ jobs:
   build:
     docker:
       - image: termoshtt/rust-cuda
-    environment:
-      - CUDA_LIBRARY_PATH: "/usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs"
     steps:
       - checkout
       - run:
@@ -31,3 +29,7 @@ jobs:
           name: Check accel
           command: |
             cargo check
+      - run:
+          name: Code generation for examples/add
+          command: |
+            cargo expand --example add

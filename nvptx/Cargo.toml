@@ -1,25 +1,24 @@
 [package]
-name = "accel-derive"
+name = "nvptx"
 version = "0.1.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
-description   = "Procedual macro for writing GPGPU kernel"
-documentation = "https://docs.rs/accel-derive/"
+description   = "Rust to PTX compiler using LLVM/NVPTX target"
+documentation = "https://docs.rs/nvptx/"
 repository    = "https://github.com/termoshtt/accel"
 keywords      = ["GPGPU", "CUDA", "proc-macro"]
 license       = "MIT"
 readme        = "README.md"
 categories    = []
 
-[lib]
-proc-macro = true
-
 [dependencies]
 quote = "0.5"
-
-[dependencies.nvptx]
-version = "0.1"
-path = "../nvptx"
+toml = "0.4.5"
+tempdir = "0.3"
+glob = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+derive_more = "0.10"
 
 [dependencies.syn]
 version = "0.13"

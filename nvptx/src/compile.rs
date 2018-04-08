@@ -1,11 +1,10 @@
 use glob::glob;
 use std::io::{Read, Write};
 use std::path::*;
-use std::{fs, io, process};
+use std::{env, fs, io, process};
 use tempdir::TempDir;
-use syn::Ident;
 
-use config::Depends;
+use config::{to_toml, Crate};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Step {
@@ -38,32 +37,32 @@ impl<T> Logging for io::Result<T> {
 /// Compile Rust string into PTX string
 pub struct Builder {
     path: PathBuf,
-    depends: Depends,
+    crates: Vec<Crate>,
 }
 
 impl Builder {
-    pub fn new(depends: Depends) -> Self {
+    pub fn new(crates: &[Crate]) -> Self {
         let path = TempDir::new("ptx-builder")
             .expect("Failed to create temporal directory")
             .into_path();
-        Self::with_path(&path, depends)
+        Self::with_path(&path, crates)
     }
 
-    pub fn with_path<P: AsRef<Path>>(path: P, depends: Depends) -> Self {
-        let path = path.as_ref();
+    pub fn with_path<P: AsRef<Path>>(path: P, crates: &[Crate]) -> Self {
+        let mut path = path.as_ref().to_owned();
+        if path.starts_with("~") {
+            let home = env::home_dir().expect("Cannot get home dir");
+            path = home.join(path.strip_prefix("~").unwrap());
+        }
         fs::create_dir_all(path.join("src")).unwrap();
         Builder {
-            path: path.to_owned(),
-            depends: depends,
+            path: path,
+            crates: crates.to_vec(),
         }
     }
 
-    /// List of dependencies for `extern crate`
-    pub fn crates_for_extern(&self) -> Vec<Ident> {
-        self.depends
-            .iter()
-            .map(|c| Ident::from(c.name().replace("-", "_")))
-            .collect()
+    pub fn crates(&self) -> &[Crate] {
+        &self.crates
     }
 
     pub fn compile(&mut self, kernel: &str) -> Result<String> {
@@ -120,7 +119,7 @@ impl Builder {
     }
 
     fn generate_config(&self) -> Result<()> {
-        self.save(&self.depends.to_string(), "Cargo.toml").log(Step::Ready)?;
+        self.save(&to_toml(&self.crates), "Cargo.toml").log(Step::Ready)?;
         self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")
             .log(Step::Ready)?;
         Ok(())
@@ -166,31 +165,5 @@ impl CheckRun for process::Command {
             }
             None => Ok(()),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use config::*;
-
-    #[test]
-    fn compile() {
-        let src = r#"
-        #![feature(abi_ptx)]
-        #![no_std]
-        extern crate accel_core;
-        #[no_mangle]
-        pub unsafe extern "ptx-kernel" fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
-            let i = accel_core::index();
-            if (i as usize) < n {
-                *c.offset(i) = *a.offset(i) + *b.offset(i);
-            }
-        }
-        "#;
-        let depends = Depends::from(&[Crate::with_version("accel-core", "0.2.0-alpha")]);
-        let mut builder = Builder::new(depends);
-        let ptx = builder.compile(src).unwrap();
-        println!("PTX = {:?}", ptx);
     }
 }

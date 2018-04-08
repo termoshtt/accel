@@ -2,38 +2,23 @@ use std::collections::HashMap;
 use std::path::*;
 use toml;
 
-#[derive(Debug, NewType)]
-pub struct Depends(Vec<Crate>);
-
-impl Depends {
-    pub fn new() -> Self {
-        Depends(Vec::new())
-    }
-
-    #[allow(dead_code)]
-    pub fn from(crates: &[Crate]) -> Self {
-        Depends(Vec::from(crates))
-    }
-}
-
-impl ToString for Depends {
-    fn to_string(&self) -> String {
-        let dependencies = self.iter()
-            .cloned()
-            .map(|c| {
-                let name = c.name;
-                let version = c.version.unwrap_or("*".to_string());
-                let path = c.path.map(|p| p.to_str().unwrap().to_owned());
-                (name, CrateInfo { version, path })
-            })
-            .collect();
-        let cargo = CargoTOML {
-            package: Package::default(),
-            profile: Profile::default(),
-            dependencies,
-        };
-        toml::to_string(&cargo).unwrap()
-    }
+pub fn to_toml(crates: &[Crate]) -> String {
+    let dependencies = crates
+        .iter()
+        .cloned()
+        .map(|c| {
+            let name = c.name;
+            let version = c.version.unwrap_or("*".to_string());
+            let path = c.path.map(|p| p.to_str().unwrap().to_owned());
+            (name, CrateInfo { version, path })
+        })
+        .collect();
+    let cargo = CargoTOML {
+        package: Package::default(),
+        profile: Profile::default(),
+        dependencies,
+    };
+    toml::to_string(&cargo).unwrap()
 }
 
 #[derive(Debug, Clone)]

@@ -163,29 +163,3 @@ impl CheckRun for process::Command {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use config::*;
-
-    #[test]
-    fn compile() {
-        let src = r#"
-        #![feature(abi_ptx)]
-        #![no_std]
-        extern crate accel_core;
-        #[no_mangle]
-        pub unsafe extern "ptx-kernel" fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
-            let i = accel_core::index();
-            if (i as usize) < n {
-                *c.offset(i) = *a.offset(i) + *b.offset(i);
-            }
-        }
-        "#;
-        let crates = &[Crate::with_version("accel-core", "0.2.0-alpha")];
-        let mut builder = Builder::new(crates);
-        let ptx = builder.compile(src).unwrap();
-        println!("PTX = {:?}", ptx);
-    }
-}

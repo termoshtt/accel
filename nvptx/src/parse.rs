@@ -58,17 +58,8 @@ impl Function {
     }
 
     pub fn create_builder(&self) -> Builder {
-        let attrs = parse_attrs(self);
-        match attrs.build_path {
-            Some(path) => Builder::with_path(&path, attrs.depends),
-            None => Builder::new(attrs.depends),
-        }
+        parse_builder_attrs(&self.attrs)
     }
-}
-
-struct KernelAttribute {
-    pub depends: Depends,
-    pub build_path: Option<PathBuf>,
 }
 
 /// Parse attributes of kernel
@@ -83,36 +74,38 @@ struct KernelAttribute {
 ///      equals to `accel-core = { path = "/some/path" }`
 /// - `#[build_path("/some/path")]`: build PTX on "/some/path"
 /// - `#[build_path_home("path/to/work")]`: build PTX on "$HOME/path/to/work"
-fn parse_attrs(func: &Function) -> KernelAttribute {
-    let mut attrs = KernelAttribute {
-        depends: Depends::new(),
-        build_path: None,
-    };
-    for attr in &func.attrs {
+///
+pub fn parse_builder_attrs(attrs: &[Attribute]) -> Builder {
+    let mut depends = Depends::new();
+    let mut build_path = None;
+    for attr in attrs.iter() {
         let path = &attr.path;
         let path = quote!{#path}.to_string();
         let tts = &attr.tts;
         let tts = quote!{#tts}.to_string();
         let attr = tts.trim_matches(PENE);
         match path.as_str() {
-            "depends" => attrs.depends.push(depends_to_crate(&attr)),
-            "depends_path" => attrs.depends.push(depends_path_to_crate(&attr)),
-            "build_path" => attrs.build_path = Some(build_path(&attr)),
-            "build_path_home" => attrs.build_path = Some(build_path_home(&attr)),
+            "depends" => depends.push(depends_to_crate(&attr)),
+            "depends_path" => depends.push(depends_path_to_crate(&attr)),
+            "build_path" => build_path = Some(as_build_path(&attr)),
+            "build_path_home" => build_path = Some(as_build_path_home(&attr)),
             _ => unreachable!("Unsupported attribute: {:?}", path),
         }
     }
-    attrs
+    match build_path {
+        Some(path) => Builder::with_path(path, depends),
+        None => Builder::new(depends),
+    }
 }
 
 const PENE: &[char] = &['(', ')'];
 const QUOTE: &[char] = &[' ', '"'];
 
-fn build_path(path: &str) -> PathBuf {
+fn as_build_path(path: &str) -> PathBuf {
     PathBuf::from(path.trim_matches(QUOTE))
 }
 
-fn build_path_home(path: &str) -> PathBuf {
+fn as_build_path_home(path: &str) -> PathBuf {
     let path = path.trim_matches(QUOTE);
     env::home_dir().expect("No home dir").join(path).to_owned()
 }

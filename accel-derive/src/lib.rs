@@ -9,8 +9,7 @@ extern crate syn;
 
 use proc_macro::TokenStream;
 use syn::{FnArg, ItemFn};
-use nvptx::generate::func2kernel;
-use nvptx::parse::parse_func;
+use nvptx::{parse_func, func2kernel};
 
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {

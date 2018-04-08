@@ -17,3 +17,6 @@ pub mod config;
 pub mod compile;
 pub mod parse;
 pub mod generate;
+
+pub use generate::func2kernel;
+pub use parse::parse_func;

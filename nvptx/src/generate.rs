@@ -12,7 +12,7 @@ pub fn header(crates: &[Crate]) -> String {
         #(extern crate #crates;), *
     };
     tt.to_string()
-
+}
 
 pub fn kernel(func: &ItemFn) -> String {
     let vis = &func.vis;

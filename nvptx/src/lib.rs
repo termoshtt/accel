@@ -3,8 +3,6 @@
 extern crate glob;
 extern crate proc_macro;
 #[macro_use]
-extern crate procedurals;
-#[macro_use]
 extern crate derive_more;
 #[macro_use]
 extern crate quote;

@@ -3,7 +3,7 @@ use syn::*;
 use std::path::*;
 use std::env;
 
-use config::{Crate, Depends};
+use config::Crate;
 use compile::Builder;
 
 pub fn parse_func(func: TokenStream) -> ItemFn {
@@ -24,7 +24,7 @@ pub fn parse_func(func: TokenStream) -> ItemFn {
 /// - `#[build_path_home("path/to/work")]`: build PTX on "$HOME/path/to/work"
 ///
 pub fn parse_builder_attrs(attrs: &[Attribute]) -> Builder {
-    let mut depends = Depends::new();
+    let mut crates = Vec::new();
     let mut build_path = None;
     for attr in attrs.iter() {
         let path = &attr.path;
@@ -33,16 +33,16 @@ pub fn parse_builder_attrs(attrs: &[Attribute]) -> Builder {
         let tts = quote!{#tts}.to_string();
         let attr = tts.trim_matches(PENE);
         match path.as_str() {
-            "depends" => depends.push(depends_to_crate(&attr)),
-            "depends_path" => depends.push(depends_path_to_crate(&attr)),
+            "crates" => crates.push(depends_to_crate(&attr)),
+            "depends_path" => crates.push(depends_path_to_crate(&attr)),
             "build_path" => build_path = Some(as_build_path(&attr)),
             "build_path_home" => build_path = Some(as_build_path_home(&attr)),
             _ => unreachable!("Unsupported attribute: {:?}", path),
         }
     }
     match build_path {
-        Some(path) => Builder::with_path(path, depends),
-        None => Builder::new(depends),
+        Some(path) => Builder::with_path(path, &crates),
+        None => Builder::new(&crates),
     }
 }
 

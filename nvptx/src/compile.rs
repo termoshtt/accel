@@ -1,7 +1,7 @@
 use glob::glob;
 use std::io::{Read, Write};
 use std::path::*;
-use std::{fs, io, process};
+use std::{env, fs, io, process};
 use tempdir::TempDir;
 
 use config::{to_toml, Crate};
@@ -49,10 +49,14 @@ impl Builder {
     }
 
     pub fn with_path<P: AsRef<Path>>(path: P, crates: &[Crate]) -> Self {
-        let path = path.as_ref();
+        let mut path = path.as_ref().to_owned();
+        if path.starts_with("~") {
+            let home = env::home_dir().expect("Cannot get home dir");
+            path = home.join(path.strip_prefix("~").unwrap());
+        }
         fs::create_dir_all(path.join("src")).unwrap();
         Builder {
-            path: path.to_owned(),
+            path: path,
             crates: crates.to_vec(),
         }
     }

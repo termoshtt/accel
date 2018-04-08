@@ -28,8 +28,4 @@ jobs:
       - run:
           name: Check accel
           command: |
-            cargo check
-      - run:
-          name: Code generation for examples/add
-          command: |
-            cargo expand --example add
+            cargo check -v --example add

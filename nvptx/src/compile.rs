@@ -61,6 +61,10 @@ impl Builder {
         }
     }
 
+    pub fn exists<P: AsRef<Path>>(path: P) -> Self {
+        Self::with_path(path, &[])
+    }
+
     pub fn crates(&self) -> &[Crate] {
         &self.crates
     }
@@ -82,7 +86,7 @@ impl Builder {
         Ok(())
     }
 
-    fn link(&self) -> Result<()> {
+    pub fn link(&self) -> Result<()> {
         // extract rlibs using ar x
         let pat_rlib = format!("{}/target/**/deps/*.rlib", self.path.display());
         for path in glob(&pat_rlib).unwrap() {
@@ -111,7 +115,7 @@ impl Builder {
         Ok(())
     }
 
-    fn load_ptx(&self) -> Result<String> {
+    pub fn load_ptx(&self) -> Result<String> {
         let mut f = fs::File::open(self.path.join("kernel.ptx")).log(Step::Load)?;
         let mut res = String::new();
         f.read_to_string(&mut res).unwrap();
@@ -140,7 +144,7 @@ impl Builder {
             .check_run(Step::Format)
     }
 
-    fn build(&self) -> Result<()> {
+    pub fn build(&self) -> Result<()> {
         process::Command::new("xargo")
             .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)

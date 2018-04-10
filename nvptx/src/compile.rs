@@ -70,7 +70,8 @@ impl Builder {
     }
 
     pub fn compile(&mut self, kernel: &str) -> Result<String> {
-        self.generate_config()?;
+        self.generate_manifest()?;
+        self.copy_triplet()?;
         self.save(kernel, "src/lib.rs").log(Step::Ready)?;
         self.format()?;
         self.clean();
@@ -79,11 +80,11 @@ impl Builder {
         self.load_ptx()
     }
 
-    /// save string as a file on the Builder directory
-    fn save(&self, contents: &str, filename: &str) -> io::Result<()> {
-        let mut f = fs::File::create(self.path.join(filename))?;
-        f.write(contents.as_bytes())?;
-        Ok(())
+    pub fn build(&self) -> Result<()> {
+        process::Command::new("xargo")
+            .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
+            .current_dir(&self.path)
+            .check_run(Step::Build)
     }
 
     pub fn link(&self) -> Result<()> {
@@ -122,10 +123,19 @@ impl Builder {
         Ok(res)
     }
 
-    fn generate_config(&self) -> Result<()> {
-        self.save(&to_toml(&self.crates), "Cargo.toml").log(Step::Ready)?;
+    pub fn copy_triplet(&self) -> Result<()> {
         self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")
-            .log(Step::Ready)?;
+            .log(Step::Ready)
+    }
+
+    pub fn generate_manifest(&self) -> Result<()> {
+        self.save(&to_toml(&self.crates), "Cargo.toml").log(Step::Ready)
+    }
+
+    /// save string as a file on the Builder directory
+    fn save(&self, contents: &str, filename: &str) -> io::Result<()> {
+        let mut f = fs::File::create(self.path.join(filename))?;
+        f.write(contents.as_bytes())?;
         Ok(())
     }
 
@@ -142,13 +152,6 @@ impl Builder {
             .args(&["fmt"])
             .current_dir(&self.path)
             .check_run(Step::Format)
-    }
-
-    pub fn build(&self) -> Result<()> {
-        process::Command::new("xargo")
-            .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
-            .current_dir(&self.path)
-            .check_run(Step::Build)
     }
 }
 

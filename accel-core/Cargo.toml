@@ -13,3 +13,4 @@ categories    = []
 
 [dependencies]
 bitflags = "1.0"
+libc = "*"

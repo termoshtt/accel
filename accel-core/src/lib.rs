@@ -3,16 +3,19 @@
 
 #[macro_use]
 extern crate bitflags;
+extern crate libc;
 
 pub mod stream;
 mod cuda;
 
+#[repr(C)]
 pub struct Dim3 {
     x: i32,
     y: i32,
     z: i32,
 }
 
+#[repr(C)]
 pub struct Idx3 {
     x: i32,
     y: i32,

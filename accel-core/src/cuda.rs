@@ -132,7 +132,11 @@ bitflags! {
     }
 }
 
+use libc::c_void;
+use super::Dim3;
+
 extern "C" {
+
     // device steram APIs
     pub fn cudaStreamCreateWithFlags(pStream: *mut cudaStream_t, flags: cudaStreamFlags) -> cudaError_t;
     pub fn cudaStreamDestroy(stream: cudaStream_t) -> cudaError_t;
@@ -146,4 +150,8 @@ extern "C" {
     pub fn cudaEventCreateWithFlags(event: *mut cudaEvent_t, flags: cudaEventFlags) -> cudaError_t;
     pub fn cudaEventDestroy(event: cudaEvent_t) -> cudaError_t;
     pub fn cudaEventRecord(event: cudaEvent_t, stream: cudaStream_t) -> cudaError_t;
+
+    // launch from device
+    pub fn cudaGetParameterBufferV2(func: *mut c_void, grid: Dim3, block: Dim3, sharedMemSize: u32) -> *mut c_void;
+    pub fn cudaLaunchDeviceV2(parameterBuffer: *mut c_void, stream: cudaStream_t) -> cudaError_t;
 }

@@ -16,15 +16,22 @@ jobs:
             cd cuda-sys
             cargo check
       - run:
-          name: Check accel-derive
+          name: check accel-derive
           command: |
             cd accel-derive
+            cargo check
+      - run:
+          name: test nvptx
+          command: |
+            cd nvptx
             cargo test -v
       - run:
-          name: Check accel-core
+          name: build PTX of accel-core
           command: |
-            cd accel-core
-            cargo check
+            cd nvptx
+            cargo install -f
+            cd ../accel-core
+            cargo nvptx
       - run:
           name: Check accel
           command: |

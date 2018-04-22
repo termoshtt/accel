@@ -5,8 +5,6 @@ extern crate glob;
 extern crate log;
 extern crate proc_macro;
 #[macro_use]
-extern crate derive_more;
-#[macro_use]
 extern crate quote;
 extern crate serde;
 #[macro_use]

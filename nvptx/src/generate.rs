@@ -34,5 +34,5 @@ pub fn kernel(func: &ItemFn) -> String {
 pub fn func2kernel(func: &ItemFn) -> String {
     let mut builder = parse_builder_attrs(&func.attrs);
     let lib = format!("{}\n{}", header(&builder.crates()), kernel(func));
-    builder.compile(&lib).expect("Failed to compile")
+    builder.compile(&lib)
 }

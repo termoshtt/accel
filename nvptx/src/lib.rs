@@ -1,6 +1,8 @@
 #![recursion_limit = "128"]
 
 extern crate glob;
+#[macro_use]
+extern crate log;
 extern crate proc_macro;
 #[macro_use]
 extern crate derive_more;

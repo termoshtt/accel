@@ -12,6 +12,7 @@ readme        = "README.md"
 categories    = []
 
 [dependencies]
+log = "0.4"
 quote = "0.5"
 toml = "0.4.5"
 tempdir = "0.3"

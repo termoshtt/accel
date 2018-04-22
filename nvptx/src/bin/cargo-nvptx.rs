@@ -21,9 +21,9 @@ fn get_manifest_path() -> PathBuf {
 fn main() {
     let manifest_path = get_manifest_path();
     let builder = Builder::exists(manifest_path);
-    builder.copy_triplet().unwrap();
-    builder.build().expect("xargo failed");
-    builder.link().expect("Link failed");
-    let ptx = builder.load_ptx().expect("Cannot load PTX");
+    builder.copy_triplet();
+    builder.build();
+    builder.link();
+    let ptx = builder.load_ptx();
     println!("{}", ptx);
 }

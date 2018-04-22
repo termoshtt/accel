@@ -138,7 +138,7 @@ impl CheckRun for process::Command {
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    panic!("Subprocess exits with error-code({})", c);
+                    panic!("Subprocess exits with error-code({}): {:?}", c, self);
                 } else {
                     info!("Subprocess exits normally");
                 }

@@ -99,7 +99,7 @@ impl Builder {
         self.generate_manifest()?;
         self.copy_triplet()?;
         self.save(kernel, "src/lib.rs").log(Step::Ready)?;
-        self.format()?;
+        self.format();
         self.clean();
         self.build()?;
         self.link()?;
@@ -173,12 +173,15 @@ impl Builder {
         };
     }
 
-    fn format(&self) -> Result<()> {
-        // TODO: This should not block the build, just warn.
-        process::Command::new("cargo")
+    fn format(&self) {
+        let result = process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .check_run(Step::Format)
+            .check_run(Step::Format);
+
+        if let Err(e) = result {
+            eprintln!("Warning: {:?}", e);
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 use glob::glob;
 use std::io::{Read, Write};
 use std::path::*;
-use std::{env, fs, io, process};
+use std::{env, fs, io, process, fmt};
 use tempdir::TempDir;
 
 use config::{to_toml, Crate};
@@ -15,10 +15,36 @@ pub enum Step {
     Load,
 }
 
-#[derive(Debug, From)]
+#[derive(From)]
 pub enum CompileError {
-    ExternalComandError((Step, i32)),
+    ExternalCommandError((Step, String, i32)),
+    ExternalCommandLaunchError((Step, String, io::Error)),
     IOError((Step, io::Error)),
+}
+impl fmt::Debug for CompileError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CompileError::ExternalCommandError((step, ref command, ref code)) => {
+                write!(f, "External command {} failed during {:?} step. Return code: {}",
+                    command, step, code)
+            }
+            CompileError::ExternalCommandLaunchError((step, ref command, ref err)) => {
+                match err.kind() {
+                    io::ErrorKind::NotFound => {
+                        write!(f, "External command {} failed during {:?} step because the program could not be found. Please ensure this program is installed and try again.",
+                            command, step)
+                    }
+                    _ => {
+                        write!(f, "External command {} failed during {:?} step because of an unexpected IO Error: {:?}", 
+                        command, step, err)
+                    }
+                }
+            }
+            CompileError::IOError((step, ref err)) => {
+                write!(f, "Unexpected IO Error during {:?} step: {:?}", step, err)
+            }
+        }
+    }
 }
 pub type Result<T> = ::std::result::Result<T, CompileError>;
 
@@ -148,6 +174,7 @@ impl Builder {
     }
 
     fn format(&self) -> Result<()> {
+        // TODO: This should not block the build, just warn.
         process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
@@ -161,11 +188,15 @@ trait CheckRun {
 
 impl CheckRun for process::Command {
     fn check_run(&mut self, step: Step) -> Result<()> {
-        let st = self.status().log(step)?;
+        let st = self.status().map_err(|e| {
+            let command_string = format!("{:?}", self);
+            CompileError::ExternalCommandLaunchError((step, command_string, e))
+        })?;
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    Err(CompileError::ExternalComandError((step, c)).into())
+                    let command_string = format!("{:?}", self);
+                    Err(CompileError::ExternalCommandError((step, command_string, c)).into())
                 } else {
                     Ok(())
                 }

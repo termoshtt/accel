@@ -127,7 +127,7 @@ impl Builder {
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
         let bcs: Vec<_> = glob(&pat_rsbc)
             .unwrap()
-            .map(|x| x.unwrap().to_str().unwrap().to_owned())
+            .map(|x| fs::canonicalize(x.unwrap()).unwrap().to_str().unwrap().to_owned())
             .collect();
         process::Command::new("llvm-link")
             .args(&bcs)

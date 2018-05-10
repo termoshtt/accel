@@ -6,34 +6,6 @@ use tempdir::TempDir;
 
 use config::{to_toml, Crate};
 
-#[derive(Debug, Clone, Copy)]
-pub enum Step {
-    Ready,
-    Format,
-    Link,
-    Build,
-    Load,
-}
-
-#[derive(Debug, From)]
-pub enum CompileError {
-    ExternalComandError((Step, i32)),
-    IOError((Step, io::Error)),
-}
-pub type Result<T> = ::std::result::Result<T, CompileError>;
-
-trait Logging {
-    type T;
-    fn log(self, step: Step) -> Result<Self::T>;
-}
-
-impl<T> Logging for io::Result<T> {
-    type T = T;
-    fn log(self, step: Step) -> Result<Self::T> {
-        self.map_err(|e| (step, e).into())
-    }
-}
-
 /// Compile Rust string into PTX string
 pub struct Builder {
     path: PathBuf,
@@ -69,25 +41,25 @@ impl Builder {
         &self.crates
     }
 
-    pub fn compile(&mut self, kernel: &str) -> Result<String> {
-        self.generate_manifest()?;
-        self.copy_triplet()?;
-        self.save(kernel, "src/lib.rs").log(Step::Ready)?;
-        self.format()?;
+    pub fn compile(&mut self, kernel: &str) -> String {
+        self.generate_manifest();
+        self.copy_triplet();
+        self.save(kernel, "src/lib.rs").expect("Failed to create lib.rs");
+        self.format();
         self.clean();
-        self.build()?;
-        self.link()?;
+        self.build();
+        self.link();
         self.load_ptx()
     }
 
-    pub fn build(&self) -> Result<()> {
+    pub fn build(&self) {
         process::Command::new("xargo")
             .args(&["+nightly", "rustc", "--release", "--target", "nvptx64-nvidia-cuda"])
             .current_dir(&self.path)
-            .check_run(Step::Build)
+            .check_run()
     }
 
-    pub fn link(&self) -> Result<()> {
+    pub fn link(&self) {
         // extract rlibs using ar x
         let pat_rlib = format!("{}/target/**/deps/*.rlib", self.path.display());
         for path in glob(&pat_rlib).unwrap() {
@@ -95,7 +67,7 @@ impl Builder {
             process::Command::new("ar")
                 .args(&["x", path.file_name().unwrap().to_str().unwrap()])
                 .current_dir(path.parent().unwrap())
-                .check_run(Step::Link)?;
+                .check_run();
         }
         // link them
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
@@ -107,29 +79,29 @@ impl Builder {
             .args(&bcs)
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
-            .check_run(Step::Link)?;
+            .check_run();
         // compile bytecode to PTX
         process::Command::new("llc")
             .args(&["-mcpu=sm_20", "kernel.bc", "-o", "kernel.ptx"])
             .current_dir(&self.path)
-            .check_run(Step::Link)?;
-        Ok(())
+            .check_run();
     }
 
-    pub fn load_ptx(&self) -> Result<String> {
-        let mut f = fs::File::open(self.path.join("kernel.ptx")).log(Step::Load)?;
+    pub fn load_ptx(&self) -> String {
+        let mut f = fs::File::open(self.path.join("kernel.ptx")).expect("Cannot open PTX file");
         let mut res = String::new();
-        f.read_to_string(&mut res).unwrap();
-        Ok(res)
+        f.read_to_string(&mut res).expect("Cannot read PTX file");
+        res
     }
 
-    pub fn copy_triplet(&self) -> Result<()> {
+    pub fn copy_triplet(&self) {
         self.save(include_str!("nvptx64-nvidia-cuda.json"), "nvptx64-nvidia-cuda.json")
-            .log(Step::Ready)
+            .expect("Cannot create target triplet");
     }
 
-    pub fn generate_manifest(&self) -> Result<()> {
-        self.save(&to_toml(&self.crates), "Cargo.toml").log(Step::Ready)
+    pub fn generate_manifest(&self) {
+        self.save(&to_toml(&self.crates), "Cargo.toml")
+            .expect("Cannot create Cargo.toml");
     }
 
     /// save string as a file on the Builder directory
@@ -147,30 +119,31 @@ impl Builder {
         };
     }
 
-    fn format(&self) -> Result<()> {
+    fn format(&self) {
         process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .check_run(Step::Format)
+            .check_run()
     }
 }
 
 trait CheckRun {
-    fn check_run(&mut self, step: Step) -> Result<()>;
+    fn check_run(&mut self);
 }
 
 impl CheckRun for process::Command {
-    fn check_run(&mut self, step: Step) -> Result<()> {
-        let st = self.status().log(step)?;
+    fn check_run(&mut self) {
+        info!("Execute subprocess: {:?}", self);
+        let st = self.status().expect("Command executaion failed");
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    Err(CompileError::ExternalComandError((step, c)).into())
+                    panic!("Subprocess exits with error-code({}): {:?}", c, self);
                 } else {
-                    Ok(())
+                    info!("Subprocess exits normally");
                 }
             }
-            None => Ok(()),
+            None => warn!("Subprocess terminated by signal"),
         }
     }
 }

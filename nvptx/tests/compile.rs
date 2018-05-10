@@ -20,7 +20,7 @@ pub unsafe extern "ptx-kernel" fn add(a: *const f64, b: *const f64, c: *mut f64,
 fn compile_tmp() {
     let crates = &[Crate::with_version("accel-core", "0.2.0-alpha")];
     let mut builder = Builder::new(crates);
-    let ptx = builder.compile(GPU_CODE).unwrap();
+    let ptx = builder.compile(GPU_CODE);
     println!("PTX = {:?}", ptx);
 }
 
@@ -28,6 +28,6 @@ fn compile_tmp() {
 fn compile_path() {
     let crates = &[Crate::with_version("accel-core", "0.2.0-alpha")];
     let mut builder = Builder::with_path("~/tmp/rust2ptx", crates);
-    let ptx = builder.compile(GPU_CODE).unwrap();
+    let ptx = builder.compile(GPU_CODE);
     println!("PTX = {:?}", ptx);
 }

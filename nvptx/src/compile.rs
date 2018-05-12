@@ -225,12 +225,12 @@ fn test_using_help(name: &str) -> bool {
 fn llvm_command(name: &str) -> Result<String> {
     let name6 = format!("{}-6.0", name);
     let name7 = format!("{}-7.0", name);
-    if test_using_help(name) {
-        Ok(name.into())
-    } else if test_using_help(&name6) {
+    if test_using_help(&name6) {
         Ok(name6)
     } else if test_using_help(&name7) {
         Ok(name7)
+    } else if test_using_help(&name) {
+        Ok(name.into())
     } else {
         Err(CompileError::LLVMCommandNotFound(name.into()))
     }

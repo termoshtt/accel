@@ -19,6 +19,7 @@ pub enum Step {
 pub enum CompileError {
     ExternalCommandError((Step, String, i32)),
     ExternalCommandLaunchError((Step, String, io::Error)),
+    LLVMCommandNotFound(String),
     IOError((Step, io::Error)),
 }
 impl fmt::Debug for CompileError {
@@ -39,6 +40,9 @@ impl fmt::Debug for CompileError {
                         command, step, err)
                     }
                 }
+            }
+            CompileError::LLVMCommandNotFound(ref name) => {
+                write!(f, "LLVM Command {name}, {name}-6.0, or {name}-7.0 are not found. Please install LLVM, and add one of them into your $PATH", name=name)
             }
             CompileError::IOError((step, ref err)) => {
                 write!(f, "Unexpected IO Error during {:?} step: {:?}", step, err)
@@ -129,13 +133,13 @@ impl Builder {
             .unwrap()
             .map(|x| fs::canonicalize(x.unwrap()).unwrap().to_str().unwrap().to_owned())
             .collect();
-        process::Command::new("llvm-link")
+        process::Command::new(llvm_command("llvm-link")?)
             .args(&bcs)
             .args(&["-o", "kernel.bc"])
             .current_dir(&self.path)
             .check_run(Step::Link)?;
         // compile bytecode to PTX
-        process::Command::new("llc")
+        process::Command::new(llvm_command("llc")?)
             .args(&["-mcpu=sm_20", "kernel.bc", "-o", "kernel.ptx"])
             .current_dir(&self.path)
             .check_run(Step::Link)?;
@@ -206,5 +210,28 @@ impl CheckRun for process::Command {
             }
             None => Ok(()),
         }
+    }
+}
+
+fn test_using_help(name: &str) -> bool {
+    process::Command::new(name)
+        .arg("--help")
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
+        .check_run(Step::Ready)
+        .is_ok()
+}
+
+fn llvm_command(name: &str) -> Result<String> {
+    let name6 = format!("{}-6.0", name);
+    let name7 = format!("{}-7.0", name);
+    if test_using_help(name) {
+        Ok(name.into())
+    } else if test_using_help(&name6) {
+        Ok(name6)
+    } else if test_using_help(&name7) {
+        Ok(name7)
+    } else {
+        Err(CompileError::LLVMCommandNotFound(name.into()))
     }
 }

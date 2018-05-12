@@ -10,6 +10,8 @@ jobs:
   check_cuda_sys:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: Check cuda-sys
           command: |
@@ -19,6 +21,8 @@ jobs:
   check_derive:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: check accel-derive
           command: |
@@ -28,6 +32,8 @@ jobs:
   check_nvptx:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: test nvptx
           command: |
@@ -37,6 +43,8 @@ jobs:
   check_nvptx_60:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1-llvm6.0
+    steps:
+      - checkout
       - run:
           name: test nvptx
           command: |
@@ -46,6 +54,8 @@ jobs:
   build_core:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: build PTX of accel-core
           command: |
@@ -57,6 +67,8 @@ jobs:
   build_example_add:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: Check accel
           command: |

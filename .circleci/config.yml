@@ -1,30 +1,51 @@
 version: 2
-
 jobs:
-  build:
+  check_format:
     docker:
-      - image: termoshtt/rust-cuda
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
     steps:
       - checkout
-      - run:
-          name: Check format
-          command: |
-            cargo fmt --all -- --write-mode=diff
+      - run: cargo fmt --all -- --write-mode=diff
+
+  check_cuda_sys:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
       - run:
           name: Check cuda-sys
           command: |
             cd cuda-sys
             cargo check
+
+  check_derive:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
       - run:
           name: check accel-derive
           command: |
             cd accel-derive
             cargo check
+
+  check_nvptx:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
       - run:
           name: test nvptx
           command: |
             cd nvptx
             cargo test -v
+
+  check_nvptx_60:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1-llvm6.0
+      - run:
+          name: test nvptx
+          command: |
+            cd nvptx
+            cargo test -v
+
+  build_core:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
       - run:
           name: build PTX of accel-core
           command: |
@@ -32,7 +53,22 @@ jobs:
             cargo install -f
             cd ../accel-core
             cargo nvptx
+
+  build_example_add:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
       - run:
           name: Check accel
           command: |
             cargo check -v --example add
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - check_format
+      - check_derive
+      - check_nvptx
+      - check_nvptx_60
+      - build_core
+      - build_example_add

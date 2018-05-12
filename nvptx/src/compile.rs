@@ -1,7 +1,7 @@
 use glob::glob;
 use std::io::{Read, Write};
 use std::path::*;
-use std::{env, fs, io, process};
+use std::{env, fs, io, process, fmt};
 use tempdir::TempDir;
 
 use config::{to_toml, Crate};
@@ -15,10 +15,36 @@ pub enum Step {
     Load,
 }
 
-#[derive(Debug, From)]
+#[derive(From)]
 pub enum CompileError {
-    ExternalComandError((Step, i32)),
+    ExternalCommandError((Step, String, i32)),
+    ExternalCommandLaunchError((Step, String, io::Error)),
     IOError((Step, io::Error)),
+}
+impl fmt::Debug for CompileError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CompileError::ExternalCommandError((step, ref command, ref code)) => {
+                write!(f, "External command {} failed during {:?} step. Return code: {}",
+                    command, step, code)
+            }
+            CompileError::ExternalCommandLaunchError((step, ref command, ref err)) => {
+                match err.kind() {
+                    io::ErrorKind::NotFound => {
+                        write!(f, "External command {} failed during {:?} step because the program could not be found. Please ensure this program is installed and try again.",
+                            command, step)
+                    }
+                    _ => {
+                        write!(f, "External command {} failed during {:?} step because of an unexpected IO Error: {:?}", 
+                        command, step, err)
+                    }
+                }
+            }
+            CompileError::IOError((step, ref err)) => {
+                write!(f, "Unexpected IO Error during {:?} step: {:?}", step, err)
+            }
+        }
+    }
 }
 pub type Result<T> = ::std::result::Result<T, CompileError>;
 
@@ -73,7 +99,7 @@ impl Builder {
         self.generate_manifest()?;
         self.copy_triplet()?;
         self.save(kernel, "src/lib.rs").log(Step::Ready)?;
-        self.format()?;
+        self.format();
         self.clean();
         self.build()?;
         self.link()?;
@@ -101,7 +127,7 @@ impl Builder {
         let pat_rsbc = format!("{}/target/**/deps/*.o", self.path.display());
         let bcs: Vec<_> = glob(&pat_rsbc)
             .unwrap()
-            .map(|x| x.unwrap().to_str().unwrap().to_owned())
+            .map(|x| fs::canonicalize(x.unwrap()).unwrap().to_str().unwrap().to_owned())
             .collect();
         process::Command::new("llvm-link")
             .args(&bcs)
@@ -147,11 +173,15 @@ impl Builder {
         };
     }
 
-    fn format(&self) -> Result<()> {
-        process::Command::new("cargo")
+    fn format(&self) {
+        let result = process::Command::new("cargo")
             .args(&["fmt"])
             .current_dir(&self.path)
-            .check_run(Step::Format)
+            .check_run(Step::Format);
+
+        if let Err(e) = result {
+            eprintln!("Warning: {:?}", e);
+        }
     }
 }
 
@@ -161,11 +191,15 @@ trait CheckRun {
 
 impl CheckRun for process::Command {
     fn check_run(&mut self, step: Step) -> Result<()> {
-        let st = self.status().log(step)?;
+        let st = self.status().map_err(|e| {
+            let command_string = format!("{:?}", self);
+            CompileError::ExternalCommandLaunchError((step, command_string, e))
+        })?;
         match st.code() {
             Some(c) => {
                 if c != 0 {
-                    Err(CompileError::ExternalComandError((step, c)).into())
+                    let command_string = format!("{:?}", self);
+                    Err(CompileError::ExternalCommandError((step, command_string, c)).into())
                 } else {
                     Ok(())
                 }

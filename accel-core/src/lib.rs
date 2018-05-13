@@ -2,15 +2,15 @@
 #![no_std]
 
 pub struct Dim3 {
-    x: i32,
-    y: i32,
-    z: i32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 pub struct Idx3 {
-    x: i32,
-    y: i32,
-    z: i32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 pub fn block_dim() -> Dim3 {

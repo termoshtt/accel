@@ -1,6 +1,6 @@
 [package]
 name = "cuda-sys"
-version = "0.2.0-alpha"
+version = "0.2.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 build = "build.rs"

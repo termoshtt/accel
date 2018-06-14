@@ -1,6 +1,6 @@
 [package]
 name = "nvptx"
-version = "0.1.0"
+version = "0.1.1-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Rust to PTX compiler using LLVM/NVPTX target"

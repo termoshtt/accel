@@ -19,7 +19,6 @@ quote = "0.5"
 
 [dependencies.nvptx]
 version = "0.1"
-path = "../nvptx"
 
 [dependencies.syn]
 version = "0.13"

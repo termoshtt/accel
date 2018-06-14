@@ -8,7 +8,6 @@ documentation = "https://docs.rs/nvptx/"
 repository    = "https://github.com/termoshtt/accel"
 keywords      = ["GPGPU", "CUDA", "proc-macro"]
 license       = "MIT"
-readme        = "README.md"
 categories    = []
 
 [dependencies]

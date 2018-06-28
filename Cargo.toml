@@ -18,5 +18,4 @@ procedurals = "0.2.3"
 version = "0.2"
 
 [dev-dependencies.accel-derive]
-version = "0.1.0"
 path = "accel-derive"

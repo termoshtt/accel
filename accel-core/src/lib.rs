@@ -1,7 +1,10 @@
 #![feature(platform_intrinsics)]
 
 mod intrinsics;
+mod indexing;
+
 pub use intrinsics::*;
+pub use indexing::*;
 
 pub struct Dim3 {
     pub x: i32,
@@ -65,10 +68,4 @@ impl Idx3 {
     pub fn into_id(&self, dim: Dim3) -> i32 {
         self.x + self.y * dim.x + self.z * dim.x * dim.y
     }
-}
-
-pub fn index() -> isize {
-    let block_id = block_idx().into_id(grid_dim());
-    let thread_id = thread_idx().into_id(block_dim());
-    (block_id + thread_id) as isize
 }

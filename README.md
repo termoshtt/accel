@@ -27,6 +27,7 @@ Pre-requirements
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
 - Install [LLVM](https://llvm.org/) 6.0 or later (use `llc` and `llvm-link` to create PTX)
 - Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
+- Use the nightly Rust toolchain with `rustup override nightly`
 - Install [xargo](https://github.com/japaric/xargo), a sysroot manager
 
 Or, you can use [termoshtt/rust-cuda](https://hub.docker.com/r/termoshtt/rust-cuda/) container whith satisfies these requirements.

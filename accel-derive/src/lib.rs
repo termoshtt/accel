@@ -7,6 +7,9 @@ extern crate proc_macro;
 extern crate quote;
 extern crate syn;
 
+mod generate;
+mod parse;
+
 use proc_macro::TokenStream;
 use syn::{FnArg, ItemFn};
 use nvptx::{parse_func, func2kernel};

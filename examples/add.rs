@@ -3,8 +3,8 @@
 extern crate accel;
 extern crate accel_derive;
 
-use accel_derive::kernel;
 use accel::*;
+use accel_derive::kernel;
 
 #[kernel]
 #[crate("accel-core" = "0.2.0-alpha")]

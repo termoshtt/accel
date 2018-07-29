@@ -1,7 +1,7 @@
-pub mod vector_types;
+pub mod cublas;
 pub mod cuda;
 pub mod cudart;
-pub mod cublas;
+pub mod vector_types;
 
 #[test]
 fn cuda_version() {

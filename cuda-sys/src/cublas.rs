@@ -2,8 +2,8 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 
-use vector_types::*;
 use cudart::*;
+use vector_types::*;
 
 pub type cuFloatComplex = float2;
 pub type cuDoubleComplex = double2;

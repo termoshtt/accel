@@ -1,24 +1,37 @@
+//! Parse attributes of kernel
+//!
+//! - `crate`: add dependent crate
+//!    - `#[crate("accel-core")]` equals to `accel-core = "*"` in Cargo.toml
+//!    - `#[crate("accel-core" = "0.1.0")]` equals to `accel-core = "0.1.0"`
+//! - `crate_path`: add dependent crate from local
+//!    - `#[crate_path("accel-core" = "/some/path")]`
+//!      equals to `accel-core = { path = "/some/path" }`
+//! - `#[build_path("/some/path")]`: build PTX on "/some/path"
+//!
+
 use proc_macro::TokenStream;
 use std::path::*;
 use syn::*;
+
+use nvptx::ManifestGenerator;
 
 pub fn parse_func(func: TokenStream) -> ItemFn {
     parse(func).expect("Not a function")
 }
 
-/// Parse attributes of kernel
-///
-/// For attributes are allowed:
-///
-/// - `crate`: add dependent crate
-///    - `#[crate("accel-core")]` equals to `accel-core = "*"` in Cargo.toml
-///    - `#[crate("accel-core" = "0.1.0")]` equals to `accel-core = "0.1.0"`
-/// - `crate_path`: add dependent crate from local
-///    - `#[crate_path("accel-core" = "/some/path")]`
-///      equals to `accel-core = { path = "/some/path" }`
-/// - `#[build_path("/some/path")]`: build PTX on "/some/path"
-///
-pub fn parse_builder_attrs(attrs: &[Attribute]) -> Builder {
+const PENE: &[char] = &['(', ')'];
+const QUOTE: &[char] = &[' ', '"'];
+
+enum BuildAttr {
+    Crate {
+        name: String,
+        version: Option<String>,
+        path: Option<String>
+    },
+    Path(PathBuf),
+}
+
+fn build_attrs(attrs: &[Attribute]) -> Vec<BuildAttr>{
     let mut crates = Vec::new();
     let mut build_path = None;
     for attr in attrs.iter() {
@@ -34,20 +47,17 @@ pub fn parse_builder_attrs(attrs: &[Attribute]) -> Builder {
             _ => unreachable!("Unsupported attribute: {:?}", path),
         }
     }
-    match build_path {
-        Some(path) => Builder::with_path(path, &crates),
-        None => Builder::new(&crates),
-    }
 }
 
-const PENE: &[char] = &['(', ')'];
-const QUOTE: &[char] = &[' ', '"'];
 
-fn as_build_path(path: &str) -> PathBuf {
+fn as_build_path(path: &str) -> BuildAttr {
+    BuildAttr::Path(
+
     PathBuf::from(path.trim_matches(QUOTE))
+    )
 }
 
-fn as_crate(dep: &str) -> Crate {
+fn as_crate(dep: &str) -> BuildAttr{
     let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(QUOTE)).collect();
     match tokens.len() {
         // #[crate("accel-core")] case
@@ -58,7 +68,7 @@ fn as_crate(dep: &str) -> Crate {
     }
 }
 
-fn as_crate_path(dep: &str) -> Crate {
+fn as_crate_path(dep: &str) -> BuildAttr{
     let tokens: Vec<_> = dep.split('=').map(|s| s.trim_matches(QUOTE)).collect();
     match tokens.len() {
         // #[depends_path("accel-core" = "/some/path")] case

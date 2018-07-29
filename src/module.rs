@@ -100,8 +100,7 @@ impl Linker {
     pub fn create(option: &JITOption) -> Result<Self> {
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
-        unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
-            .check()?;
+        unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }.check()?;
         Ok(Linker(st))
     }
 
@@ -129,12 +128,7 @@ impl Linker {
     }
 
     /// Wrapper of cuLinkAddFile
-    unsafe fn add_file(
-        &mut self,
-        input_type: CUjitInputType,
-        path: &Path,
-        opt: &JITOption,
-    ) -> Result<()> {
+    unsafe fn add_file(&mut self, input_type: CUjitInputType, path: &Path, opt: &JITOption) -> Result<()> {
         let filename = str2cstring(path.to_str().unwrap()).as_mut_ptr();
         let (nopts, mut opts, mut opt_vals) = parse(opt);
         cuLinkAddFile_v2(
@@ -229,8 +223,7 @@ impl Module {
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = str2cstring(name);
         let mut func = null_mut();
-        unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
-            .check()?;
+        unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }.check()?;
         Ok(Kernel { func, _m: self })
     }
 }

@@ -19,12 +19,7 @@ pub struct Kernel<'m> {
 
 impl<'m> Kernel<'m> {
     /// Launch CUDA kernel using `cuLaunchKernel`
-    pub unsafe fn launch(
-        &mut self,
-        args: *mut *mut c_void,
-        grid: Grid,
-        block: Block,
-    ) -> Result<()> {
+    pub unsafe fn launch(&mut self, args: *mut *mut c_void, grid: Grid, block: Block) -> Result<()> {
         cuLaunchKernel(
             self.func,
             grid.x,

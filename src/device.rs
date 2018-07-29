@@ -99,10 +99,7 @@ impl Device {
                 }
             })
             .collect();
-        Ok(String::from_utf8(name)
-            .expect("Invalid GPU name")
-            .trim()
-            .to_string())
+        Ok(String::from_utf8(name).expect("Invalid GPU name").trim().to_string())
     }
 
     pub fn cores(&self) -> Result<u32> {

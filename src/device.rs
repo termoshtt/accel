@@ -1,9 +1,9 @@
-use ffi::cudart::*;
 use error::*;
+use ffi::cudart::*;
 use std::mem;
 
-pub use ffi::cudart::cudaDeviceProp as DeviceProp;
 pub use ffi::cudart::cudaComputeMode as ComputeMode;
+pub use ffi::cudart::cudaDeviceProp as DeviceProp;
 
 pub fn sync() -> Result<()> {
     unsafe { cudaDeviceSynchronize() }.check()
@@ -87,7 +87,8 @@ impl Device {
 
     pub fn name(&self) -> Result<String> {
         let prop = self.get_property()?;
-        let name: Vec<u8> = prop.name
+        let name: Vec<u8> = prop
+            .name
             .iter()
             .filter_map(|&c| {
                 let c = c as u8;
@@ -98,7 +99,10 @@ impl Device {
                 }
             })
             .collect();
-        Ok(String::from_utf8(name).expect("Invalid GPU name").trim().to_string())
+        Ok(String::from_utf8(name)
+            .expect("Invalid GPU name")
+            .trim()
+            .to_string())
     }
 
     pub fn cores(&self) -> Result<u32> {

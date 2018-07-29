@@ -1,11 +1,11 @@
-use ffi::cudart::*;
 use super::error::*;
+use ffi::cudart::*;
 
-use std::os::raw::*;
-use std::slice::{from_raw_parts, from_raw_parts_mut};
-use std::ops::{Deref, DerefMut, Index, IndexMut};
-use std::ptr::null_mut;
 use std::mem::size_of;
+use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::os::raw::*;
+use std::ptr::null_mut;
+use std::slice::{from_raw_parts, from_raw_parts_mut};
 
 #[derive(Debug)]
 pub struct UVec<T> {
@@ -16,8 +16,15 @@ pub struct UVec<T> {
 impl<T> UVec<T> {
     pub unsafe fn uninitialized(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
-        cudaMallocManaged(&mut ptr as *mut *mut c_void, n * size_of::<T>(), cudaMemAttachGlobal).check()?;
-        Ok(UVec { ptr: ptr as *mut T, n })
+        cudaMallocManaged(
+            &mut ptr as *mut *mut c_void,
+            n * size_of::<T>(),
+            cudaMemAttachGlobal,
+        ).check()?;
+        Ok(UVec {
+            ptr: ptr as *mut T,
+            n,
+        })
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {

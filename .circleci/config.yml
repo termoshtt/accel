@@ -29,28 +29,6 @@ jobs:
             cd accel-derive
             cargo check
 
-  check_nvptx:
-    docker:
-      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
-    steps:
-      - checkout
-      - run:
-          name: test nvptx
-          command: |
-            cd nvptx
-            cargo test -v
-
-  check_nvptx_60:
-    docker:
-      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1-llvm6.0
-    steps:
-      - checkout
-      - run:
-          name: test nvptx
-          command: |
-            cd nvptx
-            cargo test -v
-
   build_core:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
@@ -59,8 +37,7 @@ jobs:
       - run:
           name: build PTX of accel-core
           command: |
-            cd nvptx
-            cargo install -f
+            cargo install nvptx -f
             cd ../accel-core
             cargo nvptx
 
@@ -80,7 +57,5 @@ workflows:
     jobs:
       - check_format
       - check_derive
-      - check_nvptx
-      - check_nvptx_60
       - build_core
       - build_example_add

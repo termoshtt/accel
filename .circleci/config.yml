@@ -1,12 +1,5 @@
 version: 2
 jobs:
-  check_format:
-    docker:
-      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
-    steps:
-      - checkout
-      - run: cargo fmt --all -- --write-mode=diff
-
   check_cuda_sys:
     docker:
       - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
@@ -78,7 +71,6 @@ workflows:
   version: 2
   tests:
     jobs:
-      - check_format
       - check_derive
       - check_nvptx
       - check_nvptx_60

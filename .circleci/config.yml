@@ -50,6 +50,8 @@ jobs:
       - run:
           name: Check accel
           command: |
+            cargo install nvptx -f
+            nvptx install
             cargo check -v --example add
 
 workflows:

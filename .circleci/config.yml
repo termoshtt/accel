@@ -38,8 +38,8 @@ jobs:
           name: build PTX of accel-core
           command: |
             cargo install nvptx -f
-            cd ../accel-core
-            cargo nvptx
+            cd ./accel-core
+            nvptx build --load
 
   build_example_add:
     docker:

@@ -10,7 +10,7 @@ extern crate syn;
 
 use nvptx::manifest::Crate;
 use proc_macro::TokenStream;
-use std::path::PathBuf;
+use std::fs;
 
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
@@ -87,7 +87,7 @@ fn parse_crate(attr: &syn::Attribute) -> Crate {
                 2 => Crate {
                     name: tokens[0].clone(),
                     version: None,
-                    path: Some(PathBuf::from(&tokens[1])),
+                    path: Some(fs::canonicalize(&tokens[1]).expect("Fail to normalize")),
                 },
                 _ => unreachable!("Invalid line: {:?}", attr),
             }

@@ -7,19 +7,15 @@ extern crate proc_macro;
 extern crate quote;
 extern crate syn;
 
+use nvptx::manifest::Crate;
 use proc_macro::TokenStream;
+use std::path::PathBuf;
 
 #[proc_macro_attribute]
 pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     let func = syn::parse(func).expect("Not a function");
     let ptx_str = func2kernel(&func);
     func2caller(&ptx_str, &func)
-}
-
-struct Crate {
-    name: String,
-    version: Option<String>,
-    path: Option<String>,
 }
 
 struct Attributes {
@@ -33,11 +29,16 @@ impl Attributes {
         }
     }
 
-    fn crate_names(&self) -> Vec<String> {
-        self.crates.iter().map(|c| c.name).collect()
+    fn get_crates(&self) -> &[Crate] {
+        &self.crates
     }
 
-    fn create_driver(&self) -> nvptx::Driver {}
+    /// Create a nvptx compiler-driver
+    fn create_driver(&self) -> nvptx::Driver {
+        let driver = nvptx::Driver::new().expect("Fail to create compiler-driver");
+        nvptx::manifest::generate(driver.path(), &self.crates).expect("Fail to generate Cargo.toml");
+        driver
+    }
 }
 
 const PENE: &[char] = &['(', ')'];
@@ -66,14 +67,14 @@ fn parse_crate(attr: &syn::Attribute) -> Crate {
             match tokens.len() {
                 // #[crate("accel-core")] case
                 1 => Crate {
-                    name: tokens[0],
+                    name: tokens[0].clone(),
                     version: None,
                     path: None,
                 },
                 // #[crate("accel-core" = "0.1.0")] case
                 2 => Crate {
-                    name: tokens[0],
-                    version: Some(tokens[1]),
+                    name: tokens[0].clone(),
+                    version: Some(tokens[1].clone()),
                     path: None,
                 },
                 _ => unreachable!("Invalid line: {:?}", attr),
@@ -83,9 +84,9 @@ fn parse_crate(attr: &syn::Attribute) -> Crate {
             match tokens.len() {
                 // #[crate_path("accel-core" = "/some/path")] case
                 2 => Crate {
-                    name: tokens[0],
+                    name: tokens[0].clone(),
                     version: None,
-                    path: Some(tokens[1]),
+                    path: Some(PathBuf::from(&tokens[1])),
                 },
                 _ => unreachable!("Invalid line: {:?}", attr),
             }
@@ -95,8 +96,11 @@ fn parse_crate(attr: &syn::Attribute) -> Crate {
 }
 
 /// Header part of lib.rs
-fn header(crates: &[String]) -> String {
-    let crates: Vec<syn::Ident> = crates.iter().map(|c| syn::Ident::from(c.replace("-", "_"))).collect();
+fn header(crates: &[Crate]) -> String {
+    let crates: Vec<syn::Ident> = crates
+        .iter()
+        .map(|c| syn::Ident::from(c.name.replace("-", "_")))
+        .collect();
     let tt = quote!{
         #![feature(abi_ptx)]
         #![no_std]
@@ -124,11 +128,11 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     kernel.to_string()
 }
 
-/// Convert function decorated by #[kernel] into a single `lib.rs` for PTX-builder
+/// Convert #[kernel] function into lib.rs
 fn func2kernel(func: &syn::ItemFn) -> String {
     let attrs = Attributes::parse(&func.attrs);
     let driver = attrs.create_driver();
-    let lib_rs = format!("{}\n{}", header(&attrs.crate_names()), ptx_kernel(func));
+    let lib_rs = format!("{}\n{}", header(attrs.get_crates()), ptx_kernel(func));
     driver.compile_str(&lib_rs).expect("Failed to compile")
 }
 

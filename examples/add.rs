@@ -1,4 +1,4 @@
-#![feature(proc_macro)]
+#![feature(proc_macro, proc_macro_gen, use_extern_macros)]
 
 extern crate accel;
 extern crate accel_derive;
@@ -8,7 +8,6 @@ use accel_derive::kernel;
 
 #[kernel]
 #[crate("accel-core" = "0.2.0-alpha")]
-#[build_path("~/.rust2ptx")]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {

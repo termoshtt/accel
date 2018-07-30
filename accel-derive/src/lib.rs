@@ -1,4 +1,5 @@
 //! proc_macro for accel's #[kernel]
+#![feature(proc_macro)]
 #![recursion_limit = "128"]
 
 extern crate nvptx;

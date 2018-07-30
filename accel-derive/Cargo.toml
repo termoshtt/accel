@@ -16,7 +16,7 @@ proc-macro = true
 
 [dependencies]
 quote = "0.5"
-nvptx = { git = 'http://github.com/rust-accel/nvptx', branch = "manifest" }
+nvptx = "0.2.2"
 
 [dependencies.syn]
 version = "0.13"

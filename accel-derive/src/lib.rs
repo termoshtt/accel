@@ -156,19 +156,13 @@ fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     let kernel_name = quote!{ #ident }.to_string();
 
     let caller = quote!{
-        mod ptx_mod {
-            use ::std::cell::RefCell;
-            use ::accel::module::Module;
-            thread_local! {
-                #[allow(non_upper_case_globals)]
-                pub static #ident: RefCell<Module>
-                    = RefCell::new(Module::from_str(#ptx_str).expect("Load module failed"));
-            }
-        }
         #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {
             use ::accel::kernel::void_cast;
-            ptx_mod::#ident.with(|m| {
-                let m = m.borrow();
+            use ::accel::module::Module;
+            thread_local!{
+                static module: Module = Module::from_str(#ptx_str).expect("Load module failed");
+            }
+            module.with(|m| {
                 let mut kernel = m.get_kernel(#kernel_name).expect("Failed to get Kernel");
                 let mut args = [#(void_cast(&#input_values)),*];
                 unsafe { kernel.launch(args.as_mut_ptr(), grid, block).expect("Failed to launch kernel") };

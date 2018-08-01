@@ -7,6 +7,7 @@ use std::os::raw::*;
 use std::ptr::null_mut;
 use std::slice::{from_raw_parts, from_raw_parts_mut};
 
+/// An implementation of Vec based on Uniform Memory
 #[derive(Debug)]
 pub struct UVec<T> {
     ptr: *mut T,
@@ -81,9 +82,7 @@ mod tests {
     #[test]
     fn uvec_new() {
         // zero-filled on GPU
-        let v: UVec<f64> = UVec::new(128).unwrap();
-        for val in v.iter() {
-            println!("{}", val);
-        }
+        let v: UVec<u64> = UVec::new(128).unwrap();
+        assert!(v.iter().all(|v| *v == 0));
     }
 }

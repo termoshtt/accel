@@ -11,6 +11,8 @@ pub mod error;
 pub mod kernel;
 pub mod module;
 pub mod uvec;
+pub mod mvec;
 
 pub use kernel::{Block, Grid};
 pub use uvec::UVec;
+pub use mvec::MVec;

@@ -1,11 +1,11 @@
-use ffi::cudart::*;
 use super::error::*;
+use ffi::cudart::*;
 
-use std::os::raw::*;
-use std::slice::{from_raw_parts, from_raw_parts_mut};
-use std::ops::{Deref, DerefMut, Index, IndexMut};
-use std::ptr::null_mut;
 use std::mem::size_of;
+use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::os::raw::*;
+use std::ptr::null_mut;
+use std::slice::{from_raw_parts, from_raw_parts_mut};
 
 #[derive(Debug)]
 pub struct UVec<T> {

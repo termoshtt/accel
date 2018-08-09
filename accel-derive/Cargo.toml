@@ -16,9 +16,7 @@ proc-macro = true
 
 [dependencies]
 quote = "0.5"
-
-[dependencies.nvptx]
-version = "0.1"
+nvptx = "0.2.2"
 
 [dependencies.syn]
 version = "0.13"

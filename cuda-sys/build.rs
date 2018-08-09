@@ -3,16 +3,11 @@ use std::env;
 fn find_library_paths() -> Vec<String> {
     match env::var("CUDA_LIBRARY_PATH") {
         Ok(path) => {
-            let split_char = if cfg!(target_os="windows") {
-                ";"
-            }
-            else {
-                ":"
-            };
+            let split_char = if cfg!(target_os = "windows") { ";" } else { ":" };
 
             path.split(split_char).map(|s| s.to_owned()).collect::<Vec<_>>()
-        },
-        Err(_) => vec![]
+        }
+        Err(_) => vec![],
     }
 }
 

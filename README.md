@@ -3,7 +3,7 @@ Accel: GPGPU Framework for Rust
 
 [![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)
 [![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)
-[![CircleCI](https://circleci.com/gh/termoshtt/accel.svg?style=shield)](https://circleci.com/gh/termoshtt/accel)
+[![CircleCI](https://circleci.com/gh/rust-accel/accel.svg?style=shield)](https://circleci.com/gh/rust-accel/accel)
 
 CUDA-based GPGPU framework for Rust
 
@@ -18,16 +18,21 @@ Sub Crates
 -----------
 - [accel-derive](accel-derive/README.md): Define procedual macro `#[kernel]`
 - [accel-core](accel-core/README.md): Support crate for writing GPU kernel
-- [nvptx](nvptx): Compile Rust into PTX using [LLVM/NVPTX backend](https://llvm.org/docs/NVPTXUsage.html)
 - [cuda-sys](cuda-sys/README.md): Rust binding to CUDA Driver/Runtime APIs
 
 Pre-requirements
 ---------------
 
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
-- Install [LLVM](https://llvm.org/) 6.0 or later (use `llc` and `llvm-link` to create PTX)
+- Install [LLVM](https://llvm.org/) 6.0 or later (use `llc` and `llvm-link` to generate PTX)
 - Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
-- Install [xargo](https://github.com/japaric/xargo), a sysroot manager
+  - Use the nightly Rust toolchain with `rustup override nightly`
+- Install [nvptx](https://github.com/rust-accel/nvptx), and install `accel-nvptx` toolchain
+
+```
+cargo install nvptx
+nvptx install       # install accel-nvptx toolchain to $XDG_DATA_HOME/accel-nvptx
+```
 
 Or, you can use [termoshtt/rust-cuda](https://hub.docker.com/r/termoshtt/rust-cuda/) container whith satisfies these requirements.
 
@@ -41,7 +46,7 @@ Example
 --------
 
 ```rust
-#![feature(proc_macro)]
+#![feature(proc_macro, proc_macro_gen)]
 
 extern crate accel;
 extern crate accel_derive;
@@ -51,7 +56,6 @@ use accel::*;
 
 #[kernel]
 #[crate("accel-core" = "0.2.0-alpha")]
-#[build_path("~/.rust2ptx")]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {

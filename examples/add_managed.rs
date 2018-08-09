@@ -26,8 +26,8 @@ fn main() {
     let mut a_data = Vec::new();
     let mut b_data = Vec::new();
     for i in 0..n {
-        a_data[i] = i as f64;
-        b_data[i] = 2.0 * i as f64;
+        a_data.push(i as f64);
+        b_data.push(2.0 * i as f64);
     }
     a.set(a_data.as_slice()).unwrap();
     b.set(b_data.as_slice()).unwrap();

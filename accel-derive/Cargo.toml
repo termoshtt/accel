@@ -1,6 +1,6 @@
 [package]
 name = "accel-derive"
-version = "0.1.0"
+version = "0.2.1-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Procedual macro for writing GPGPU kernel"
@@ -15,16 +15,9 @@ categories    = []
 proc-macro = true
 
 [dependencies]
-synom = "0.11.3"
-quote = "0.4"
-toml = "0.4.5"
-tempdir = "0.3"
-glob = "0.2.11"
-procedurals = "0.2"
-serde = "1.0"
-serde_derive = "1.0"
+quote = "0.5"
+nvptx = "0.2.2"
 
 [dependencies.syn]
-version = "0.12"
-features = ["full", "fold", "parsing", "printing", "extra-traits"]
-default-features = false
+version = "0.13"
+features = ["full", "extra-traits"]

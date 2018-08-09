@@ -1,12 +1,12 @@
 //! Execution control in
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
+use error::*;
 use ffi::cuda::*;
 use ffi::vector_types::*;
-use error::*;
 
-use std::ptr::null_mut;
 use std::os::raw::*;
+use std::ptr::null_mut;
 
 use super::module::*;
 

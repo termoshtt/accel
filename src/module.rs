@@ -3,15 +3,15 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use ffi::cuda::*;
 use error::*;
+use ffi::cuda::*;
 
-use std::ptr::null_mut;
-use std::os::raw::{c_char, c_uint, c_void};
-use std::str::FromStr;
-use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 use std::ffi::CStr;
+use std::os::raw::{c_char, c_uint, c_void};
+use std::path::{Path, PathBuf};
+use std::ptr::null_mut;
+use std::str::FromStr;
 
 use super::kernel::Kernel;
 

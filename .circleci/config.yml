@@ -1,33 +1,64 @@
 version: 2
-
 jobs:
-  build:
+  check_format:
     docker:
-      - image: termoshtt/rust-cuda
-    environment:
-      - CUDA_LIBRARY_PATH: "/usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs"
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
     steps:
       - checkout
-      - run:
-          name: Check format
-          command: |
-            cargo fmt --all -- --write-mode=diff
+      - run: cargo fmt --all -- --write-mode=diff
+
+  check_cuda_sys:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: Check cuda-sys
           command: |
             cd cuda-sys
             cargo check
+
+  check_derive:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
-          name: Check accel-core
-          command: |
-            cd accel-core
-            cargo check
-      - run:
-          name: Check accel-derive
+          name: check accel-derive
           command: |
             cd accel-derive
             cargo check
+
+  build_core:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
+      - run:
+          name: build PTX of accel-core
+          command: |
+            cargo install nvptx -f
+            cd ./accel-core
+            nvptx install
+            nvptx build --load
+
+  build_example_add:
+    docker:
+      - image: registry.gitlab.com/termoshtt/rust-cuda:cuda9.1
+    steps:
+      - checkout
       - run:
           name: Check accel
           command: |
-            cargo check
+            cargo install nvptx -f
+            nvptx install
+            cargo check -v --example add
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - check_format
+      - check_derive
+      - build_core
+      - build_example_add

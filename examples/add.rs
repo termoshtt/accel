@@ -1,14 +1,13 @@
-#![feature(proc_macro)]
+#![feature(proc_macro, proc_macro_gen, use_extern_macros)]
 
 extern crate accel;
 extern crate accel_derive;
 
-use accel_derive::kernel;
 use accel::*;
+use accel_derive::kernel;
 
 #[kernel]
-#[depends("accel-core" = "0.2.0-alpha")]
-#[build_path_home(".rust2ptx")]
+#[crate("accel-core" = "0.2.0-alpha")]
 pub unsafe fn add(a: &[f64], b: &[f64], c: &mut [f64]) {
     let i = accel_core::index() as usize;
     let n = c.len();

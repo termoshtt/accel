@@ -1,6 +1,6 @@
 [package]
 name = "accel-core"
-version = "0.2.0-alpha"
+version = "0.2.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 
 description   = "Support crate for writing GPGPU kernels using accel"

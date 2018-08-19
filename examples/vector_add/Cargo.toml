@@ -1,0 +1,8 @@
+[package]
+name = "vector_add"
+version = "0.1.0"
+authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+
+[dependencies]
+accel = { path = "../.." }
+accel-derive = "*"

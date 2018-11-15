@@ -1,6 +1,9 @@
 pub mod cublas;
+mod cucomplex;
 pub mod cuda;
 pub mod cudart;
+mod driver_types;
+mod library_types;
 pub mod vector_types;
 
 #[test]

@@ -2,4 +2,4 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 
-include!(concat!(env!("OUT_DIR"), "/vector_types_bindings.rs"));
+include!(concat!(env!("OUT_DIR"), "/library_types_bindings.rs"));

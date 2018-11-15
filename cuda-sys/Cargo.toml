@@ -13,3 +13,6 @@ keywords      = ["GPGPU", "CUDA", "ffi"]
 license       = "MIT"
 readme        = "README.md"
 categories    = []
+
+[build-dependencies]
+bindgen = "~0.43"

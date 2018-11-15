@@ -2,4 +2,6 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 
-include!(concat!(env!("OUT_DIR"), "/vector_types_bindings.rs"));
+use vector_types::*;
+
+include!(concat!(env!("OUT_DIR"), "/cucomplex_bindings.rs"));

@@ -54,7 +54,7 @@ impl Device {
         let mut devs = Vec::new();
         for i in 0..n {
             let dev = Device::set(i)?;
-            if dev.compute_mode()? != ComputeMode::Prohibited {
+            if dev.compute_mode()? != ComputeMode::cudaComputeModeProhibited {
                 devs.push(dev)
             }
         }
@@ -130,7 +130,13 @@ impl Device {
 
     pub fn compute_mode(&self) -> Result<ComputeMode> {
         let prop = self.get_property()?;
-        Ok(prop.computeMode)
+        Ok(match prop.computeMode {
+            0 => cudaComputeMode::cudaComputeModeDefault,
+            1 => cudaComputeMode::cudaComputeModeExclusive,
+            2 => cudaComputeMode::cudaComputeModeProhibited,
+            3 => cudaComputeMode::cudaComputeModeExclusiveProcess,
+            _ => unreachable!("Unsupported compute mode"),
+        })
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {

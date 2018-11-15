@@ -45,7 +45,7 @@ impl<T: Copy> MVec<T> {
         unsafe { cudaMemcpy(self.ptr as *mut c_void,
                             data.as_ptr() as *const c_void,
                             self.n * size_of::<T>(),
-                            cudaMemcpyKind_cudaMemcpyHostToDevice
+                            cudaMemcpyKind::cudaMemcpyHostToDevice
                             )
         }
         .check()
@@ -57,7 +57,7 @@ impl<T: Copy> MVec<T> {
         unsafe { cudaMemcpy(buffer.as_mut_ptr() as *mut c_void,
                             self.ptr as *const c_void,
                             self.n * size_of::<T>(),
-                            cudaMemcpyKind_cudaMemcpyDeviceToHost
+                            cudaMemcpyKind::cudaMemcpyDeviceToHost
                             )
         }
         .check()

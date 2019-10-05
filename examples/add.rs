@@ -1,5 +1,3 @@
-#![feature(proc_macro, proc_macro_gen, use_extern_macros)]
-
 extern crate accel;
 extern crate accel_derive;
 

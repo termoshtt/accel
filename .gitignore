@@ -1,0 +1,14 @@
+*.o
+*.out
+*.mod
+*.so
+*.log
+*.inp
+*.bmp
+*.pvtu
+*.vtu
+*.lst
+*.bak
+*.BAK
+*.DS_Store
+*~

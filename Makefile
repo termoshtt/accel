@@ -1,5 +1,5 @@
 REGISTRY  := registry.ritc.jp/ricos/allgebra
-PHONY.: test allgebra
+.PHONY: test allgebra 
 
 
 all: allgebra
@@ -19,3 +19,7 @@ push: login allgebra
 
 in:  
 	docker run -it --gpus all --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY)
+	
+test:  
+	docker run -it --gpus all --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY) \
+	/bin/bash -c "cd test; make; make test; make clean"

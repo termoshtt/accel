@@ -16,16 +16,9 @@ acc_naked.o: acc_naked.cpp
 acc_cublas.o: acc_cublas.cpp
 	$(CXX) $(ACC_FLAGS) $(CXX_FLAGS) $(ACC_INCLUDE) $(ACC_LIB) $< -o $@ $(ACC_LIBS)
 
-run:
+test:
+	./acc_naked.o 1000000
+	./acc_cublas.o 1000000
 
 clean:
 	- rm *.o
-
-#	$(CXX) $(CXX_FLAGS) $(ACC_FLAGS) acc_native.cpp -o acc_native.o
-# 	$(CXX) -fopenacc -foffload=nvptx-none \
-# 	$(ACC_INCLUDE) $(ACC_LIB)
-# 	-I/usr/local/cuda-10.0/targets/x86_64-linux/include/ \
-# 	-L/usr/local/cuda-10.0/targets/x86_64-linux/lib/ \
-# 	-lcublas -lcudart -lcuda -O3 -std=c++11 acc_cublas.cpp -o acc_cublas.o  -lcublas
-# 	#-lcuda -lcudart -lcublas
-# 	#g++ -fopenacc -foffload=nvptx-none -lcuda -I/usr/include -L/usr/lib/x86_64-linux-gnu/ -lcublas -O3 -std=c++11 acc_cublas.cpp

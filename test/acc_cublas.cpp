@@ -11,6 +11,7 @@ int main(int argc, char** argv){
 	
 	}
 	else{
+		std::cout << "error, $1 is vector size" << std::endl;
 		return 1;
 	}
 

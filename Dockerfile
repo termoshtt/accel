@@ -1,4 +1,5 @@
 FROM nvidia/cuda:10.1-base
+LABEL maintainer "Toshiaki Hishinuma <hishinuma.toshiaki@gmail.com>"
 RUN apt update \
 &&  apt install -y vim make \
 &&  apt install -y gcc-8-offload-nvptx nvptx-tools g++-8 \

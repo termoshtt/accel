@@ -18,8 +18,8 @@ push: login allgebra
 	docker push $(REGISTRY)
 
 in:  
-	docker run -it --gpus all --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY)
+	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY)
 	
 test:  
-	docker run -it --gpus all --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY) \
+	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY) \
 	/bin/bash -c "cd test; make; make test; make clean"

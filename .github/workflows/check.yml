@@ -1,4 +1,9 @@
-on: [push]
+name: "Static Check"
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
 
 jobs:
   cargo_check:

@@ -1,9 +1,9 @@
+use cudart::*;
 use error::*;
-use ffi::cudart::*;
 use std::mem;
 
-pub use ffi::cudart::cudaComputeMode as ComputeMode;
-pub use ffi::cudart::cudaDeviceProp as DeviceProp;
+pub use cudart::cudaComputeMode as ComputeMode;
+pub use cudart::cudaDeviceProp as DeviceProp;
 
 pub fn sync() -> Result<()> {
     unsafe { cudaDeviceSynchronize() }.check()
@@ -54,7 +54,7 @@ impl Device {
         let mut devs = Vec::new();
         for i in 0..n {
             let dev = Device::set(i)?;
-            if dev.compute_mode()? != ComputeMode::Prohibited {
+            if dev.compute_mode()? != ComputeMode::cudaComputeModeProhibited as i32 {
                 devs.push(dev)
             }
         }
@@ -128,14 +128,14 @@ impl Device {
         Ok(mpc * rate * cores)
     }
 
-    pub fn compute_mode(&self) -> Result<ComputeMode> {
+    pub fn compute_mode(&self) -> Result<i32> {
         let prop = self.get_property()?;
         Ok(prop.computeMode)
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {
         unsafe {
-            let mut prop = mem::uninitialized();
+            let mut prop = mem::MaybeUninit::uninit().assume_init();
             cudaGetDeviceProperties(&mut prop as *mut _, self.0).check()?;
             Ok(prop)
         }

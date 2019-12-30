@@ -1,8 +1,7 @@
 #![allow(non_camel_case_types)]
 
-pub use ffi::cublas::cublasStatus_t as cublasError;
-pub use ffi::cuda::cudaError_t as cudaError;
-pub use ffi::cudart::cudaError_t as cudaRuntimeError;
+pub use cuda::cudaError_enum as cudaError;
+pub use cudart::cudaError_t as cudaRuntimeError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
@@ -10,7 +9,6 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub enum Error {
     cudaError(cudaError),
     cudaRuntimeError(cudaRuntimeError),
-    cublasError(cublasError),
 }
 
 pub trait Check {
@@ -29,17 +27,7 @@ impl Check for cudaError {
 
 impl Check for cudaRuntimeError {
     fn check(self) -> Result<()> {
-        if self == cudaRuntimeError::Success {
-            Ok(())
-        } else {
-            Err(self.into())
-        }
-    }
-}
-
-impl Check for cublasError {
-    fn check(self) -> Result<()> {
-        if self == cublasError::SUCCESS {
+        if self == cudaRuntimeError::cudaSuccess {
             Ok(())
         } else {
             Err(self.into())

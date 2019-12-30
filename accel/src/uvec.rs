@@ -1,5 +1,5 @@
 use super::error::*;
-use ffi::cudart::*;
+use cudart::*;
 
 use std::mem::size_of;
 use std::ops::{Deref, DerefMut, Index, IndexMut};

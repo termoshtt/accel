@@ -3,8 +3,8 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
+use cuda::*;
 use error::*;
-use ffi::cuda::*;
 
 use std::collections::HashMap;
 use std::ffi::CStr;
@@ -123,7 +123,8 @@ impl Linker {
             nopts,
             opts.as_mut_ptr(),
             opt_vals.as_mut_ptr(),
-        ).check()?;
+        )
+        .check()?;
         Ok(())
     }
 
@@ -138,7 +139,8 @@ impl Linker {
             nopts,
             opts.as_mut_ptr(),
             opt_vals.as_mut_ptr(),
-        ).check()?;
+        )
+        .check()?;
         Ok(())
     }
 

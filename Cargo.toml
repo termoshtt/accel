@@ -1,21 +1,6 @@
-[package]
-name = "accel"
-version = "0.2.1-alpha.0"
-authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+[workspace]
+members = [
+  "accel",
+  "accel-derive",
+]
 
-description   = "GPGPU Framework for Rust"
-documentation = "https://docs.rs/accel"
-repository    = "https://github.com/termoshtt/accel"
-keywords      = ["GPGPU", "CUDA"]
-license       = "MIT"
-readme        = "README.md"
-categories    = []
-
-[dependencies]
-procedurals = "0.2.3"
-
-[dependencies.cuda-sys]
-version = "0.2.0"
-
-[dev-dependencies.accel-derive]
-path = "./accel-derive"

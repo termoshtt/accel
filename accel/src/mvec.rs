@@ -16,7 +16,10 @@ impl<T: Copy> MVec<T> {
     pub unsafe fn uninitialized(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
         cudaMalloc(&mut ptr as *mut *mut c_void, n * size_of::<T>()).check()?;
-        Ok(MVec { ptr: ptr as *mut T, n })
+        Ok(MVec {
+            ptr: ptr as *mut T,
+            n,
+        })
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {

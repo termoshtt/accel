@@ -36,7 +36,8 @@ impl Attributes {
     /// Create a nvptx compiler-driver
     fn create_driver(&self) -> nvptx::Driver {
         let driver = nvptx::Driver::new().expect("Fail to create compiler-driver");
-        nvptx::manifest::generate(driver.path(), &self.crates).expect("Fail to generate Cargo.toml");
+        nvptx::manifest::generate(driver.path(), &self.crates)
+            .expect("Fail to generate Cargo.toml");
         driver
     }
 }

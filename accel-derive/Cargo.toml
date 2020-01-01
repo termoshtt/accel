@@ -2,6 +2,7 @@
 name = "accel-derive"
 version = "0.2.1-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+edition = "2018"
 
 description   = "Procedual macro for writing GPGPU kernel"
 documentation = "https://docs.rs/accel-derive/"
@@ -15,6 +16,7 @@ categories    = []
 proc-macro = true
 
 [dependencies]
+proc-macro2 = "1.0"
 quote = "1.0"
 nvptx = "0.2.2"
 

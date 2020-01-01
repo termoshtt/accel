@@ -1,14 +1,12 @@
 //! proc_macro for accel's #[kernel]
 #![recursion_limit = "128"]
 
-extern crate nvptx;
 extern crate proc_macro;
-#[macro_use]
-extern crate quote;
-extern crate syn;
 
 use nvptx::manifest::Crate;
 use proc_macro::TokenStream;
+use proc_macro2::Span;
+use quote::quote;
 use std::fs;
 
 #[proc_macro_attribute]
@@ -56,8 +54,7 @@ const QUOTE: &[char] = &[' ', '"'];
 fn parse_crate(attr: &syn::Attribute) -> Crate {
     let path = &attr.path;
     let path = quote! {#path}.to_string();
-    let tts = &attr.tts;
-    let tts = quote! {#tts}.to_string();
+    let tts = attr.tokens.to_string();
     let tokens: Vec<_> = tts
         .trim_matches(PENE)
         .split('=')
@@ -100,7 +97,7 @@ fn parse_crate(attr: &syn::Attribute) -> Crate {
 fn header(crates: &[Crate]) -> String {
     let crates: Vec<syn::Ident> = crates
         .iter()
-        .map(|c| syn::Ident::from(c.name.replace("-", "_")))
+        .map(|c| syn::Ident::new(&c.name.replace("-", "_"), Span::call_site()))
         .collect();
     let tt = quote! {
         #![feature(abi_ptx)]
@@ -113,14 +110,13 @@ fn header(crates: &[Crate]) -> String {
 /// Kernel part of lib.rs
 fn ptx_kernel(func: &syn::ItemFn) -> String {
     let vis = &func.vis;
-    let ident = &func.ident;
-    let unsafety = &func.unsafety;
+    let ident = &func.sig.ident;
+    let unsafety = &func.sig.unsafety;
     let block = &func.block;
 
-    let decl = &func.decl;
-    let fn_token = &decl.fn_token;
-    let inputs = &decl.inputs;
-    let output = &decl.output;
+    let fn_token = &func.sig.fn_token;
+    let inputs = &func.sig.inputs;
+    let output = &func.sig.output;
 
     let kernel = quote! {
         #[no_mangle]
@@ -139,17 +135,16 @@ fn func2kernel(func: &syn::ItemFn) -> String {
 
 fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     let vis = &func.vis;
-    let ident = &func.ident;
+    let ident = &func.sig.ident;
 
-    let decl = &func.decl;
-    let inputs = &decl.inputs;
-    let output = &decl.output;
-    let fn_token = &decl.fn_token;
+    let fn_token = &func.sig.fn_token;
+    let inputs = &func.sig.inputs;
+    let output = &func.sig.output;
 
     let input_values: Vec<_> = inputs
         .iter()
         .map(|arg| match arg {
-            &syn::FnArg::Captured(ref val) => &val.pat,
+            &syn::FnArg::Typed(ref val) => &val.pat,
             _ => unreachable!(""),
         })
         .collect();

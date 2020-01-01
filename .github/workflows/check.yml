@@ -1,0 +1,27 @@
+name: "Static Check"
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  cargo_check:
+    runs-on: ubuntu-latest
+    name: check
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install LLVM libraries
+        run: |
+          sudo apt update
+          sudo apt install -y llvm-dev
+      - name: check
+        run: cargo check
+
+  cargo_fmt:
+    runs-on: ubuntu-latest
+    name: format
+    steps:
+      - uses: actions/checkout@v1
+      - name: format
+        run: cargo fmt -- --check

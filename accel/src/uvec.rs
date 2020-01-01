@@ -1,5 +1,5 @@
 use super::error::*;
-use ffi::cudart::*;
+use cudart::*;
 
 use std::mem::size_of;
 use std::ops::{Deref, DerefMut, Index, IndexMut};
@@ -17,8 +17,16 @@ pub struct UVec<T> {
 impl<T> UVec<T> {
     pub unsafe fn uninitialized(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
-        cudaMallocManaged(&mut ptr as *mut *mut c_void, n * size_of::<T>(), cudaMemAttachGlobal).check()?;
-        Ok(UVec { ptr: ptr as *mut T, n })
+        cudaMallocManaged(
+            &mut ptr as *mut *mut c_void,
+            n * size_of::<T>(),
+            cudaMemAttachGlobal,
+        )
+        .check()?;
+        Ok(UVec {
+            ptr: ptr as *mut T,
+            n,
+        })
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {

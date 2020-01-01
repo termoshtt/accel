@@ -1,5 +1,4 @@
 //! proc_macro for accel's #[kernel]
-#![feature(proc_macro)]
 #![recursion_limit = "128"]
 
 extern crate nvptx;
@@ -37,7 +36,8 @@ impl Attributes {
     /// Create a nvptx compiler-driver
     fn create_driver(&self) -> nvptx::Driver {
         let driver = nvptx::Driver::new().expect("Fail to create compiler-driver");
-        nvptx::manifest::generate(driver.path(), &self.crates).expect("Fail to generate Cargo.toml");
+        nvptx::manifest::generate(driver.path(), &self.crates)
+            .expect("Fail to generate Cargo.toml");
         driver
     }
 }
@@ -55,9 +55,9 @@ const QUOTE: &[char] = &[' ', '"'];
 ///      equals to `accel-core = { path = "/some/path" }`
 fn parse_crate(attr: &syn::Attribute) -> Crate {
     let path = &attr.path;
-    let path = quote!{#path}.to_string();
+    let path = quote! {#path}.to_string();
     let tts = &attr.tts;
-    let tts = quote!{#tts}.to_string();
+    let tts = quote! {#tts}.to_string();
     let tokens: Vec<_> = tts
         .trim_matches(PENE)
         .split('=')
@@ -102,7 +102,7 @@ fn header(crates: &[Crate]) -> String {
         .iter()
         .map(|c| syn::Ident::from(c.name.replace("-", "_")))
         .collect();
-    let tt = quote!{
+    let tt = quote! {
         #![feature(abi_ptx)]
         #![no_std]
         #(extern crate #crates;), *
@@ -122,7 +122,7 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     let inputs = &decl.inputs;
     let output = &decl.output;
 
-    let kernel = quote!{
+    let kernel = quote! {
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
@@ -153,9 +153,9 @@ fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
             _ => unreachable!(""),
         })
         .collect();
-    let kernel_name = quote!{ #ident }.to_string();
+    let kernel_name = quote! { #ident }.to_string();
 
-    let caller = quote!{
+    let caller = quote! {
         #vis #fn_token #ident(grid: ::accel::Grid, block: ::accel::Block, #inputs) #output {
             use ::accel::kernel::void_cast;
             use ::accel::module::Module;

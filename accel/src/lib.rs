@@ -2,7 +2,9 @@
 //! ==============================
 //!
 
-extern crate cuda_sys as ffi;
+extern crate cuda_driver_sys as cuda;
+extern crate cuda_runtime_sys as cudart;
+
 #[macro_use]
 extern crate procedurals;
 
@@ -10,9 +12,9 @@ pub mod device;
 pub mod error;
 pub mod kernel;
 pub mod module;
-pub mod uvec;
 pub mod mvec;
+pub mod uvec;
 
 pub use kernel::{Block, Grid};
-pub use uvec::UVec;
 pub use mvec::MVec;
+pub use uvec::UVec;

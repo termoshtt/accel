@@ -1,9 +1,9 @@
 //! Execution control in
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
+use cuda::*;
+use cudart::*;
 use error::*;
-use ffi::cuda::*;
-use ffi::vector_types::*;
 
 use std::os::raw::*;
 use std::ptr::null_mut;
@@ -19,7 +19,12 @@ pub struct Kernel<'m> {
 
 impl<'m> Kernel<'m> {
     /// Launch CUDA kernel using `cuLaunchKernel`
-    pub unsafe fn launch(&mut self, args: *mut *mut c_void, grid: Grid, block: Block) -> Result<()> {
+    pub unsafe fn launch(
+        &mut self,
+        args: *mut *mut c_void,
+        grid: Grid,
+        block: Block,
+    ) -> Result<()> {
         cuLaunchKernel(
             self.func,
             grid.x,
@@ -32,7 +37,8 @@ impl<'m> Kernel<'m> {
             null_mut(), // use default stream
             args,
             null_mut(), // no extra
-        ).check()
+        )
+        .check()
     }
 }
 

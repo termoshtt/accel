@@ -1,5 +1,5 @@
 use super::error::*;
-use ffi::cudart::*;
+use cudart::*;
 
 use std::mem::size_of;
 use std::os::raw::*;
@@ -16,7 +16,10 @@ impl<T: Copy> MVec<T> {
     pub unsafe fn uninitialized(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
         cudaMalloc(&mut ptr as *mut *mut c_void, n * size_of::<T>()).check()?;
-        Ok(MVec { ptr: ptr as *mut T, n })
+        Ok(MVec {
+            ptr: ptr as *mut T,
+            n,
+        })
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
@@ -42,11 +45,13 @@ impl<T: Copy> MVec<T> {
     /// Load data from host_vector into device_vector
     pub fn set(&mut self, data: &[T]) -> Result<()> {
         assert!(self.len() == data.len());
-        unsafe { cudaMemcpy(self.ptr as *mut c_void,
-                            data.as_ptr() as *const c_void,
-                            self.n * size_of::<T>(),
-                            cudaMemcpyKind_cudaMemcpyHostToDevice
-                            )
+        unsafe {
+            cudaMemcpy(
+                self.ptr as *mut c_void,
+                data.as_ptr() as *const c_void,
+                self.n * size_of::<T>(),
+                cudaMemcpyKind::cudaMemcpyHostToDevice,
+            )
         }
         .check()
     }
@@ -54,11 +59,13 @@ impl<T: Copy> MVec<T> {
     /// Load data from device_vector into host_vector
     pub fn get(&self, buffer: &mut [T]) -> Result<()> {
         assert!(self.len() == buffer.len());
-        unsafe { cudaMemcpy(buffer.as_mut_ptr() as *mut c_void,
-                            self.ptr as *const c_void,
-                            self.n * size_of::<T>(),
-                            cudaMemcpyKind_cudaMemcpyDeviceToHost
-                            )
+        unsafe {
+            cudaMemcpy(
+                buffer.as_mut_ptr() as *mut c_void,
+                self.ptr as *const c_void,
+                self.n * size_of::<T>(),
+                cudaMemcpyKind::cudaMemcpyDeviceToHost,
+            )
         }
         .check()
     }

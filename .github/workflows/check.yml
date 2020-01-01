@@ -11,6 +11,10 @@ jobs:
     name: check
     steps:
       - uses: actions/checkout@v1
+      - name: Install LLVM libraries
+        run: |
+          sudo apt update
+          sudo apt install -y llvm-dev
       - name: check
         run: cargo check
 

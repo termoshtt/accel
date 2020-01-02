@@ -1,23 +1,21 @@
-#![allow(non_camel_case_types)]
-
-pub use cuda::cudaError_enum as cudaError;
-pub use cudart::cudaError_t as cudaRuntimeError;
+pub use cuda::cudaError_enum as DeviceError;
+pub use cudart::cudaError_t as RuntimeError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, IntoEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
-    cudaError(cudaError),
-    cudaRuntimeError(cudaRuntimeError),
+    Device(DeviceError),
+    Runtime(RuntimeError),
 }
 
 pub trait Check {
     fn check(self) -> Result<()>;
 }
 
-impl Check for cudaError {
+impl Check for DeviceError {
     fn check(self) -> Result<()> {
-        if self == cudaError::CUDA_SUCCESS {
+        if self == DeviceError::CUDA_SUCCESS {
             Ok(())
         } else {
             Err(self.into())
@@ -25,12 +23,24 @@ impl Check for cudaError {
     }
 }
 
-impl Check for cudaRuntimeError {
+impl Check for RuntimeError {
     fn check(self) -> Result<()> {
-        if self == cudaRuntimeError::cudaSuccess {
+        if self == RuntimeError::cudaSuccess {
             Ok(())
         } else {
             Err(self.into())
         }
+    }
+}
+
+impl Into<Error> for DeviceError {
+    fn into(self) -> Error {
+        Error::Device(self)
+    }
+}
+
+impl Into<Error> for RuntimeError {
+    fn into(self) -> Error {
+        Error::Runtime(self)
     }
 }

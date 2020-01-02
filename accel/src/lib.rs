@@ -5,9 +5,6 @@
 extern crate cuda_driver_sys as cuda;
 extern crate cuda_runtime_sys as cudart;
 
-#[macro_use]
-extern crate procedurals;
-
 pub mod device;
 pub mod error;
 pub mod kernel;

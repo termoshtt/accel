@@ -1,5 +1,5 @@
+use crate::error::*;
 use cudart::*;
-use error::*;
 use std::mem;
 
 pub use cudart::cudaComputeMode as ComputeMode;

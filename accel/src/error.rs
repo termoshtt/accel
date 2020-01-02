@@ -3,7 +3,6 @@ pub use cudart::cudaError_t as RuntimeError;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
-#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     Device(DeviceError),

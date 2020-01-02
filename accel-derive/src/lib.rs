@@ -1,8 +1,3 @@
-/*!
-
-
-*/
-
 #![recursion_limit = "128"]
 
 extern crate proc_macro;
@@ -169,12 +164,4 @@ fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
         }
     };
     caller.into()
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test() {
-        // unimplemented!()
-    }
 }

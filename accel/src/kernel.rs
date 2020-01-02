@@ -1,10 +1,11 @@
 //! Execution control in
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
+use crate::error::*;
 use cuda::*;
 use cudart::*;
-use error::*;
 
+use std::ops::Deref;
 use std::os::raw::*;
 use std::ptr::null_mut;
 
@@ -68,8 +69,15 @@ pub fn void_cast<T: ?Sized>(r: &T) -> *mut c_void {
 }
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
-#[derive(Debug, Clone, Copy, NewType)]
+#[derive(Debug, Clone, Copy)]
 pub struct Block(dim3);
+
+impl Deref for Block {
+    type Target = dim3;
+    fn deref(&self) -> &dim3 {
+        &self.0
+    }
+}
 
 impl Block {
     /// one-dimensional
@@ -89,8 +97,15 @@ impl Block {
 }
 
 /// Size of Grid (grid of blocks) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
-#[derive(Debug, Clone, Copy, NewType)]
+#[derive(Debug, Clone, Copy)]
 pub struct Grid(dim3);
+
+impl Deref for Grid {
+    type Target = dim3;
+    fn deref(&self) -> &dim3 {
+        &self.0
+    }
+}
 
 impl Grid {
     /// one-dimensional

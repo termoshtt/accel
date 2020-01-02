@@ -1,8 +1,42 @@
+use failure::*;
 use nvptx::manifest::Crate;
 use proc_macro2::Span;
 use quote::quote;
 
 use crate::parser::Attributes;
+use std::process::Command;
+
+const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
+
+/// Setup nightly rustc+cargo and nvptx64-nvidia-cuda target
+pub fn rustup() -> Fallible<()> {
+    let st = Command::new("rustup")
+        .args(&[
+            "toolchain",
+            "install",
+            NIGHTLY_VERSION,
+            "--profile",
+            "minimal",
+        ])
+        .status()?;
+    if !st.success() {
+        bail!("Cannot get nightly toolchain by rustup: {:?}", st);
+    }
+
+    let st = Command::new("rustup")
+        .args(&[
+            "target",
+            "add",
+            "nvptx64-nvidia-cuda",
+            "--toolchain",
+            NIGHTLY_VERSION,
+        ])
+        .status()?;
+    if !st.success() {
+        bail!("Cannot get nvptx64-nvidia-cuda target: {:?}", st);
+    }
+    Ok(())
+}
 
 /// Header part of lib.rs
 fn header(crates: &[Crate]) -> String {
@@ -42,4 +76,12 @@ pub fn func2kernel(func: &syn::ItemFn) -> String {
     let driver = attrs.create_driver();
     let lib_rs = format!("{}\n{}", header(attrs.get_crates()), ptx_kernel(func));
     driver.compile_str(&lib_rs).expect("Failed to compile")
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn rustup() {
+        super::rustup().unwrap();
+    }
 }

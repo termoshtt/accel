@@ -16,6 +16,7 @@ categories    = []
 proc-macro = true
 
 [dependencies]
+failure = "0.1"
 proc-macro2 = "1.0"
 quote = "1.0"
 nvptx = "0.2.2"

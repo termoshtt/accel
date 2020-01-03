@@ -93,52 +93,57 @@ struct Depenency {
 
 impl Depenency {
     fn valid(&self) -> bool {
-        if self.version.is_some() {
-            return true;
+        match (self.version.as_ref(), self.git.as_ref()) {
+            // `version` and `git` are exclusive
+            (Some(_), Some(_)) => false,
+            // `git` can accept other options
+            (None, Some(_)) => true,
+            // `version` cannot accept other options
+            (Some(_), None) => self.branch.is_none() && self.tag.is_none() && self.hash.is_none(),
+            (None, None) => false,
         }
-        // TODO others
-        return false;
     }
 }
 
 fn parse_dependency(dep_str: &str) -> Fallible<(String, Depenency)> {
     if let toml::Value::Table(table) = dep_str.parse::<toml::Value>()? {
-        for (name, value) in table {
-            match value {
-                // Like `name = "0.1.1"`
-                toml::Value::String(version) => {
-                    return Ok((
-                        name,
-                        Depenency {
-                            version: Some(version),
-                            ..Default::default()
-                        },
-                    ));
-                }
-                // Like `name = { version = "0.1.1" }`
-                toml::Value::Table(table) => {
-                    let mut dep: Depenency = Default::default();
-                    for (key, val) in table {
-                        let val = match val {
-                            toml::Value::String(val) => val,
-                            _ => bail!("Must be string: {}", val),
-                        };
-                        match key.as_ref() {
-                            "version" => dep.version = Some(val),
-                            "git" => dep.git = Some(val),
-                            _ => bail!("Non supported key: {}", key),
-                        }
-                    }
-                    if dep.valid() {
-                        return Ok((name, dep));
-                    } else {
-                        bail!("Cannot be legalize: {}", dep_str)
-                    }
-                }
-                _ => panic!(""),
+        let (name, value) = table.into_iter().next().ok_or(err_msg("No entry found"))?;
+        match value {
+            // Like `name = "0.1.1"`
+            toml::Value::String(version) => {
+                return Ok((
+                    name,
+                    Depenency {
+                        version: Some(version),
+                        ..Default::default()
+                    },
+                ));
             }
+            // Like `name = { version = "0.1.1" }`
+            toml::Value::Table(table) => {
+                let mut dep: Depenency = Default::default();
+                for (key, val) in table {
+                    let val = match val {
+                        toml::Value::String(val) => val,
+                        _ => bail!("Must be string: {}", val),
+                    };
+                    match key.as_ref() {
+                        "version" => dep.version = Some(val),
+                        "git" => dep.git = Some(val),
+                        "branch" => dep.branch = Some(val),
+                        "tag" => dep.tag = Some(val),
+                        "hash" => dep.hash = Some(val),
+                        _ => bail!("Non supported key: {}", key),
+                    }
+                }
+                if dep.valid() {
+                    return Ok((name, dep));
+                } else {
+                    bail!("Cannot be legalize: {}", dep_str)
+                }
+            }
+            _ => panic!(""),
         }
-        bail!("No entry found");
     } else {
         bail!("Input must be TOML table");
     }
@@ -149,6 +154,37 @@ mod tests {
     #[test]
     fn parse_dependency() {
         let (name, dep) = super::parse_dependency(r#"accel-core = "0.1.1""#).unwrap();
+        assert_eq!(&name, "accel-core");
         assert!(dep.valid());
+
+        let (name, dep) = super::parse_dependency(r#"accel-core = { version = "0.1.1" }"#).unwrap();
+        assert_eq!(&name, "accel-core");
+        assert!(dep.valid());
+        assert_eq!(&dep.version.unwrap(), "0.1.1");
+
+        let (name, dep) = super::parse_dependency(
+            r#"accel-core = { git = "https://github.com/rust-accel/accel" }"#,
+        )
+        .unwrap();
+        assert_eq!(&name, "accel-core");
+        assert!(dep.valid());
+        assert!(dep.version.is_none());
+        assert_eq!(&dep.git.unwrap(), "https://github.com/rust-accel/accel");
+
+        let (name, dep) = super::parse_dependency(
+            r#"accel-core = { git = "https://github.com/rust-accel/accel", branch = "master" }"#,
+        )
+        .unwrap();
+        assert_eq!(&name, "accel-core");
+        assert!(dep.valid());
+        assert!(dep.version.is_none());
+        assert_eq!(&dep.git.unwrap(), "https://github.com/rust-accel/accel");
+        assert_eq!(&dep.branch.unwrap(), "master");
+
+        // Unsupported tag
+        assert!(super::parse_dependency(
+            r#"accel-core = { git = "https://github.com/rust-accel/accel", homhom = "master" }"#,
+        )
+        .is_err());
     }
 }

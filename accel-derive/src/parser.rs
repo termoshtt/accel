@@ -1,3 +1,4 @@
+use failure::*;
 use nvptx::manifest::Crate;
 use quote::quote;
 use std::fs;
@@ -76,5 +77,78 @@ pub fn parse_crate(attr: &syn::Attribute) -> Crate {
             }
         }
         _ => unreachable!("Unsupported attribute: {:?}", path),
+    }
+}
+
+// Should I use `cargo::core::dependency::Depenency`?
+// https://docs.rs/cargo/0.41.0/cargo/core/dependency/struct.Dependency.html
+#[derive(Default, Debug, PartialEq)]
+struct Depenency {
+    version: Option<String>,
+    git: Option<String>,
+    branch: Option<String>,
+    tag: Option<String>,
+    hash: Option<String>,
+}
+
+impl Depenency {
+    fn valid(&self) -> bool {
+        if self.version.is_some() {
+            return true;
+        }
+        // TODO others
+        return false;
+    }
+}
+
+fn parse_dependency(dep_str: &str) -> Fallible<(String, Depenency)> {
+    if let toml::Value::Table(table) = dep_str.parse::<toml::Value>()? {
+        for (name, value) in table {
+            match value {
+                // Like `name = "0.1.1"`
+                toml::Value::String(version) => {
+                    return Ok((
+                        name,
+                        Depenency {
+                            version: Some(version),
+                            ..Default::default()
+                        },
+                    ));
+                }
+                // Like `name = { version = "0.1.1" }`
+                toml::Value::Table(table) => {
+                    let mut dep: Depenency = Default::default();
+                    for (key, val) in table {
+                        let val = match val {
+                            toml::Value::String(val) => val,
+                            _ => bail!("Must be string: {}", val),
+                        };
+                        match key.as_ref() {
+                            "version" => dep.version = Some(val),
+                            "git" => dep.git = Some(val),
+                            _ => bail!("Non supported key: {}", key),
+                        }
+                    }
+                    if dep.valid() {
+                        return Ok((name, dep));
+                    } else {
+                        bail!("Cannot be legalize: {}", dep_str)
+                    }
+                }
+                _ => panic!(""),
+            }
+        }
+        bail!("No entry found");
+    } else {
+        bail!("Input must be TOML table");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn parse_dependency() {
+        let (name, dep) = super::parse_dependency(r#"accel-core = "0.1.1""#).unwrap();
+        assert!(dep.valid());
     }
 }

@@ -6,19 +6,25 @@ on:
   pull_request: {}
 
 jobs:
-  cargo_check:
+  accel-derive:
     runs-on: ubuntu-latest
     name: check
     steps:
       - uses: actions/checkout@v1
-      - name: Install LLVM libraries
+      - name: test
         run: |
-          sudo apt update
-          sudo apt install -y llvm-dev
+          cd accel-derive
+          cargo test
+
+  cargo-check:
+    runs-on: ubuntu-latest
+    name: check
+    steps:
+      - uses: actions/checkout@v1
       - name: check
         run: cargo check
 
-  cargo_fmt:
+  cargo-fmt:
     runs-on: ubuntu-latest
     name: format
     steps:

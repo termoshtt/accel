@@ -1,11 +1,24 @@
 use failure::*;
+use maplit::hashmap;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Default, Debug)]
+#[derive(Debug, Serialize)]
 pub struct Attributes {
+    package: HashMap<&'static str, &'static str>,
+    lib: HashMap<&'static str, Vec<&'static str>>,
     dependencies: HashMap<String, Depenency>,
+}
+
+impl Default for Attributes {
+    fn default() -> Self {
+        Attributes {
+            package: hashmap! { "version" => "0.0.1", "name" => "accel-derive-builder" },
+            lib: hashmap! { "crate-type" => vec![ "cdylib" ] },
+            dependencies: HashMap::new(),
+        }
+    }
 }
 
 pub fn parse_attrs(attrs: &[syn::Attribute]) -> Fallible<Attributes> {
@@ -64,6 +77,26 @@ fn parse_dependency(dep: &str) -> Fallible<HashMap<String, Depenency>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn serialize_attrs() {
+        let attr = super::Attributes::default();
+        let s = toml::to_string(&attr).unwrap();
+        assert_eq!(
+            s.trim(),
+            r#"
+[package]
+version = "0.0.1"
+name = "accel-derive-builder"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+            "#
+            .trim()
+        )
+    }
+
     #[test]
     fn parse_dependency() {
         let map = super::parse_dependency(r#"accel-core = "0.1.1""#).unwrap();

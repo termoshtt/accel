@@ -18,7 +18,7 @@ Procedural-macro crate for `#[kernel]`
 use accel_derive::kernel;
 
 #[kernel]
-#[crate("accel-core" = "0.2.0-alpha")]
+#[dependencies(accel-core = "0.2.0-alpha")]  // Strings in `()` will be parsed as TOML
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {

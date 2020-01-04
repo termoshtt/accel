@@ -13,7 +13,7 @@ pub fn parse_attrs(attrs: &[syn::Attribute]) -> Fallible<Attributes> {
     for attr in attrs {
         let path = attr.path.to_token_stream().to_string();
         match path.as_ref() {
-            "dependency" => {
+            "dependencies" => {
                 let dep = parse_dependency(&attr.tokens.to_string())?;
                 for (key, val) in dep {
                     kernel_attrs.dependencies.insert(key, val);

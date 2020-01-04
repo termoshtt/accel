@@ -14,7 +14,12 @@ pub fn parse_attrs(attrs: &[syn::Attribute]) -> Fallible<Attributes> {
         let path = attr.path.to_token_stream().to_string();
         match path.as_ref() {
             "dependencies" => {
-                let dep = parse_dependency(&attr.tokens.to_string())?;
+                let dep = parse_dependency(
+                    attr.tokens
+                        .to_string()
+                        .trim_start_matches('(')
+                        .trim_end_matches(')'),
+                )?;
                 for (key, val) in dep {
                     kernel_attrs.dependencies.insert(key, val);
                 }

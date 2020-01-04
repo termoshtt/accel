@@ -7,14 +7,30 @@ use std::{
     hash::*,
     io::{Read, Write},
     path::*,
-    process::{Command, Stdio},
+    process::Command,
 };
 
 const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
 
+trait CheckRun {
+    fn check_run(&mut self) -> Fallible<()>;
+}
+
+impl CheckRun for Command {
+    fn check_run(&mut self) -> Fallible<()> {
+        let output = self.output()?;
+        if !output.status.success() {
+            println!("{}", std::str::from_utf8(&output.stdout)?);
+            eprintln!("{}", std::str::from_utf8(&output.stderr)?);
+            bail!("External command failed: {:?}", self);
+        }
+        Ok(())
+    }
+}
+
 /// Setup nightly rustc+cargo and nvptx64-nvidia-cuda target
 fn rustup() -> Fallible<()> {
-    let st = Command::new("rustup")
+    Command::new("rustup")
         .args(&[
             "toolchain",
             "install",
@@ -22,14 +38,9 @@ fn rustup() -> Fallible<()> {
             "--profile",
             "minimal",
         ])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    if !st.success() {
-        bail!("Cannot get nightly toolchain by rustup: {:?}", st);
-    }
+        .check_run()?;
 
-    let st = Command::new("rustup")
+    Command::new("rustup")
         .args(&[
             "target",
             "add",
@@ -37,14 +48,9 @@ fn rustup() -> Fallible<()> {
             "--toolchain",
             NIGHTLY_VERSION,
         ])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    if !st.success() {
-        bail!("Cannot get nvptx64-nvidia-cuda target: {:?}", st);
-    }
+        .check_run()?;
 
-    let st = Command::new("rustup")
+    Command::new("rustup")
         .args(&[
             "component",
             "add",
@@ -52,16 +58,7 @@ fn rustup() -> Fallible<()> {
             "--toolchain",
             NIGHTLY_VERSION,
         ])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    if !st.success() {
-        bail!(
-            "Failed to install rustfmt for {}: {:?}",
-            NIGHTLY_VERSION,
-            st
-        );
-    }
+        .check_run()?;
     Ok(())
 }
 
@@ -128,16 +125,11 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
     cargo_toml.sync_data()?;
 
     // Build
-    let st = Command::new("cargo")
+    Command::new("cargo")
         .args(&[&format!("+{}", NIGHTLY_VERSION), "fmt"])
         .current_dir(&dir)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    if !st.success() {
-        bail!("cargo-fmt failed: {:?}", st);
-    }
-    let output = Command::new("cargo")
+        .check_run()?;
+    Command::new("cargo")
         .args(&[
             &format!("+{}", NIGHTLY_VERSION),
             "build",
@@ -146,13 +138,7 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
             "nvptx64-nvidia-cuda",
         ])
         .current_dir(&dir)
-        .output()?;
-    if !output.status.success() {
-        println!("{}", std::str::from_utf8(&output.stdout).unwrap());
-        eprintln!("{}", std::str::from_utf8(&output.stderr).unwrap());
-        eprintln!("You can find entire generated crate at {}", dir.display());
-        bail!("cargo-build failed for {}", meta.name());
-    }
+        .check_run()?;
 
     // Read PTX file
     let mut ptx = fs::File::open(dir.join(format!(

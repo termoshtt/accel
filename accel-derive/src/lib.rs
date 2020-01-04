@@ -3,6 +3,7 @@
 extern crate proc_macro;
 
 mod device;
+mod driver;
 mod host;
 mod parser;
 

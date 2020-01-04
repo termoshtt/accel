@@ -1,9 +1,7 @@
 use failure::*;
-use nvptx::manifest::Crate;
-use proc_macro2::Span;
 use quote::quote;
 
-use crate::parser::Attributes;
+use crate::{driver::*, parser::*};
 use std::process::Command;
 
 const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
@@ -38,20 +36,6 @@ pub fn rustup() -> Fallible<()> {
     Ok(())
 }
 
-/// Header part of lib.rs
-fn header(crates: &[Crate]) -> String {
-    let crates: Vec<syn::Ident> = crates
-        .iter()
-        .map(|c| syn::Ident::new(&c.name.replace("-", "_"), Span::call_site()))
-        .collect();
-    let tt = quote! {
-        #![feature(abi_ptx)]
-        #![no_std]
-        #(extern crate #crates;), *
-    };
-    tt.to_string()
-}
-
 /// Kernel part of lib.rs
 fn ptx_kernel(func: &syn::ItemFn) -> String {
     let vis = &func.vis;
@@ -64,6 +48,8 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     let output = &func.sig.output;
 
     let kernel = quote! {
+        #![feature(abi_ptx)]
+        #![no_std]
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
     };
@@ -72,9 +58,9 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
 
 /// Convert #[kernel] function into lib.rs
 pub fn func2kernel(func: &syn::ItemFn) -> String {
-    let attrs = Attributes::parse(&func.attrs);
-    let driver = attrs.create_driver();
-    let lib_rs = format!("{}\n{}", header(attrs.get_crates()), ptx_kernel(func));
+    let attrs = parse_attrs(&func.attrs).expect("Failed to parse attributes");
+    let driver = Driver::from_attrs(&attrs).expect("Cannot create PTX compiler driver");
+    let lib_rs = ptx_kernel(func);
     driver.compile_str(&lib_rs).expect("Failed to compile")
 }
 

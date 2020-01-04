@@ -31,13 +31,7 @@ impl CheckRun for Command {
 /// Setup nightly rustc+cargo and nvptx64-nvidia-cuda target
 fn rustup() -> Fallible<()> {
     Command::new("rustup")
-        .args(&[
-            "toolchain",
-            "install",
-            NIGHTLY_VERSION,
-            "--profile",
-            "minimal",
-        ])
+        .args(&["toolchain", "install", NIGHTLY_VERSION])
         .check_run()?;
 
     Command::new("rustup")

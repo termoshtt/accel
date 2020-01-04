@@ -8,7 +8,7 @@ on:
 jobs:
   accel-derive:
     runs-on: ubuntu-latest
-    name: check
+    name: accel-derive test
     steps:
       - uses: actions/checkout@v1
       - name: test
@@ -18,7 +18,7 @@ jobs:
 
   cargo-check:
     runs-on: ubuntu-latest
-    name: check
+    name: cargo check
     steps:
       - uses: actions/checkout@v1
       - name: check
@@ -26,7 +26,7 @@ jobs:
 
   cargo-fmt:
     runs-on: ubuntu-latest
-    name: format
+    name: cargo fmt
     steps:
       - uses: actions/checkout@v1
       - name: format

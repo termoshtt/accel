@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install rust-ptx-linker
-        run: cargo install ptx-linker -f
+        run: |
+          cargo install ptx-linker -f
+          rust-ptx-linker --version
       - name: test
         run: |
           cd accel-derive

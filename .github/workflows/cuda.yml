@@ -1,0 +1,258 @@
+name: "CUDA without GPU"
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  centos6-cuda8_0:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 8.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda8_0
+      with:
+        path: rust-cuda-test
+  centos6-cuda9_0:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 9.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda9_0
+      with:
+        path: rust-cuda-test
+  centos6-cuda9_1:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 9.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda9_1
+      with:
+        path: rust-cuda-test
+  centos6-cuda9_2:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 9.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda9_2
+      with:
+        path: rust-cuda-test
+  centos6-cuda10_0:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 10.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda10_0
+      with:
+        path: rust-cuda-test
+  centos6-cuda10_1:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 10.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda10_1
+      with:
+        path: rust-cuda-test
+  centos6-cuda10_2:
+    runs-on: ubuntu-latest
+    name: CentOS 6, CUDA 10.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos6-cuda10_2
+      with:
+        path: rust-cuda-test
+  centos7-cuda8_0:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 8.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda8_0
+      with:
+        path: rust-cuda-test
+  centos7-cuda9_0:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 9.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda9_0
+      with:
+        path: rust-cuda-test
+  centos7-cuda9_1:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 9.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda9_1
+      with:
+        path: rust-cuda-test
+  centos7-cuda9_2:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 9.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda9_2
+      with:
+        path: rust-cuda-test
+  centos7-cuda10_0:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 10.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda10_0
+      with:
+        path: rust-cuda-test
+  centos7-cuda10_1:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 10.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda10_1
+      with:
+        path: rust-cuda-test
+  centos7-cuda10_2:
+    runs-on: ubuntu-latest
+    name: CentOS 7, CUDA 10.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@centos7-cuda10_2
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda8_0:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 8.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda8_0
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda9_0:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 9.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda9_0
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda9_1:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 9.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda9_1
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda9_2:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 9.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda9_2
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda10_0:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 10.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda10_0
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda10_1:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 10.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda10_1
+      with:
+        path: rust-cuda-test
+  ubuntu1604-cuda10_2:
+    runs-on: ubuntu-latest
+    name: Ubuntu 16.04, CUDA 10.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1604-cuda10_2
+      with:
+        path: rust-cuda-test
+  ubuntu1804-cuda9_2:
+    runs-on: ubuntu-latest
+    name: Ubuntu 18.04, CUDA 9.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1804-cuda9_2
+      with:
+        path: rust-cuda-test
+  ubuntu1804-cuda10_0:
+    runs-on: ubuntu-latest
+    name: Ubuntu 18.04, CUDA 10.0
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1804-cuda10_0
+      with:
+        path: rust-cuda-test
+  ubuntu1804-cuda10_1:
+    runs-on: ubuntu-latest
+    name: Ubuntu 18.04, CUDA 10.1
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1804-cuda10_1
+      with:
+        path: rust-cuda-test
+  ubuntu1804-cuda10_2:
+    runs-on: ubuntu-latest
+    name: Ubuntu 18.04, CUDA 10.2
+    steps:
+    - uses: actions/checkout@v1
+    - name: cargo test
+      id: test
+      uses: termoshtt/rust-cuda-docker-action@ubuntu1804-cuda10_2
+      with:
+        path: rust-cuda-test

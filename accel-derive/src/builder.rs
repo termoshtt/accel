@@ -10,7 +10,7 @@ use std::{
     process::Command,
 };
 
-const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
+const NIGHTLY_VERSION: &'static str = "nightly-2020-01-02";
 
 trait CheckRun {
     fn check_run(&mut self) -> Fallible<()>;

@@ -1,7 +1,12 @@
 use crate::parser::*;
 use failure::*;
 use quote::quote;
-use std::{path::*, process::Command};
+use std::{
+    env, fs,
+    io::{Read, Write},
+    path::*,
+    process::Command,
+};
 
 const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
 
@@ -55,30 +60,48 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     kernel.to_string()
 }
 
-pub struct PTXBuilder {
-    _meta: MetaData,
-}
+pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
+    rustup()?;
+    let meta = MetaData::from_token(func)?;
 
-impl PTXBuilder {
-    pub fn from_kernel(func: &syn::ItemFn) -> Fallible<Self> {
-        rustup()?;
-        let _meta = MetaData::from_token(func)?;
-        Ok(PTXBuilder { _meta })
+    // Create crate
+    let out_dir = env::var("OUT_DIR")?;
+    let dir = PathBuf::from(&out_dir).join(meta.name());
+    fs::create_dir_all(dir.join("src"))?;
+
+    // Generate lib.rs and write into a file
+    let mut lib_rs = fs::File::create(dir.join("src/lib.rs"))?;
+    lib_rs.write(ptx_kernel(func).as_bytes())?;
+    lib_rs.sync_data()?;
+
+    // Generate Cargo.toml
+    let mut cargo_toml = fs::File::create(dir.join("Cargo.toml"))?;
+    cargo_toml.write(toml::to_string(&meta)?.as_bytes())?;
+    cargo_toml.sync_data()?;
+
+    // Build
+    let st = Command::new("cargo")
+        .args(&[
+            &format!("+{}", NIGHTLY_VERSION),
+            "build",
+            "--release",
+            "--target",
+            "nvptx64-nvidia-cuda",
+        ])
+        .current_dir(&dir)
+        .status()?;
+    if !st.success() {
+        bail!("cargo-build failed for {}", meta.name());
     }
 
-    fn create_crate(&self) -> Fallible<PathBuf> {
-        unimplemented!()
-    }
-
-    fn compile(&self, _rust_str: &str) -> Fallible<String> {
-        self.create_crate()?;
-        unimplemented!()
-    }
-
-    pub fn compile_tokens(&self, func: &syn::ItemFn) -> Fallible<String> {
-        let lib_rs = ptx_kernel(func);
-        self.compile(&lib_rs)
-    }
+    // Read PTX file
+    let mut ptx = fs::File::open(dir.join(format!(
+        "target/nvptx64-nvidia-cuda/release/{}.ptx",
+        meta.name()
+    )))?;
+    let mut buf = String::new();
+    ptx.read_to_string(&mut buf)?;
+    Ok(buf)
 }
 
 #[cfg(test)]

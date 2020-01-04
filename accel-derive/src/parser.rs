@@ -20,6 +20,10 @@ impl MetaData {
         }
     }
 
+    pub fn name(&self) -> &str {
+        &self.package["name"]
+    }
+
     pub fn from_token(func: &syn::ItemFn) -> Fallible<Self> {
         let attrs = &func.attrs;
         let mut kernel_attrs = MetaData::new(&func.sig.ident.to_string());

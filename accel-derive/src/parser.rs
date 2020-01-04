@@ -5,44 +5,50 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize)]
-pub struct Attributes {
-    package: HashMap<&'static str, &'static str>,
+pub struct MetaData {
+    package: HashMap<&'static str, String>,
     lib: HashMap<&'static str, Vec<&'static str>>,
     dependencies: HashMap<String, Depenency>,
 }
 
-impl Default for Attributes {
-    fn default() -> Self {
-        Attributes {
-            package: hashmap! { "version" => "0.0.1", "name" => "accel-derive-builder" },
+impl MetaData {
+    fn new(name: &str) -> Self {
+        MetaData {
+            package: hashmap! { "version" => "0.0.0".into(), "name" => name.into() },
             lib: hashmap! { "crate-type" => vec![ "cdylib" ] },
             dependencies: HashMap::new(),
         }
     }
-}
 
-pub fn parse_attrs(attrs: &[syn::Attribute]) -> Fallible<Attributes> {
-    let mut kernel_attrs = Attributes::default();
-    for attr in attrs {
-        let path = attr.path.to_token_stream().to_string();
-        match path.as_ref() {
-            "dependencies" => {
-                let dep = parse_dependency(
-                    attr.tokens
-                        .to_string()
-                        .trim_start_matches('(')
-                        .trim_end_matches(')'),
-                )?;
-                for (key, val) in dep {
-                    kernel_attrs.dependencies.insert(key, val);
+    pub fn from_token(func: &syn::ItemFn) -> Fallible<Self> {
+        let attrs = &func.attrs;
+        let mut kernel_attrs = MetaData::new(&func.sig.ident.to_string());
+        for attr in attrs {
+            let path = attr.path.to_token_stream().to_string();
+            match path.as_ref() {
+                "dependencies" => {
+                    let dep = parse_dependency(
+                        attr.tokens
+                            .to_string()
+                            .trim_start_matches('(')
+                            .trim_end_matches(')'),
+                    )?;
+                    for (key, val) in dep {
+                        kernel_attrs.dependencies.insert(key, val);
+                    }
+                }
+                "name" => {
+                    let token = attr.tokens.to_string();
+                    let name = token.trim_start_matches('(').trim_end_matches(')').trim();
+                    kernel_attrs.package.insert("name", name.into());
+                }
+                _ => {
+                    bail!("Unsupported attribute: {}", path);
                 }
             }
-            _ => {
-                bail!("Unsupported attribute: {}", path);
-            }
         }
+        Ok(kernel_attrs)
     }
-    Ok(kernel_attrs)
 }
 
 // Should I use `cargo::core::dependency::Depenency`?
@@ -79,14 +85,14 @@ fn parse_dependency(dep: &str) -> Fallible<HashMap<String, Depenency>> {
 mod tests {
     #[test]
     fn serialize_attrs() {
-        let attr = super::Attributes::default();
+        let attr = super::MetaData::new("crate_name");
         let s = toml::to_string(&attr).unwrap();
         assert_eq!(
             s.trim(),
             r#"
 [package]
-version = "0.0.1"
-name = "accel-derive-builder"
+version = "0.0.0"
+name = "crate_name"
 
 [lib]
 crate-type = ["cdylib"]

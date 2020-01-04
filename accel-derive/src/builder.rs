@@ -1,9 +1,7 @@
-//! Compiler driver for Rust to PTX assembler
-
 use crate::parser::*;
 use failure::*;
 use quote::quote;
-use std::process::Command;
+use std::{path::*, process::Command};
 
 const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
 
@@ -57,18 +55,23 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     kernel.to_string()
 }
 
-pub struct Driver {
-    attrs: Attributes,
+pub struct PTXBuilder {
+    _meta: MetaData,
 }
 
-impl Driver {
+impl PTXBuilder {
     pub fn from_kernel(func: &syn::ItemFn) -> Fallible<Self> {
         rustup()?;
-        let attrs = parse_attrs(&func.attrs)?;
-        Ok(Driver { attrs })
+        let _meta = MetaData::from_token(func)?;
+        Ok(PTXBuilder { _meta })
+    }
+
+    fn create_crate(&self) -> Fallible<PathBuf> {
+        unimplemented!()
     }
 
     fn compile(&self, _rust_str: &str) -> Fallible<String> {
+        self.create_crate()?;
         unimplemented!()
     }
 

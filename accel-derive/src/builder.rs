@@ -2,7 +2,9 @@ use crate::parser::*;
 use failure::*;
 use quote::quote;
 use std::{
+    collections::hash_map::DefaultHasher,
     env, fs,
+    hash::*,
     io::{Read, Write},
     path::*,
     process::Command,
@@ -60,13 +62,34 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     kernel.to_string()
 }
 
+fn calc_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
+fn project_id() -> String {
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let hash = calc_hash(&manifest_dir);
+    let stem = PathBuf::from(manifest_dir)
+        .file_stem()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+    format!("{}-{:x}", stem, hash)
+}
+
 pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
     rustup()?;
     let meta = MetaData::from_token(func)?;
 
     // Create crate
-    let out_dir = env::var("OUT_DIR")?;
-    let dir = PathBuf::from(&out_dir).join(meta.name());
+    let dir = dirs::cache_dir()
+        .unwrap()
+        .join("accel-derive")
+        .join(project_id())
+        .join(meta.name());
     fs::create_dir_all(dir.join("src"))?;
 
     // Generate lib.rs and write into a file

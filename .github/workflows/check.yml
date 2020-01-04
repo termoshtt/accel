@@ -1,4 +1,4 @@
-name: "Static Check"
+name: "Without GPU"
 on:
   push:
     branches:
@@ -11,6 +11,8 @@ jobs:
     name: accel-derive test
     steps:
       - uses: actions/checkout@v1
+      - name: Install rust-ptx-linker
+        run: cargo install ptx-linker -f
       - name: test
         run: |
           cd accel-derive

@@ -7,7 +7,7 @@ use std::{
     hash::*,
     io::{Read, Write},
     path::*,
-    process::Command,
+    process::{Command, Stdio},
 };
 
 const NIGHTLY_VERSION: &'static str = "nightly-2020-01-01";
@@ -22,6 +22,8 @@ fn rustup() -> Fallible<()> {
             "--profile",
             "minimal",
         ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status()?;
     if !st.success() {
         bail!("Cannot get nightly toolchain by rustup: {:?}", st);
@@ -35,9 +37,30 @@ fn rustup() -> Fallible<()> {
             "--toolchain",
             NIGHTLY_VERSION,
         ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status()?;
     if !st.success() {
         bail!("Cannot get nvptx64-nvidia-cuda target: {:?}", st);
+    }
+
+    let st = Command::new("rustup")
+        .args(&[
+            "component",
+            "add",
+            "rustfmt",
+            "--toolchain",
+            NIGHTLY_VERSION,
+        ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()?;
+    if !st.success() {
+        bail!(
+            "Failed to install rustfmt for {}: {:?}",
+            NIGHTLY_VERSION,
+            st
+        );
     }
     Ok(())
 }
@@ -106,6 +129,15 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
 
     // Build
     let st = Command::new("cargo")
+        .args(&[&format!("+{}", NIGHTLY_VERSION), "fmt"])
+        .current_dir(&dir)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()?;
+    if !st.success() {
+        bail!("cargo-fmt failed: {:?}", st);
+    }
+    let output = Command::new("cargo")
         .args(&[
             &format!("+{}", NIGHTLY_VERSION),
             "build",
@@ -114,8 +146,11 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
             "nvptx64-nvidia-cuda",
         ])
         .current_dir(&dir)
-        .status()?;
-    if !st.success() {
+        .output()?;
+    if !output.status.success() {
+        println!("{}", std::str::from_utf8(&output.stdout).unwrap());
+        eprintln!("{}", std::str::from_utf8(&output.stderr).unwrap());
+        eprintln!("You can find entire generated crate at {}", dir.display());
         bail!("cargo-build failed for {}", meta.name());
     }
 

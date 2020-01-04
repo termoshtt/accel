@@ -88,26 +88,6 @@ fn parse_dependency(dep: &str) -> Fallible<HashMap<String, Depenency>> {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn serialize_attrs() {
-        let attr = super::MetaData::new("crate_name");
-        let s = toml::to_string(&attr).unwrap();
-        assert_eq!(
-            s.trim(),
-            r#"
-[package]
-version = "0.0.0"
-name = "crate_name"
-
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
-            "#
-            .trim()
-        )
-    }
-
-    #[test]
     fn parse_dependency() {
         let map = super::parse_dependency(r#"accel-core = "0.1.1""#).unwrap();
         dbg!(map);

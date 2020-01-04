@@ -27,3 +27,6 @@ dirs = "*"
 [dependencies.syn]
 version = "1.0"
 features = ["full", "extra-traits"]
+
+[dev-dependencies]
+accel = { path = "../accel" }

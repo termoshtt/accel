@@ -23,4 +23,4 @@ derive:
   stage: test
   script:
     - cd accel-derive
-    - cargo test -v
+    - cargo test

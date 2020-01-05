@@ -28,34 +28,6 @@ impl CheckRun for Command {
     }
 }
 
-/// Setup nightly rustc+cargo and nvptx64-nvidia-cuda target
-fn rustup() -> Fallible<()> {
-    Command::new("rustup")
-        .args(&["toolchain", "install", NIGHTLY_VERSION])
-        .check_run()?;
-
-    Command::new("rustup")
-        .args(&[
-            "target",
-            "add",
-            "nvptx64-nvidia-cuda",
-            "--toolchain",
-            NIGHTLY_VERSION,
-        ])
-        .check_run()?;
-
-    Command::new("rustup")
-        .args(&[
-            "component",
-            "add",
-            "rustfmt",
-            "--toolchain",
-            NIGHTLY_VERSION,
-        ])
-        .check_run()?;
-    Ok(())
-}
-
 /// Generate Rust code for nvptx64-nvidia-cuda target from tokens
 fn ptx_kernel(func: &syn::ItemFn) -> String {
     let vis = &func.vis;
@@ -97,7 +69,6 @@ fn project_id() -> String {
 }
 
 pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
-    rustup()?;
     let meta = MetaData::from_token(func)?;
 
     // Create crate
@@ -142,12 +113,4 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
     let mut buf = String::new();
     ptx.read_to_string(&mut buf)?;
     Ok(buf)
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn rustup() {
-        super::rustup().unwrap();
-    }
 }

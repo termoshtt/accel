@@ -32,7 +32,7 @@ derive:
     - apk add make
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - make ${TAG}
+    - make -C docker ${TAG}
   only:
     changes:
       - docker/*

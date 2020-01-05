@@ -6,6 +6,21 @@ accel-derive
 
 Procedural-macro crate for `#[kernel]`
 
+Requirements
+------------
+
+Install nightly-2020-01-02 toolchain
+
+```
+rustup toolchain add nightly-2020-01-02 --profile minimal
+```
+
+and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
+
+```
+cargo install ptx-linker -f
+```
+
 #[accel_derive::kernel]
 ------------------------
 

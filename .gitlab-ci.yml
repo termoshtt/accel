@@ -1,0 +1,19 @@
+image: rust:1.40
+
+stages:
+  - test
+
+cache:
+  paths:
+    - target/
+    - cargo/
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
+
+check:
+  stage: test
+  before_script:
+    - apt update
+    - apt install -y llvm-dev
+  script:
+    - cargo check

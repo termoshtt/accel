@@ -17,3 +17,12 @@ check:
     - apt install -y llvm-dev
   script:
     - cargo check
+
+derive:
+  stage: test
+  before_script:
+    - apt update
+    - apt install -y llvm-dev
+  script:
+    - cd accel-derive
+    - cargo test -v

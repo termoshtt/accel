@@ -12,9 +12,6 @@ variables:
 
 check:
   stage: test
-  before_script:
-    - apt update
-    - apt install -y llvm-dev
   script:
     - cargo check
 

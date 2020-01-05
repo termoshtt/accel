@@ -29,6 +29,8 @@ cargo install ptx-linker -f
 - Device code will be compiled into PTX assembler
 - Host code which call the generated device code (PTX asm) using `accel::module` API
 
+### Generate PTX assember
+
 ```rust
 use accel_derive::kernel;
 
@@ -62,6 +64,10 @@ accel-core = "0.2.0-alpha"
 ```
 
 This crate will be compiled into PTX assembler using `nvptx64-nvidia-cuda` target.
+`nvptx64-nvidia-cuda` target does not support libstd currently.
+You need to write codes in `no_std` manner.
+
+### Kernel launcher
 
 On the other hand, corresponding host code will also generated:
 

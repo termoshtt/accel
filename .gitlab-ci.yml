@@ -19,6 +19,5 @@ derive:
   image: registry.gitlab.com/rust-cuda/container/ubuntu18.04-cuda10.2:master
   stage: test
   script:
-    - export LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs
     - cd accel-derive
     - cargo test

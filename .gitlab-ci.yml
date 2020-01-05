@@ -1,6 +1,7 @@
 image: rust:1.40
 
 stages:
+  - docker
   - test
 
 cache:
@@ -21,3 +22,19 @@ derive:
   script:
     - cd accel-derive
     - cargo test
+
+.build:
+  image: docker:stable
+  stage: docker
+  services:
+    - docker:dind
+  before_script:
+    - apk add make
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - make ${TAG}
+  only:
+    changes:
+      - docker/*
+
+include: '/docker/ci.yml'

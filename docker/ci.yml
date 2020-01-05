@@ -1,0 +1,101 @@
+centos6-cuda10.0:
+  extends: .build
+  variables:
+    TAG: centos6-cuda10.0
+centos6-cuda10.1:
+  extends: .build
+  variables:
+    TAG: centos6-cuda10.1
+centos6-cuda10.2:
+  extends: .build
+  variables:
+    TAG: centos6-cuda10.2
+centos6-cuda8.0:
+  extends: .build
+  variables:
+    TAG: centos6-cuda8.0
+centos6-cuda9.0:
+  extends: .build
+  variables:
+    TAG: centos6-cuda9.0
+centos6-cuda9.1:
+  extends: .build
+  variables:
+    TAG: centos6-cuda9.1
+centos6-cuda9.2:
+  extends: .build
+  variables:
+    TAG: centos6-cuda9.2
+centos7-cuda10.0:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.0
+centos7-cuda10.1:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.1
+centos7-cuda10.2:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.2
+centos7-cuda8.0:
+  extends: .build
+  variables:
+    TAG: centos7-cuda8.0
+centos7-cuda9.0:
+  extends: .build
+  variables:
+    TAG: centos7-cuda9.0
+centos7-cuda9.1:
+  extends: .build
+  variables:
+    TAG: centos7-cuda9.1
+centos7-cuda9.2:
+  extends: .build
+  variables:
+    TAG: centos7-cuda9.2
+ubuntu16.04-cuda10.0:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda10.0
+ubuntu16.04-cuda10.1:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda10.1
+ubuntu16.04-cuda10.2:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda10.2
+ubuntu16.04-cuda8.0:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda8.0
+ubuntu16.04-cuda9.0:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda9.0
+ubuntu16.04-cuda9.1:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda9.1
+ubuntu16.04-cuda9.2:
+  extends: .build
+  variables:
+    TAG: ubuntu16.04-cuda9.2
+ubuntu18.04-cuda10.0:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.0
+ubuntu18.04-cuda10.1:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.1
+ubuntu18.04-cuda10.2:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.2
+ubuntu18.04-cuda9.2:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda9.2
+

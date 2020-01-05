@@ -12,5 +12,8 @@ variables:
 
 check:
   stage: test
+  before_script:
+    - apt update
+    - apt insatll -y llvm-dev
   script:
     - cargo check

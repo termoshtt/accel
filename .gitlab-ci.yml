@@ -12,8 +12,12 @@ variables:
 
 check:
   stage: test
-  before_script:
-    - apt update
-    - apt install -y llvm-dev
   script:
     - cargo check
+
+derive:
+  image: registry.gitlab.com/rust-cuda/container/ubuntu18.04-cuda10.2:master
+  stage: test
+  script:
+    - cd accel-derive
+    - cargo test

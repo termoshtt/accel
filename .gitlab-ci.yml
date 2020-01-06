@@ -45,7 +45,10 @@ test:accel:
   script:
     - make -C docker ${TAG}
   only:
-    - master
-    - tags
+    refs:
+      - master
+      - tags
+    changes:
+      - docker/*
 
 include: '/docker/ci.yml'

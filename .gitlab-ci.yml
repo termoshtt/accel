@@ -13,6 +13,9 @@ variables:
 
 check:
   stage: test
+  before_script:
+    - rustup toolchain add nightly-2020-01-02 --profile minimal
+    - rustup target add nvptx64-nvidia-cuda --toolchain nightly-2020-01-02
   script:
     - cd $CI_PROJECT_DIR/accel; cargo check
     - cd $CI_PROJECT_DIR/accel-core; cargo check

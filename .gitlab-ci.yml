@@ -11,18 +11,25 @@ cache:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
 
-check:
+test:cargo-check:
   stage: test
   script:
     - cd $CI_PROJECT_DIR/accel; cargo check
     - cd $CI_PROJECT_DIR/accel-core; cargo check
     - cd $CI_PROJECT_DIR/accel-derive; cargo check
 
-derive:
+test:accel-derive:
   stage: test
   script:
     - cd accel-derive
     - cargo test
+
+test:accel:
+  stage: test
+  script:
+    - cargo test
+  tags:
+    - gpu
 
 .build:
   image: docker:stable

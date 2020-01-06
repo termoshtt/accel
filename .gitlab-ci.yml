@@ -27,6 +27,7 @@ test:accel-derive:
 test:accel:
   stage: test
   script:
+    - ldconfig -p | grep -E 'nvidia|cuda'
     - cd accel
     - cargo test
   tags:

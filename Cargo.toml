@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "accel",
+  "accel-core",
   "accel-derive",
 ]
 

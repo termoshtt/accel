@@ -1,4 +1,4 @@
-image: rust:1.40
+image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
 
 stages:
   - docker
@@ -13,16 +13,12 @@ variables:
 
 check:
   stage: test
-  before_script:
-    - rustup toolchain add nightly-2020-01-02
-    - rustup target add nvptx64-nvidia-cuda --toolchain nightly-2020-01-02
   script:
     - cd $CI_PROJECT_DIR/accel; cargo check
     - cd $CI_PROJECT_DIR/accel-core; cargo check
     - cd $CI_PROJECT_DIR/accel-derive; cargo check
 
 derive:
-  image: registry.gitlab.com/rust-cuda/container/ubuntu18.04-cuda10.2:master
   stage: test
   script:
     - cd accel-derive

@@ -27,6 +27,7 @@ test:accel-derive:
 test:accel:
   stage: test
   script:
+    - cd accel
     - cargo test
   tags:
     - gpu

@@ -36,7 +36,7 @@ derive:
   script:
     - make -C docker ${TAG}
   only:
-    changes:
-      - docker/*
+    - master
+    - tags
 
 include: '/docker/ci.yml'

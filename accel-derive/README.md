@@ -3,6 +3,7 @@ accel-derive
 
 [![Crate](http://meritbadge.herokuapp.com/accel-derive)](https://crates.io/crates/accel-derive)
 [![docs.rs](https://docs.rs/accel-derive/badge.svg)](https://docs.rs/accel-derive)
+[![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
 Procedural-macro crate for `#[kernel]`
 

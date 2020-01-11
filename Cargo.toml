@@ -4,3 +4,6 @@ members = [
   "accel-derive",
 ]
 
+exclude = [
+"accel-core",
+]

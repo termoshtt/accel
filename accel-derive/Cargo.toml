@@ -1,6 +1,6 @@
 [package]
 name = "accel-derive"
-version = "0.2.1-alpha.0"
+version = "0.3.0-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 edition = "2018"
 
@@ -16,18 +16,18 @@ categories    = []
 proc-macro = true
 
 [dependencies]
-failure = "0.1"
-proc-macro2 = "1.0"
-quote = "1.0"
-toml = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-maplit = "1.0"
-dirs = "*"
+failure = "0.1.6"
+proc-macro2 = "1.0.7"
+quote = "1.0.2"
+toml = "0.5.5"
+serde = { version = "1.0.104", features = ["derive"] }
+maplit = "1.0.2"
+dirs = "2.0.2"
 
 [dependencies.syn]
-version = "1.0"
+version = "1.0.13"
 features = ["full", "extra-traits"]
 
 [dev-dependencies]
 accel = { path = "../accel" }
-trybuild = "1.0"
+trybuild = "1.0.19"

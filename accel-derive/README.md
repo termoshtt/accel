@@ -35,7 +35,7 @@ cargo install ptx-linker -f
 use accel_derive::kernel;
 
 #[kernel]
-#[dependencies(accel-core = "0.2.0-alpha")]  // Strings in `()` will be parsed as TOML
+#[dependencies("accel-core" = "0.2.0-alpha")]  // Strings in `()` will be parsed as TOML
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {
@@ -64,7 +64,8 @@ accel-core = "0.2.0-alpha"
 ```
 
 This crate will be compiled into PTX assembler using `nvptx64-nvidia-cuda` target.
-`nvptx64-nvidia-cuda` target does not support libstd currently.
+Genearated crates will be placed on `$HOME/.cache/accel-derive` (determined by [dirs::cache_dir](https://docs.rs/dirs/2.0.2/dirs/fn.cache_dir.html)).
+`nvptx64-nvidia-cuda` target does not support libstd yet.
 You need to write codes in `no_std` manner.
 
 ### Kernel launcher

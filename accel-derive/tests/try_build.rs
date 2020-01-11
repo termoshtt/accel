@@ -1,11 +1,6 @@
 #[test]
-fn do_nothing() {
+fn kernel_generate() {
     let t = trybuild::TestCases::new();
     t.pass("examples/do_nothing.rs");
-}
-
-#[test]
-fn dependencies() {
-    let t = trybuild::TestCases::new();
     t.pass("examples/dependencies.rs");
 }

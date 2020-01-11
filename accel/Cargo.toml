@@ -1,15 +1,15 @@
 [package]
 name = "accel"
-version = "0.2.1-alpha.0"
+version = "0.3.0-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 edition = "2018"
 
 description   = "GPGPU Framework for Rust"
 documentation = "https://docs.rs/accel"
-repository    = "https://github.com/termoshtt/accel"
+repository    = "https://gitlab.com/termoshtt/accel"
 keywords      = ["GPGPU", "CUDA"]
 license       = "MIT"
-readme        = "README.md"
+readme        = "../README.md"
 categories    = []
 
 [dependencies]

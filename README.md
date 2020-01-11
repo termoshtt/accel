@@ -1,61 +1,38 @@
 Accel: GPGPU Framework for Rust
 ================================
 
-[![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)
-[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)
 [![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
-CUDA-based GPGPU framework for Rust
+|crate       |crates.io                                                                                                                 |docs.rs                                                                           |                                           |
+|:-----------|:------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------:|:------------------------------------------|
+|accel       |[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel)       |[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)              |CUDA-based GPGPU framework                 |
+|accel-core  |[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel-core)  |[![docs.rs](https://docs.rs/accel-core/badge.svg)](https://docs.rs/accel-core)    |Helper for writing device code             |
+|accel-derive|[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel-derive)|[![docs.rs](https://docs.rs/accel-derive/badge.svg)](https://docs.rs/accel-derive)|Procedural macro for generating kernel code|
 
-Features
----------
-
-- Compile PTX Kernel from Rust using NVPTX backend of LLVM (demonstrated in [japaric/nvptx](https://github.com/japaric/nvptx))
-- [proc-macro-attribute](https://github.com/rust-lang/rust/issues/38356)-based approach like [futures-await](https://github.com/alexcrichton/futures-await)
-- Simple memory management using [Unified Memory](http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-unified-memory-programming-hd)
-
-Sub Crates
------------
-- [accel-derive](accel-derive/README.md): Define procedual macro `#[kernel]`
-- [accel-core](accel-core/README.md): Support crate for writing GPU kernel
-- [cuda-sys](cuda-sys/README.md): Rust binding to CUDA Driver/Runtime APIs
-
-Pre-requirements
----------------
+Requirements
+------------
 
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
-- Install [LLVM](https://llvm.org/) 6.0 or later (use `llc` and `llvm-link` to generate PTX)
-- Install Rust using [rustup.rs](https://github.com/rust-lang-nursery/rustup.rs)
-  - Use the nightly Rust toolchain with `rustup override nightly`
-- Install [nvptx](https://github.com/rust-accel/nvptx), and install `accel-nvptx` toolchain
+  - accel depends on CUDA Runtime and Device APIs through [rust-cuda/cuda-sys](https://github.com/rust-cuda/cuda-sys)
+- Setup NVPTX target of Rust
+  - Install `nightly-2020-01-02` toolchain with  `nvptx64-nvidia-cuda` target and `rustfmt`, and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
 
 ```
-cargo install nvptx
-nvptx install       # install accel-nvptx toolchain to $XDG_DATA_HOME/accel-nvptx
+rustup toolchain add nightly-2020-01-02 --profile minimal
+rustup target add nvptx64-nvidia-cuda --toolchain nightly-2020-01-02
+rustup component add rustfmt --toolchain nightly-2020-01-02
+cargo install ptx-linker
 ```
-
-Or, you can use [termoshtt/rust-cuda](https://hub.docker.com/r/termoshtt/rust-cuda/) container whith satisfies these requirements.
-
-```
-docker run -it --rm --runtime=nvidia termoshtt/rust-cuda
-```
-
-See also [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
 
 Example
 --------
 
 ```rust
-#![feature(proc_macro, proc_macro_gen)]
-
-extern crate accel;
-extern crate accel_derive;
-
-use accel_derive::kernel;
 use accel::*;
+use accel_derive::kernel;
 
 #[kernel]
-#[crate("accel-core" = "0.2.0-alpha")]
+#[dependencies("accel-core" = "0.3.0-alpha.1")]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     let i = accel_core::index();
     if (i as usize) < n {
@@ -84,6 +61,10 @@ fn main() {
     println!("c = {:?}", c.as_slice());
 }
 ```
+
+Contribution
+------------
+This project is developed on [GitLab](https://gitlab.com/termoshtt/accel) and mirrored to [GitHub](https://github.com/rust-accel/accel).
 
 Licence
 --------

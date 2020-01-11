@@ -24,6 +24,8 @@ rustup component add rustfmt --toolchain nightly-2020-01-02
 cargo install ptx-linker
 ```
 
+Or, you can use [docekr container](./docker)
+
 Example
 --------
 

@@ -82,7 +82,7 @@ enum Depenency {
 }
 
 fn parse_dependency(dep: &str) -> Fallible<HashMap<String, Depenency>> {
-    Ok(toml::from_str(dep)?)
+    Ok(toml::from_str(&dep.replace("\n", ""))?)
 }
 
 #[cfg(test)]
@@ -96,6 +96,12 @@ mod tests {
 
         let map = super::parse_dependency(
             r#"accel-core = { git = "https://github.com/rust-accel/accel" }"#,
+        )
+        .unwrap();
+        dbg!(map);
+
+        let map = super::parse_dependency(
+            r#"accel-core = { git = "https://github.com/rust-accel/accel", branch = "master" }"#,
         )
         .unwrap();
         dbg!(map);

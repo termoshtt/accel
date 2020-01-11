@@ -2,7 +2,7 @@ use crate::parser::*;
 use failure::*;
 use quote::quote;
 use std::{
-    collections::hash_map::DefaultHasher,
+    collections::{hash_map::DefaultHasher, HashMap},
     env, fs,
     hash::*,
     io::{Read, Write},
@@ -18,13 +18,16 @@ trait CheckRun {
 
 impl CheckRun for Command {
     fn check_run(&mut self) -> Fallible<()> {
-        let output = self.output()?;
+        // Filter CARGO_* and OUT_DIR envs
+        let filtered_env: HashMap<String, String> = env::vars()
+            .filter(|&(ref k, _)| !(k.starts_with("CARGO") || k == "OUT_DIR"))
+            .collect();
+        let output = self.env_clear().envs(&filtered_env).output()?;
         if !output.status.success() {
             println!("{}", std::str::from_utf8(&output.stdout)?);
             eprintln!("{}", std::str::from_utf8(&output.stderr)?);
             bail!("External command failed: {:?}", self);
         }
-        dbg!(output);
         Ok(())
     }
 }
@@ -79,8 +82,6 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
         .join(project_id())
         .join(meta.name());
     fs::create_dir_all(dir.join("src"))?;
-
-    dbg!(&dir);
 
     // Generate lib.rs and write into a file
     let mut lib_rs = fs::File::create(dir.join("src/lib.rs"))?;

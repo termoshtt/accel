@@ -30,3 +30,4 @@ features = ["full", "extra-traits"]
 
 [dev-dependencies]
 accel = { path = "../accel" }
+trybuild = "1.0"

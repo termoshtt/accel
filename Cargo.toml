@@ -1,7 +1,9 @@
 [workspace]
 members = [
   "accel",
-  "accel-core",
   "accel-derive",
 ]
 
+exclude = [
+"accel-core",
+]

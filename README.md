@@ -3,11 +3,11 @@ Accel: GPGPU Framework for Rust
 
 [![pipeline status](https://gitlab.com/termoshtt/accel/badges/master/pipeline.svg)](https://gitlab.com/termoshtt/accel/commits/master)
 
-|crate       |crates.io                                                                                                                 |docs.rs                                                                           |                                           |
-|:-----------|:-------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:------------------------------------------|
-|accel       |[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel)       |[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)              |CUDA-based GPGPU framework                 |
-|accel-core  |[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel-core)  |[![docs.rs](https://docs.rs/accel-core/badge.svg)](https://docs.rs/accel-core)    |Helper for writing device code             |
-|accel-derive|[![Crate](https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?longCache=true)](https://crates.io/crates/accel-derive)|[![docs.rs](https://docs.rs/accel-derive/badge.svg)](https://docs.rs/accel-derive)|Procedural macro for generating kernel code|
+|crate       |crates.io                                                                                      |docs.rs                                                                           |                                           |
+|:-----------|:----------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------|:------------------------------------------|
+|accel       |[![Crate](http://meritbadge.herokuapp.com/accel)](https://crates.io/crates/accel)              |[![docs.rs](https://docs.rs/accel/badge.svg)](https://docs.rs/accel)              |CUDA-based GPGPU framework                 |
+|accel-core  |[![Crate](http://meritbadge.herokuapp.com/accel-core)](https://crates.io/crates/accel-core)    |[![docs.rs](https://docs.rs/accel-core/badge.svg)](https://docs.rs/accel-core)    |Helper for writing device code             |
+|accel-derive|[![Crate](http://meritbadge.herokuapp.com/accel-derive)](https://crates.io/crates/accel-derive)|[![docs.rs](https://docs.rs/accel-derive/badge.svg)](https://docs.rs/accel-derive)|Procedural macro for generating kernel code|
 
 Requirements
 ------------

@@ -14,7 +14,7 @@ pub struct MetaData {
 impl MetaData {
     fn new(name: &str) -> Self {
         MetaData {
-            package: hashmap! { "version" => "0.0.0".into(), "name" => name.into() },
+            package: hashmap! { "version" => "0.0.0".into(), "name" => name.into(), "edition" => "2018".into() },
             lib: hashmap! { "crate-type" => vec![ "cdylib" ] },
             dependencies: HashMap::new(),
         }

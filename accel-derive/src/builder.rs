@@ -24,6 +24,7 @@ impl CheckRun for Command {
             eprintln!("{}", std::str::from_utf8(&output.stderr)?);
             bail!("External command failed: {:?}", self);
         }
+        dbg!(output);
         Ok(())
     }
 }
@@ -79,6 +80,8 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
         .join(meta.name());
     fs::create_dir_all(dir.join("src"))?;
 
+    dbg!(&dir);
+
     // Generate lib.rs and write into a file
     let mut lib_rs = fs::File::create(dir.join("src/lib.rs"))?;
     lib_rs.write(ptx_kernel(func).as_bytes())?;
@@ -113,4 +116,16 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
     let mut buf = String::new();
     ptx.read_to_string(&mut buf)?;
     Ok(buf)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_do_nothing() {
+        let func = syn::parse_str("unsafe fn do_nothing() {}").unwrap();
+        let ptx = compile_tokens(&func).unwrap();
+        assert!(ptx.len() > 0);
+    }
 }

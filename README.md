@@ -18,10 +18,7 @@ Requirements
   - Install `nightly-2020-01-02` toolchain with  `nvptx64-nvidia-cuda` target, and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
 
 ```
-NIGHTLY=nightly-2020-01-02
-rustup toolchain add ${NIGHTLY}
-rustup target add nvptx64-nvidia-cuda --toolchain ${NIGHTLY}
-cargo install ptx-linker -f
+curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh | bash
 ```
 
 Or, you can use [docekr container](./docker)

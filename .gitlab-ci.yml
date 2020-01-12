@@ -52,6 +52,7 @@ test:examples:
     - cargo run --example printf
     - cargo run --example assert
     - cargo run --example ptx_str
+    - cargo run --example slice
 
 test:ignored:
   extends: .with_gpu

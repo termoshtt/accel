@@ -72,3 +72,8 @@ pub fn index() -> isize {
     let thread_id = thread_idx().into_id(block_dim());
     (block_id + thread_id) as isize
 }
+
+#[panic_handler]
+fn panic(_: &::core::panic::PanicInfo) -> ! {
+    loop {}
+}

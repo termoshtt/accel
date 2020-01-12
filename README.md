@@ -15,13 +15,13 @@ Requirements
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
   - accel depends on CUDA Runtime and Device APIs through [rust-cuda/cuda-sys](https://github.com/rust-cuda/cuda-sys)
 - Setup NVPTX target of Rust
-  - Install `nightly-2020-01-02` toolchain with  `nvptx64-nvidia-cuda` target and `rustfmt`, and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
+  - Install `nightly-2020-01-02` toolchain with  `nvptx64-nvidia-cuda` target, and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
 
 ```
-rustup toolchain add nightly-2020-01-02 --profile minimal
-rustup target add nvptx64-nvidia-cuda --toolchain nightly-2020-01-02
-rustup component add rustfmt --toolchain nightly-2020-01-02
-cargo install ptx-linker
+NIGHTLY=nightly-2020-01-02
+rustup toolchain add ${NIGHTLY}
+rustup target add nvptx64-nvidia-cuda --toolchain ${NIGHTLY}
+cargo install ptx-linker -f
 ```
 
 Or, you can use [docekr container](./docker)

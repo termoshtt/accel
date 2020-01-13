@@ -6,11 +6,10 @@ extern crate cuda_runtime_sys as cudart;
 pub mod device;
 pub mod driver;
 pub mod error;
-pub mod kernel;
 pub mod mvec;
 pub mod uvec;
 
-pub use kernel::{Block, Grid};
+pub use driver::kernel::{Block, Grid};
 pub use mvec::MVec;
 pub use uvec::UVec;
 

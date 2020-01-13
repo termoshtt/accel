@@ -3,7 +3,8 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use crate::{cuda_driver_init, error::*, kernel::Kernel};
+use super::kernel::Kernel;
+use crate::{cuda_driver_init, error::*};
 use cuda::*;
 use std::{
     collections::HashMap,

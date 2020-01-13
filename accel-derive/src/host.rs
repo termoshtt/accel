@@ -21,9 +21,9 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
 
     let caller = quote! {
         #vis #fn_token #ident(grid: accel::Grid, block: accel::Block, #inputs) -> Result<(), accel::error::AccelError> {
-            use accel::{
+            use accel::driver::{
                 kernel::void_cast,
-                driver::module::Module
+                module::Module,
             };
             let module = Module::from_str(#ptx_str)?;
             let mut kernel = module.get_kernel(#kernel_name)?;

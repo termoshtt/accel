@@ -9,7 +9,7 @@ use std::ops::Deref;
 use std::os::raw::*;
 use std::ptr::null_mut;
 
-use super::driver::module::*;
+use super::module::*;
 
 /// CUDA Kernel function
 #[derive(Debug)]
@@ -46,7 +46,7 @@ impl<'m> Kernel<'m> {
 /// Get type-erased pointer
 ///
 /// ```
-/// # use accel::kernel::void_cast;
+/// # use accel::driver::kernel::void_cast;
 /// let a = 1_usize;
 /// let p = void_cast(&a);
 /// unsafe { assert_eq!(*(p as *mut usize), 1) };
@@ -55,7 +55,7 @@ impl<'m> Kernel<'m> {
 /// This returns the pointer for slice, and the length of slice is dropped:
 ///
 /// ```
-/// # use accel::kernel::void_cast;
+/// # use accel::driver::kernel::void_cast;
 /// # use std::os::raw::c_void;
 /// let s: &[f64] = &[0.0; 4];
 /// let p = s.as_ptr() as *mut c_void;

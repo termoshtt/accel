@@ -2,6 +2,7 @@
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
 use crate::error::*;
+use anyhow::Result;
 use cuda::*;
 use cudart::*;
 
@@ -26,7 +27,7 @@ impl<'m> Kernel<'m> {
         grid: Grid,
         block: Block,
     ) -> Result<()> {
-        cuLaunchKernel(
+        Ok(cuLaunchKernel(
             self.func,
             grid.x,
             grid.y,
@@ -39,7 +40,7 @@ impl<'m> Kernel<'m> {
             args,
             null_mut(), // no extra
         )
-        .check()
+        .check()?)
     }
 }
 

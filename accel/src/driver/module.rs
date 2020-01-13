@@ -5,6 +5,7 @@
 
 use super::kernel::Kernel;
 use crate::{cuda_driver_init, error::*};
+use anyhow::Result;
 use cuda::*;
 use std::{
     collections::HashMap,

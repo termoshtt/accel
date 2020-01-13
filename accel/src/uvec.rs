@@ -1,6 +1,7 @@
 use super::error::*;
 use cudart::*;
 
+use anyhow::Result;
 use std::mem::size_of;
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::os::raw::*;
@@ -30,7 +31,8 @@ impl<T> UVec<T> {
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
-        unsafe { cudaMemset(self.ptr as *mut c_void, 0, self.n * size_of::<T>()).check() }
+        unsafe { cudaMemset(self.ptr as *mut c_void, 0, self.n * size_of::<T>()) }.check()?;
+        Ok(())
     }
 
     pub fn new(n: usize) -> Result<Self> {

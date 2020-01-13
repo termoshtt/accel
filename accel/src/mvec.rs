@@ -1,6 +1,6 @@
 use super::error::*;
+use anyhow::Result;
 use cudart::*;
-
 use std::mem::size_of;
 use std::os::raw::*;
 use std::ptr::null_mut;
@@ -23,7 +23,8 @@ impl<T: Copy> MVec<T> {
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
-        unsafe { cudaMemset(self.ptr as *mut c_void, 0, self.n * size_of::<T>()).check() }
+        unsafe { cudaMemset(self.ptr as *mut c_void, 0, self.n * size_of::<T>()).check()? }
+        Ok(())
     }
 
     pub fn new(n: usize) -> Result<Self> {
@@ -53,7 +54,8 @@ impl<T: Copy> MVec<T> {
                 cudaMemcpyKind::cudaMemcpyHostToDevice,
             )
         }
-        .check()
+        .check()?;
+        Ok(())
     }
 
     /// Load data from device_vector into host_vector
@@ -67,7 +69,8 @@ impl<T: Copy> MVec<T> {
                 cudaMemcpyKind::cudaMemcpyDeviceToHost,
             )
         }
-        .check()
+        .check()?;
+        Ok(())
     }
 
     /// Returns the length of the buffer

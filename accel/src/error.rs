@@ -1,11 +1,13 @@
 pub use cuda::cudaError_enum as DeviceError;
 pub use cudart::cudaError_t as RuntimeError;
 
-pub type Result<T> = ::std::result::Result<T, Error>;
+pub type Result<T> = ::std::result::Result<T, AccelError>;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Error {
+#[derive(thiserror::Error, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum AccelError {
+    #[error("CUDA Device API Error: {0:?}")]
     Device(DeviceError),
+    #[error("CUDA Runtime API Error: {0:?}")]
     Runtime(RuntimeError),
 }
 
@@ -33,14 +35,14 @@ impl Check for RuntimeError {
     }
 }
 
-impl Into<Error> for DeviceError {
-    fn into(self) -> Error {
-        Error::Device(self)
+impl Into<AccelError> for DeviceError {
+    fn into(self) -> AccelError {
+        AccelError::Device(self)
     }
 }
 
-impl Into<Error> for RuntimeError {
-    fn into(self) -> Error {
-        Error::Runtime(self)
+impl Into<AccelError> for RuntimeError {
+    fn into(self) -> AccelError {
+        AccelError::Runtime(self)
     }
 }

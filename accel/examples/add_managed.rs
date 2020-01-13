@@ -33,7 +33,7 @@ fn main() {
 
     let grid = Grid::x(1);
     let block = Block::x(n as u32);
-    add(grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n);
+    add(grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n).expect("Kernel call failed");
 
     device::sync().unwrap();
 

@@ -3,18 +3,16 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use crate::error::*;
+use crate::{cuda_driver_init, error::*, kernel::Kernel};
 use cuda::*;
-
-use std::collections::HashMap;
-use std::ffi::CStr;
-use std::os::raw::{c_char, c_uint, c_void};
-use std::path::{Path, PathBuf};
-use std::ptr::null_mut;
-use std::str::FromStr;
-
-use super::cuda_driver_init;
-use super::kernel::Kernel;
+use std::{
+    collections::HashMap,
+    ffi::CStr,
+    os::raw::{c_char, c_uint, c_void},
+    path::{Path, PathBuf},
+    ptr::null_mut,
+    str::FromStr,
+};
 
 /// Option for JIT compile
 ///

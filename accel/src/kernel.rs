@@ -9,7 +9,7 @@ use std::ops::Deref;
 use std::os::raw::*;
 use std::ptr::null_mut;
 
-use super::module::*;
+use super::driver::module::*;
 
 /// CUDA Kernel function
 #[derive(Debug)]

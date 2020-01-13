@@ -4,4 +4,5 @@ fn kernel_generate() {
     t.pass("tests/kernels/do_nothing.rs");
     t.pass("tests/kernels/dependencies.rs");
     t.pass("tests/kernels/dependencies_git.rs");
+    t.pass("tests/kernels/dependencies_default.rs");
 }

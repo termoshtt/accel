@@ -9,5 +9,5 @@ pub unsafe fn print() {
 fn main() {
     let grid = Grid::x(1);
     let block = Block::x(4);
-    print(grid, block);
+    print(grid, block).expect("print kernel failed");
 }

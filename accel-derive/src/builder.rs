@@ -48,6 +48,8 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
         #![no_std]
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
+        #[panic_handler]
+        fn panic(_: &::core::panic::PanicInfo) -> ! { loop {} }
     };
     kernel.to_string()
 }

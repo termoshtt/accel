@@ -33,6 +33,7 @@ test:accel:
     - cargo test
     - cargo run --example add
     - cargo run --example add_managed
+    - cargo run --example printf
   tags:
     - gpu
 

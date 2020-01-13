@@ -13,6 +13,7 @@ use std::path::{Path, PathBuf};
 use std::ptr::null_mut;
 use std::str::FromStr;
 
+use super::cuda_driver_init;
 use super::kernel::Kernel;
 
 /// Option for JIT compile
@@ -98,6 +99,7 @@ pub fn link(data: &[Data], opt: &JITOption) -> Result<Module> {
 impl Linker {
     /// Create a new Linker
     pub fn create(option: &JITOption) -> Result<Self> {
+        cuda_driver_init();
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
         unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
@@ -209,6 +211,7 @@ impl Module {
     unsafe fn load_data(ptr: *const c_void) -> Result<Self> {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
+        cuda_driver_init();
         cuModuleLoadData(m, ptr).check()?;
         Ok(Module(handle))
     }
@@ -218,6 +221,7 @@ impl Module {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         let filename = str2cstring(path.to_str().unwrap());
+        cuda_driver_init();
         unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
         Ok(Module(handle))
     }
@@ -231,6 +235,7 @@ impl Module {
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = str2cstring(name);
         let mut func = null_mut();
+        cuda_driver_init();
         unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
             .check()?;
         Ok(Kernel { func, _m: self })

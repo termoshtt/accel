@@ -11,7 +11,8 @@ pub enum AccelError {
     Runtime(RuntimeError),
 }
 
-pub trait Check {
+/// Convert return code of CUDA Driver/Runtime API into Result
+pub(crate) trait Check {
     fn check(self) -> Result<()>;
 }
 

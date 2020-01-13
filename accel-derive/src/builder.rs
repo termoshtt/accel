@@ -44,7 +44,7 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     let output = &func.sig.output;
 
     let kernel = quote! {
-        #![feature(abi_ptx)]
+        #![feature(abi_ptx, stdsimd)]
         #![no_std]
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block

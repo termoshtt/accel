@@ -15,3 +15,16 @@ pub mod uvec;
 pub use kernel::{Block, Grid};
 pub use mvec::MVec;
 pub use uvec::UVec;
+
+use error::Check;
+use std::sync::Once;
+
+/// Initializer for CUDA Driver API
+static DRIVER_API_INIT: Once = Once::new();
+fn cuda_driver_init() {
+    DRIVER_API_INIT.call_once(|| {
+        unsafe { cuda::cuInit(0) }
+            .check()
+            .expect("Initialization of CUDA Driver API failed");
+    })
+}

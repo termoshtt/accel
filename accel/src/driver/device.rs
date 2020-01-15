@@ -21,6 +21,14 @@ pub struct Context<'device> {
     device: &'device Device,
 }
 
+impl<'device> Drop for Context<'device> {
+    fn drop(&mut self) {
+        unsafe { cuDevicePrimaryCtxRelease(self.device.0) }
+            .check()
+            .expect("Failed to release primary context");
+    }
+}
+
 impl Device {
     pub fn count() -> Result<usize> {
         cuda_driver_init();
@@ -55,7 +63,7 @@ impl Device {
     pub fn primary_context(&self) -> Result<Context> {
         let mut context = MaybeUninit::uninit();
         unsafe {
-            cuDevicePrimaryCtxRetain(context.as_mut_ptr(), self.0);
+            cuDevicePrimaryCtxRetain(context.as_mut_ptr(), self.0).check()?;
             Ok(Context {
                 context: context.assume_init(),
                 device: self,
@@ -80,7 +88,8 @@ mod tests {
 
     #[test]
     fn get_primary_context() -> anyhow::Result<()> {
-        let _ctx = Device::new(0)?.primary_context()?;
+        let dev = Device::new(0)?;
+        let _ctx = dev.primary_context()?;
         Ok(())
     }
 }

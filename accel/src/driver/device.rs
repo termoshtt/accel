@@ -1,9 +1,6 @@
 //! Low-level API for [device], [primary context] and (general) [context] management
 //! in [CUDA Device API].
 //!
-//! - The [primary context] is unique per device and shared with the CUDA runtime API.
-//!   These functions allow integration with other libraries using CUDA
-//!
 //! [CUDA Device API]: https://docs.nvidia.com/cuda/cuda-driver-api/index.html
 //! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
@@ -51,6 +48,10 @@ impl Device {
         Ok(String::from_utf8(bytes)?)
     }
 
+    /// The [primary context] is unique per device and shared with the CUDA runtime API.
+    /// These functions allow integration with other libraries using CUDA
+    ///
+    /// [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
     pub fn primary_context(&self) -> Result<Context> {
         let mut context = MaybeUninit::uninit();
         unsafe {
@@ -75,5 +76,11 @@ mod tests {
     #[test]
     fn get_zeroth() {
         Device::new(0).unwrap();
+    }
+
+    #[test]
+    fn get_primary_context() -> anyhow::Result<()> {
+        let _ctx = Device::new(0)?.primary_context()?;
+        Ok(())
     }
 }

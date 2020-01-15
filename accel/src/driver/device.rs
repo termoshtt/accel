@@ -1,13 +1,28 @@
-//! Low-level API for device management based on
-//! [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html#group__CUDA__DEVICE)
+//! Low-level API for [device], [primary context] and (general) [context] management
+//! in [CUDA Device API].
+//!
+//! - The [primary context] is unique per device and shared with the CUDA runtime API.
+//!   These functions allow integration with other libraries using CUDA
+//!
+//! [CUDA Device API]: https://docs.nvidia.com/cuda/cuda-driver-api/index.html
+//! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
+//! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
+//! [context]:         https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
 use crate::error::*;
 use anyhow::Result;
 use cuda::*;
+use std::mem::MaybeUninit;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device(CUdevice);
+
+#[derive(Debug, PartialEq, PartialOrd)]
+pub struct Context<'device> {
+    context: CUcontext,
+    device: &'device Device,
+}
 
 impl Device {
     pub fn count() -> Result<usize> {
@@ -34,6 +49,17 @@ impl Device {
         let mut bytes: Vec<u8> = vec![0_u8; 1024];
         unsafe { cuDeviceGetName(bytes.as_mut_ptr() as *mut i8, 1024, self.0) }.check()?;
         Ok(String::from_utf8(bytes)?)
+    }
+
+    pub fn primary_context(&self) -> Result<Context> {
+        let mut context = MaybeUninit::uninit();
+        unsafe {
+            cuDevicePrimaryCtxRetain(context.as_mut_ptr(), self.0);
+            Ok(Context {
+                context: context.assume_init(),
+                device: self,
+            })
+        }
     }
 }
 

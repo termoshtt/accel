@@ -7,6 +7,8 @@ pub mod module;
 use crate::error::Check;
 use std::sync::Once;
 
+pub use device::Device;
+
 /// Initializer for CUDA Driver API
 static DRIVER_API_INIT: Once = Once::new();
 fn cuda_driver_init() {

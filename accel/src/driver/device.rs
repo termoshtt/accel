@@ -72,6 +72,14 @@ impl Device {
     }
 }
 
+impl<'device> Context<'device> {
+    pub fn version(&self) -> Result<u32> {
+        let mut version = 0_u32;
+        unsafe { cuCtxGetApiVersion(self.context, &mut version as *mut _) }.check()?;
+        Ok(version)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,6 +98,14 @@ mod tests {
     fn get_primary_context() -> anyhow::Result<()> {
         let dev = Device::new(0)?;
         let _ctx = dev.primary_context()?;
+        Ok(())
+    }
+
+    #[test]
+    fn get_api_version() -> anyhow::Result<()> {
+        let dev = Device::new(0)?;
+        let ctx = dev.primary_context()?;
+        dbg!(ctx.version()?);
         Ok(())
     }
 }

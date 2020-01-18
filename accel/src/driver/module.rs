@@ -272,8 +272,8 @@ mod tests {
           ret;
         }
         "#;
-        let dev = Device::new(0)?;
-        let _ctx = dev.primary_context()?;
+        let device = Device::new(0).unwrap();
+        let _ctx = Context::create(&device, 0).unwrap();
         let _mod = Module::from_str(ptx)?;
         Ok(())
     }

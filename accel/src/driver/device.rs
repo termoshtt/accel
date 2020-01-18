@@ -1,29 +1,28 @@
-//! Low-level API for [device], [primary context] and (general) [context] management
-//! in [CUDA Device API].
+//! Low-level API for [device] and [primary context]
 //!
-//! [CUDA Device API]: https://docs.nvidia.com/cuda/cuda-driver-api/index.html
 //! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
-//! [context]:         https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
 use crate::error::*;
-use anyhow::Result;
+use anyhow::{bail, Result};
 use cuda::*;
-use std::mem::MaybeUninit;
+use std::{marker::PhantomData, mem::MaybeUninit};
 
 #[derive(Debug, PartialEq, PartialOrd)]
-pub struct Device(CUdevice);
+pub struct Device {
+    device: CUdevice,
 
-#[derive(Debug, PartialEq, PartialOrd)]
-pub struct Context<'device> {
-    context: CUcontext,
-    device: &'device Device,
+    /// The [primary context] is unique per device and shared with the CUDA runtime API.
+    /// These functions allow integration with other libraries using CUDA
+    ///
+    /// [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
+    primary_context: CUcontext,
 }
 
-impl<'device> Drop for Context<'device> {
+impl Drop for Device {
     fn drop(&mut self) {
-        unsafe { cuDevicePrimaryCtxRelease(self.device.0) }
+        unsafe { cuDevicePrimaryCtxRelease(self.device) }
             .check()
             .expect("Failed to release primary context");
     }
@@ -39,44 +38,79 @@ impl Device {
 
     pub fn new(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let mut device: CUdevice = 0;
-        unsafe { cuDeviceGet(&mut device as *mut _, id) }.check()?;
-        Ok(Device(device))
+        let device = unsafe {
+            let mut device = MaybeUninit::uninit();
+            cuDeviceGet(device.as_mut_ptr(), id).check()?;
+            device.assume_init()
+        };
+        let primary_context = unsafe {
+            let mut primary_context = MaybeUninit::uninit();
+            cuDevicePrimaryCtxRetain(primary_context.as_mut_ptr(), device).check()?;
+            primary_context.assume_init()
+        };
+        Ok(Device {
+            device,
+            primary_context,
+        })
     }
 
     pub fn total_memory(&self) -> Result<usize> {
         let mut mem = 0;
-        unsafe { cuDeviceTotalMem_v2(&mut mem as *mut _, self.0) }.check()?;
+        unsafe { cuDeviceTotalMem_v2(&mut mem as *mut _, self.device) }.check()?;
         Ok(mem)
     }
 
     pub fn get_name(&self) -> Result<String> {
         let mut bytes: Vec<u8> = vec![0_u8; 1024];
-        unsafe { cuDeviceGetName(bytes.as_mut_ptr() as *mut i8, 1024, self.0) }.check()?;
+        unsafe { cuDeviceGetName(bytes.as_mut_ptr() as *mut i8, 1024, self.device) }.check()?;
         Ok(String::from_utf8(bytes)?)
     }
+}
 
-    /// The [primary context] is unique per device and shared with the CUDA runtime API.
-    /// These functions allow integration with other libraries using CUDA
-    ///
-    /// [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
-    pub fn primary_context(&self) -> Result<Context> {
-        let mut context = MaybeUninit::uninit();
-        unsafe {
-            cuDevicePrimaryCtxRetain(context.as_mut_ptr(), self.0).check()?;
-            Ok(Context {
-                context: context.assume_init(),
-                device: self,
-            })
-        }
+// Be sure that this struct is zero-sized
+#[repr(C)]
+#[derive(Debug)]
+pub struct Context<'device> {
+    context: CUctx_st,
+    phantom: PhantomData<&'device Device>,
+}
+
+impl<'device> Drop for Context<'device> {
+    fn drop(&mut self) {
+        unsafe { cuCtxDestroy_v2(&mut self.context as *mut _) }
+            .check()
+            .expect("Context remove failed");
     }
 }
 
 impl<'device> Context<'device> {
-    pub fn version(&self) -> Result<u32> {
-        let mut version = 0_u32;
-        unsafe { cuCtxGetApiVersion(self.context, &mut version as *mut _) }.check()?;
+    pub fn create(device: &Device, flags: u32) -> Result<Box<Self>> {
+        cuda_driver_init();
+        Ok(unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxCreate_v2(context.as_mut_ptr(), flags, device.device).check()?;
+            Box::from_raw(context.assume_init() as *mut Context)
+        })
+    }
+
+    pub fn api_version(&self) -> Result<u32> {
+        let mut version: u32 = 0;
+        unsafe { cuCtxGetApiVersion(&self.context as *const _ as *mut _, &mut version as *mut _) }
+            .check()?;
         Ok(version)
+    }
+
+    pub fn get_current() -> Result<&'device Self> {
+        cuda_driver_init();
+        let context = unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxGetCurrent(context.as_mut_ptr()).check()?;
+            context.assume_init()
+        };
+        if context.is_null() {
+            bail!("No current context");
+        }
+        Ok(unsafe { (context as *mut Self).as_ref() }.unwrap())
     }
 }
 
@@ -95,17 +129,21 @@ mod tests {
     }
 
     #[test]
-    fn get_primary_context() -> anyhow::Result<()> {
-        let dev = Device::new(0)?;
-        let _ctx = dev.primary_context()?;
-        Ok(())
+    fn context_create() {
+        let device = Device::new(0).unwrap();
+        let _ctx = Context::create(&device, 0).unwrap();
     }
 
     #[test]
-    fn get_api_version() -> anyhow::Result<()> {
-        let dev = Device::new(0)?;
-        let ctx = dev.primary_context()?;
-        dbg!(ctx.version()?);
-        Ok(())
+    fn get_current_context() {
+        let device = Device::new(0).unwrap();
+        let _ctx1 = Context::create(&device, 0).unwrap();
+        let _ctx2 = Context::get_current().unwrap();
+    }
+
+    #[should_panic]
+    #[test]
+    fn no_current_context() {
+        Context::get_current().unwrap();
     }
 }

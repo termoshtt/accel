@@ -9,6 +9,8 @@ use anyhow::{bail, Result};
 use cuda::*;
 use std::{marker::PhantomData, mem::MaybeUninit};
 
+pub use cuda::CUctx_flags_enum as ContextFlag;
+
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {
     device: CUdevice,
@@ -65,6 +67,21 @@ impl Device {
         unsafe { cuDeviceGetName(bytes.as_mut_ptr() as *mut i8, 1024, self.device) }.check()?;
         Ok(String::from_utf8(bytes)?)
     }
+
+    /// Create a new context on the device
+    pub fn create_context(&self, flags: ContextFlag) -> Result<Box<Context>> {
+        cuda_driver_init();
+        Ok(unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxCreate_v2(context.as_mut_ptr(), flags as u32, self.device).check()?;
+            Box::from_raw(context.assume_init() as *mut Context)
+        })
+    }
+
+    /// Create a new context on the device
+    pub fn create_context_auto(&self) -> Result<Box<Context>> {
+        self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
+    }
 }
 
 // Be sure that this struct is zero-sized
@@ -84,15 +101,6 @@ impl<'device> Drop for Context<'device> {
 }
 
 impl<'device> Context<'device> {
-    pub fn create(device: &Device, flags: u32) -> Result<Box<Self>> {
-        cuda_driver_init();
-        Ok(unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxCreate_v2(context.as_mut_ptr(), flags, device.device).check()?;
-            Box::from_raw(context.assume_init() as *mut Context)
-        })
-    }
-
     pub fn api_version(&self) -> Result<u32> {
         let mut version: u32 = 0;
         unsafe { cuCtxGetApiVersion(&self.context as *const _ as *mut _, &mut version as *mut _) }
@@ -100,6 +108,7 @@ impl<'device> Context<'device> {
         Ok(version)
     }
 
+    /// Get current context with arbitary lifetime
     pub fn get_current() -> Result<&'device Self> {
         cuda_driver_init();
         let context = unsafe {
@@ -131,13 +140,13 @@ mod tests {
     #[test]
     fn context_create() {
         let device = Device::new(0).unwrap();
-        let _ctx = Context::create(&device, 0).unwrap();
+        let _ctx = device.create_context_auto().unwrap();
     }
 
     #[test]
     fn get_current_context() {
         let device = Device::new(0).unwrap();
-        let _ctx1 = Context::create(&device, 0).unwrap();
+        let _ctx1 = device.create_context_auto().unwrap();
         let _ctx2 = Context::get_current().unwrap();
     }
 

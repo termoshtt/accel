@@ -31,14 +31,15 @@ impl Drop for Device {
 }
 
 impl Device {
-    pub fn count() -> Result<usize> {
+    /// Get number of available GPUs
+    pub fn get_count() -> Result<usize> {
         cuda_driver_init();
         let mut count: i32 = 0;
         unsafe { cuDeviceGetCount(&mut count as *mut i32) }.check()?;
         Ok(count as usize)
     }
 
-    pub fn new(id: i32) -> Result<Self> {
+    pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
         let device = unsafe {
             let mut device = MaybeUninit::uninit();
@@ -56,12 +57,14 @@ impl Device {
         })
     }
 
+    /// Get total memory of GPU
     pub fn total_memory(&self) -> Result<usize> {
         let mut mem = 0;
         unsafe { cuDeviceTotalMem_v2(&mut mem as *mut _, self.device) }.check()?;
         Ok(mem)
     }
 
+    /// Get name of GPU
     pub fn get_name(&self) -> Result<String> {
         let mut bytes: Vec<u8> = vec![0_u8; 1024];
         unsafe { cuDeviceGetName(bytes.as_mut_ptr() as *mut i8, 1024, self.device) }.check()?;
@@ -78,13 +81,13 @@ impl Device {
         })
     }
 
-    /// Create a new context on the device
+    /// Create a new context on the device with defacult option (`CU_CTX_SCHED_AUTO`)
     pub fn create_context_auto(&self) -> Result<Box<Context>> {
         self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
     }
 }
 
-// Be sure that this struct is zero-sized
+/// Handler for CUDA Driver context
 #[repr(C)]
 #[derive(Debug)]
 pub struct Context<'device> {
@@ -132,23 +135,23 @@ mod tests {
 
     #[test]
     fn get_count() {
-        Device::count().unwrap();
+        Device::get_count().unwrap();
     }
 
     #[test]
     fn get_zeroth() {
-        Device::new(0).unwrap();
+        Device::nth(0).unwrap();
     }
 
     #[test]
     fn context_create() {
-        let device = Device::new(0).unwrap();
+        let device = Device::nth(0).unwrap();
         let _ctx = device.create_context_auto().unwrap();
     }
 
     #[test]
     fn get_current_context() {
-        let device = Device::new(0).unwrap();
+        let device = Device::nth(0).unwrap();
         let _ctx1 = device.create_context_auto().unwrap();
         let _ctx2 = Context::get_current().unwrap();
     }

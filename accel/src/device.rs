@@ -1,4 +1,5 @@
 use crate::error::*;
+use anyhow::Result;
 use cudart::*;
 use std::mem;
 
@@ -6,7 +7,7 @@ pub use cudart::cudaComputeMode as ComputeMode;
 pub use cudart::cudaDeviceProp as DeviceProp;
 
 pub fn sync() -> Result<()> {
-    unsafe { cudaDeviceSynchronize() }.check()
+    Ok(unsafe { cudaDeviceSynchronize() }.check()?)
 }
 
 /// Compute Capability of GPU

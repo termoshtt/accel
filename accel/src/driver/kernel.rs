@@ -2,6 +2,7 @@
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
 use crate::error::*;
+use anyhow::Result;
 use cuda::*;
 use cudart::*;
 
@@ -26,7 +27,7 @@ impl<'m> Kernel<'m> {
         grid: Grid,
         block: Block,
     ) -> Result<()> {
-        cuLaunchKernel(
+        Ok(cuLaunchKernel(
             self.func,
             grid.x,
             grid.y,
@@ -39,14 +40,14 @@ impl<'m> Kernel<'m> {
             args,
             null_mut(), // no extra
         )
-        .check()
+        .check()?)
     }
 }
 
 /// Get type-erased pointer
 ///
 /// ```
-/// # use accel::kernel::void_cast;
+/// # use accel::driver::kernel::void_cast;
 /// let a = 1_usize;
 /// let p = void_cast(&a);
 /// unsafe { assert_eq!(*(p as *mut usize), 1) };
@@ -55,7 +56,7 @@ impl<'m> Kernel<'m> {
 /// This returns the pointer for slice, and the length of slice is dropped:
 ///
 /// ```
-/// # use accel::kernel::void_cast;
+/// # use accel::driver::kernel::void_cast;
 /// # use std::os::raw::c_void;
 /// let s: &[f64] = &[0.0; 4];
 /// let p = s.as_ptr() as *mut c_void;

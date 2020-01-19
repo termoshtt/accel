@@ -1,7 +1,11 @@
-//! Low-level API for [device] and [primary context]
+//! Low-level API for [device], [primary context], and (general) [context].
+//!
+//! - The [primary context] is unique per device and shared with the CUDA runtime API.
+//!   These functions allow integration with other libraries using CUDA
 //!
 //! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
+//! [context]:         https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
 use crate::error::*;
@@ -11,14 +15,10 @@ use std::{marker::PhantomData, mem::MaybeUninit};
 
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
+/// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {
     device: CUdevice,
-
-    /// The [primary context] is unique per device and shared with the CUDA runtime API.
-    /// These functions allow integration with other libraries using CUDA
-    ///
-    /// [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
     primary_context: CUcontext,
 }
 
@@ -109,6 +109,9 @@ impl<'device> Context<'device> {
     }
 
     /// Get current context with arbitary lifetime
+    ///
+    /// - This function returns error when no current context exists.
+    ///
     pub fn get_current() -> Result<&'device Self> {
         cuda_driver_init();
         let context = unsafe {

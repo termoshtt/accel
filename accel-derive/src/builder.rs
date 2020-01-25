@@ -49,7 +49,9 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
         #[panic_handler]
-        fn panic(_: &::core::panic::PanicInfo) -> ! { loop {} }
+        fn panic(_info: &::core::panic::PanicInfo) -> ! {
+            unsafe { ::core::arch::nvptx::trap() }
+        }
     };
     kernel.to_string()
 }

@@ -2,10 +2,10 @@ use accel::*;
 use accel_derive::kernel;
 
 #[kernel]
+#[dependencies("accel-core" = { git = "https://gitlab.com/termoshtt/accel", branch = "assert_macros" })]
 pub unsafe fn print() {
     let i = accel_core::index();
-    let msg = alloc::format!("Hello from {}\n", i);
-    core::arch::nvptx::vprintf(msg.as_ptr(), core::ptr::null_mut());
+    accel_core::println!("Hello from {}", i);
 }
 
 fn main() -> anyhow::Result<()> {

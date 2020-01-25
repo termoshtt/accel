@@ -3,7 +3,9 @@ use accel_derive::kernel;
 
 #[kernel]
 pub unsafe fn print() {
-    core::arch::nvptx::vprintf("Hello GPU World!".as_ptr(), core::ptr::null_mut());
+    let i = accel_core::index();
+    let msg = alloc::format!("Hello from {}\n", i);
+    core::arch::nvptx::vprintf(msg.as_ptr(), core::ptr::null_mut());
 }
 
 fn main() -> anyhow::Result<()> {

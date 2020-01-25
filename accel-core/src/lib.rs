@@ -21,7 +21,9 @@ unsafe impl GlobalAlloc for PTXAllocator {
 macro_rules! print {
     ($($arg:tt)*) => {
         let msg = ::alloc::format!($($arg)*);
-        ::core::arch::nvptx::vprintf(msg.as_ptr(), ::core::ptr::null_mut());
+        unsafe {
+            ::core::arch::nvptx::vprintf(msg.as_ptr(), ::core::ptr::null_mut());
+        }
     }
 }
 

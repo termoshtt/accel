@@ -34,6 +34,7 @@ test:accel:
     - cargo run --example add
     - cargo run --example add_managed
     - cargo run --example printf
+    - cargo run --example assert
   tags:
     - gpu
 

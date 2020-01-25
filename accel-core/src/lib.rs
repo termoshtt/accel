@@ -18,6 +18,21 @@ unsafe impl GlobalAlloc for PTXAllocator {
 }
 
 #[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        let msg = ::alloc::format!($($arg)*);
+        ::core::arch::nvptx::vprintf(msg.as_ptr(), ::core::ptr::null_mut());
+    }
+}
+
+#[macro_export]
+macro_rules! println {
+    () => (print!("\n"));
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+#[macro_export]
 macro_rules! assert_eq {
     ($a:expr, $b:expr) => {
         if $a != $b {

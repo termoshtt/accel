@@ -44,12 +44,19 @@ fn ptx_kernel(func: &syn::ItemFn) -> String {
     let output = &func.sig.output;
 
     let kernel = quote! {
-        #![feature(abi_ptx, stdsimd)]
+        #![feature(abi_ptx, stdsimd, alloc_error_handler)]
         #![no_std]
+        extern crate alloc;
+        #[global_allocator]
+        static _GLOBAL_ALLOCATOR: accel_core::PTXAllocator = accel_core::PTXAllocator;
         #[no_mangle]
         #vis #unsafety extern "ptx-kernel" #fn_token #ident(#inputs) #output #block
         #[panic_handler]
         fn panic(_info: &::core::panic::PanicInfo) -> ! {
+            unsafe { ::core::arch::nvptx::trap() }
+        }
+        #[alloc_error_handler]
+        fn alloc_error_handler(_: core::alloc::Layout) -> ! {
             unsafe { ::core::arch::nvptx::trap() }
         }
     };

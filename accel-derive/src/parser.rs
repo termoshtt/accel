@@ -54,7 +54,13 @@ impl MetaData {
         kernel_attrs
             .dependencies
             .entry("accel-core".into())
-            .or_insert(Depenency::Version("0.3.0-alpha.1".into()));
+            .or_insert(Depenency::Git {
+                git: "https://gitlab.com/termoshtt/accel".into(),
+                branch: Some("assert_macros".into()),
+                tag: None,
+                hash: None,
+                features: Vec::new(),
+            });
         Ok(kernel_attrs)
     }
 }

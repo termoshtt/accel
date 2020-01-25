@@ -54,7 +54,7 @@ impl MetaData {
         kernel_attrs
             .dependencies
             .entry("accel-core".into())
-            .or_insert(Depenency::Version("0.3.0-alpha.1".into()));
+            .or_insert(Depenency::Version("0.3.0-alpha.2".into()));
         Ok(kernel_attrs)
     }
 }

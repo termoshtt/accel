@@ -17,6 +17,73 @@ unsafe impl GlobalAlloc for PTXAllocator {
     }
 }
 
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        let msg = ::alloc::format!($($arg)*);
+        unsafe {
+            ::core::arch::nvptx::vprintf(msg.as_ptr(), ::core::ptr::null_mut());
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($fmt:expr) => ($crate::print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => ($crate::print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+#[macro_export]
+macro_rules! assert_eq {
+    ($a:expr, $b:expr) => {
+        if $a != $b {
+            let msg = alloc::format!(
+                "\nassertion failed: ({} == {})\nleft : {:?}\nright: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $a,
+                $b
+            );
+            unsafe {
+                ::core::arch::nvptx::__assert_fail(
+                    msg.as_ptr(),
+                    file!().as_ptr(),
+                    line!(),
+                    // FIXME cannot get function name.
+                    // See https://github.com/rust-lang/rfcs/pull/2818
+                    "".as_ptr(),
+                )
+            };
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! assert_ne {
+    ($a:expr, $b:expr) => {
+        if $a == $b {
+            let msg = alloc::format!(
+                "\nassertion failed: ({} != {})\nleft : {:?}\nright: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $a,
+                $b
+            );
+            unsafe {
+                ::core::arch::nvptx::__assert_fail(
+                    msg.as_ptr(),
+                    file!().as_ptr(),
+                    line!(),
+                    // FIXME cannot get function name.
+                    // See https://github.com/rust-lang/rfcs/pull/2818
+                    "".as_ptr(),
+                )
+            };
+        }
+    };
+}
+
 pub struct Dim3 {
     pub x: i32,
     pub y: i32,

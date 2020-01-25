@@ -2,8 +2,10 @@ use accel::*;
 use accel_derive::kernel;
 
 #[kernel]
-pub unsafe fn print() {
-    core::arch::nvptx::vprintf("Hello GPU World!".as_ptr(), core::ptr::null_mut());
+#[dependencies("accel-core" = { git = "https://gitlab.com/termoshtt/accel", branch = "assert_macros" })]
+pub fn print() {
+    let i = accel_core::index();
+    accel_core::println!("Hello from {}", i);
 }
 
 fn main() -> anyhow::Result<()> {

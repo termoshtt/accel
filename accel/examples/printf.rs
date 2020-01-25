@@ -2,7 +2,6 @@ use accel::*;
 use accel_derive::kernel;
 
 #[kernel]
-#[dependencies("accel-core" = { git = "https://gitlab.com/termoshtt/accel", branch = "assert_macros" })]
 pub fn print() {
     let i = accel_core::index();
     accel_core::println!("Hello from {}", i);

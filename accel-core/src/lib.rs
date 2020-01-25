@@ -26,12 +26,14 @@ macro_rules! assert_eq {
             // FIXME cannot get function name.
             // See https://github.com/rust-lang/rfcs/pull/2818
             let func_name = "";
-            ::core::arch::nvptx::__assert_fail(
-                msg.as_ptr(),
-                file!().as_ptr(),
-                line!(),
-                func_name.as_ptr(),
-            );
+            unsafe {
+                ::core::arch::nvptx::__assert_fail(
+                    msg.as_ptr(),
+                    file!().as_ptr(),
+                    line!(),
+                    func_name.as_ptr(),
+                )
+            };
         }
     };
 }
@@ -45,12 +47,14 @@ macro_rules! assert_ne {
             // FIXME cannot get function name.
             // See https://github.com/rust-lang/rfcs/pull/2818
             let func_name = "";
-            ::core::arch::nvptx::__assert_fail(
-                msg.as_ptr(),
-                file!().as_ptr(),
-                line!(),
-                func_name.as_ptr(),
-            );
+            unsafe {
+                ::core::arch::nvptx::__assert_fail(
+                    msg.as_ptr(),
+                    file!().as_ptr(),
+                    line!(),
+                    func_name.as_ptr(),
+                )
+            };
         }
     };
 }

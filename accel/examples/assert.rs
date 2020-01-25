@@ -2,12 +2,9 @@ use accel::*;
 use accel_derive::kernel;
 
 #[kernel]
-pub unsafe fn assert() {
-    let msg = "Assertion";
-    let filename = file!();
-    let line = line!();
-    let func_name = ""; // cannot get function name. See https://github.com/rust-lang/rfcs/pull/2818
-    core::arch::nvptx::__assert_fail(msg.as_ptr(), filename.as_ptr(), 0, func_name.as_ptr());
+#[dependencies("accel-core" = { git = "https://gitlab.com/termoshtt/accel", branch = "assert_macros" })]
+pub fn assert() {
+    accel_core::assert_eq!(1 + 2, 4);
 }
 
 fn main() -> anyhow::Result<()> {

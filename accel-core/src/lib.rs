@@ -17,6 +17,44 @@ unsafe impl GlobalAlloc for PTXAllocator {
     }
 }
 
+#[macro_export]
+macro_rules! assert_eq {
+    ($a:expr, $b:expr) => {
+        if $a != $b {
+            // FIXME show $a, $b, and their values
+            let msg = "not equal";
+            // FIXME cannot get function name.
+            // See https://github.com/rust-lang/rfcs/pull/2818
+            let func_name = "";
+            ::core::arch::nvptx::__assert_fail(
+                msg.as_ptr(),
+                file!().as_ptr(),
+                line!(),
+                func_name.as_ptr(),
+            );
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! assert_ne {
+    ($a:expr, $b:expr) => {
+        if $a == $b {
+            // FIXME show $a, $b, and their values
+            let msg = "not equal";
+            // FIXME cannot get function name.
+            // See https://github.com/rust-lang/rfcs/pull/2818
+            let func_name = "";
+            ::core::arch::nvptx::__assert_fail(
+                msg.as_ptr(),
+                file!().as_ptr(),
+                line!(),
+                func_name.as_ptr(),
+            );
+        }
+    };
+}
+
 pub struct Dim3 {
     pub x: i32,
     pub y: i32,

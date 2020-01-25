@@ -2,6 +2,7 @@
 name = "accel-core"
 version = "0.3.0-alpha.2"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
+edition = "2018"
 
 description   = "Support crate for writing GPGPU kernels using accel"
 documentation = "https://docs.rs/accel-core/"

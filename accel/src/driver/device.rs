@@ -72,6 +72,9 @@ impl Device {
     }
 
     /// Create a new context on the device
+    ///
+    /// If a context is already current to the thread,
+    /// it is supplanted by the newly created context and may be restored by a subsequent call to cuCtxPopCurrent().
     pub fn create_context(&self, flags: ContextFlag) -> Result<Box<Context>> {
         cuda_driver_init();
         Ok(unsafe {
@@ -114,7 +117,6 @@ impl<'device> Context<'device> {
     /// Get current context with arbitary lifetime
     ///
     /// - This function returns error when no current context exists.
-    ///
     pub fn get_current() -> Result<&'device Self> {
         cuda_driver_init();
         let context = unsafe {
@@ -126,6 +128,30 @@ impl<'device> Context<'device> {
             bail!("No current context");
         }
         Ok(unsafe { (context as *mut Self).as_ref() }.unwrap())
+    }
+
+    /// Binds the specified CUDA context to the calling CPU thread.
+    ///
+    /// If there exists a CUDA context stack on the calling CPU thread, this will replace the top of that stack
+    pub fn set_current(&self) -> Result<()> {
+        unsafe { cuCtxSetCurrent(&self.context as *const _ as *mut _) }.check()?;
+        Ok(())
+    }
+
+    /// Pops the current CUDA context from the current CPU thread.
+    pub fn pop_current() -> Result<Box<Self>> {
+        Ok(unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
+            Box::from_raw(context.assume_init() as *mut Context)
+        })
+    }
+
+    /// Pushes a context on the current CPU thread.
+    pub fn push_current(self: Box<Self>) -> Result<()> {
+        let ptr = Box::into_raw(self);
+        unsafe { cuCtxPushCurrent_v2(ptr as *mut _) }.check()?;
+        Ok(())
     }
 }
 

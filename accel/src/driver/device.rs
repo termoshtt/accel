@@ -11,7 +11,7 @@ use super::cuda_driver_init;
 use crate::error::*;
 use anyhow::{bail, Result};
 use cuda::*;
-use std::{cell::RefCell, marker::PhantomData, mem::MaybeUninit, rc::Rc};
+use std::{cell::RefCell, mem::MaybeUninit, rc::Rc};
 
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
@@ -93,12 +93,11 @@ impl Device {
 /// Handler for CUDA Driver context
 #[repr(C)]
 #[derive(Debug)]
-pub struct Context<'device> {
+pub struct Context {
     context: CUctx_st,
-    phantom: PhantomData<&'device Device>,
 }
 
-impl<'device> Drop for Context<'device> {
+impl Drop for Context {
     fn drop(&mut self) {
         unsafe { cuCtxDestroy_v2(&mut self.context as *mut _) }
             .check()
@@ -106,7 +105,7 @@ impl<'device> Drop for Context<'device> {
     }
 }
 
-impl<'device> Context<'device> {
+impl Context {
     pub fn api_version(&self) -> Result<u32> {
         let mut version: u32 = 0;
         unsafe { cuCtxGetApiVersion(&self.context as *const _ as *mut _, &mut version as *mut _) }
@@ -117,7 +116,7 @@ impl<'device> Context<'device> {
     /// Get current context with arbitary lifetime
     ///
     /// - This function returns error when no current context exists.
-    pub fn get_current() -> Result<&'device Self> {
+    pub fn get_current<'stack>() -> Result<&'stack Self> {
         cuda_driver_init();
         let context = unsafe {
             let mut context = MaybeUninit::uninit();
@@ -139,7 +138,7 @@ impl<'device> Context<'device> {
     }
 
     /// Pops the current CUDA context from the current CPU thread.
-    pub fn pop_current() -> Result<&'device Self> {
+    pub fn pop_current<'stack>() -> Result<&'stack Self> {
         let context = unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;

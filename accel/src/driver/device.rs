@@ -114,6 +114,17 @@ impl<'device> Context<'device> {
         Ok(version)
     }
 
+    pub fn set_limit_current(limit: CUlimit, value: usize) -> Result<()> {
+        unsafe { cuCtxSetLimit(limit, value) }.check()?;
+        Ok(())
+    }
+
+    pub fn get_limit_current(limit: CUlimit) -> Result<usize> {
+        let mut value = 0;
+        unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
+        Ok(value)
+    }
+
     /// Get current context with arbitary lifetime
     ///
     /// - This function returns error when no current context exists.
@@ -139,52 +150,117 @@ impl<'device> Context<'device> {
     }
 
     /// Pops the current CUDA context from the current CPU thread.
-    pub fn pop_current() -> Result<Box<Self>> {
-        Ok(unsafe {
+    pub fn pop_current() -> Result<&'device Self> {
+        cuda_driver_init();
+        let context = unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
-            Box::from_raw(context.assume_init() as *mut Context)
-        })
+            context.assume_init()
+        };
+        if context.is_null() {
+            bail!("No current context");
+        }
+        Ok(unsafe { (context as *mut Self).as_ref() }.unwrap())
     }
 
     /// Pushes a context on the current CPU thread.
-    pub fn push_current(self: Box<Self>) -> Result<()> {
-        let ptr = Box::into_raw(self);
-        unsafe { cuCtxPushCurrent_v2(ptr as *mut _) }.check()?;
+    pub fn push_current(&self) -> Result<()> {
+        unsafe { cuCtxPushCurrent_v2(&self.context as *const _ as *mut _) }.check()?;
         Ok(())
     }
 }
 
 #[cfg(test)]
-mod tests {
+mod device_tests {
     use super::*;
 
     #[test]
-    fn get_count() {
-        Device::get_count().unwrap();
+    fn get_count() -> anyhow::Result<()> {
+        Device::get_count()?;
+        Ok(())
     }
 
     #[test]
-    fn get_zeroth() {
-        Device::nth(0).unwrap();
+    fn get_zeroth() -> anyhow::Result<()> {
+        Device::nth(0)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod context_tests {
+    use super::*;
+
+    #[test]
+    fn create() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+        Ok(())
     }
 
     #[test]
-    fn context_create() {
-        let device = Device::nth(0).unwrap();
-        let _ctx = device.create_context_auto().unwrap();
+    fn create_get() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx1 = device.create_context_auto()?;
+        let _ctx2 = Context::get_current()?;
+        Ok(())
     }
 
     #[test]
-    fn get_current_context() {
-        let device = Device::nth(0).unwrap();
-        let _ctx1 = device.create_context_auto().unwrap();
-        let _ctx2 = Context::get_current().unwrap();
+    fn create_pop() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+        let _poped_ctx = Context::pop_current()?;
+        Ok(())
     }
 
     #[should_panic]
     #[test]
-    fn no_current_context() {
+    fn get_none() {
         Context::get_current().unwrap();
+    }
+
+    #[should_panic]
+    #[test]
+    fn pop_none() {
+        Context::pop_current().unwrap();
+    }
+
+    #[test]
+    fn create_set_limit() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+        Ok(())
+    }
+
+    #[should_panic]
+    #[test]
+    fn set_limit_none() {
+        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128).unwrap();
+    }
+
+    #[test]
+    fn create_get_limit() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+        let _stack_size = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE)?;
+        Ok(())
+    }
+
+    #[should_panic]
+    #[test]
+    fn get_limit_none() {
+        let _stack_size = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE).unwrap();
+    }
+
+    #[test]
+    fn set_get_limit() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+        let limit = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE)?;
+        assert_eq!(limit, 128);
+        Ok(())
     }
 }

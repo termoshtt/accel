@@ -11,7 +11,7 @@ use super::cuda_driver_init;
 use crate::error::*;
 use anyhow::{bail, Result};
 use cuda::*;
-use std::{marker::PhantomData, mem::MaybeUninit};
+use std::{cell::RefCell, marker::PhantomData, mem::MaybeUninit, rc::Rc};
 
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
@@ -114,17 +114,6 @@ impl<'device> Context<'device> {
         Ok(version)
     }
 
-    pub fn set_limit_current(limit: CUlimit, value: usize) -> Result<()> {
-        unsafe { cuCtxSetLimit(limit, value) }.check()?;
-        Ok(())
-    }
-
-    pub fn get_limit_current(limit: CUlimit) -> Result<usize> {
-        let mut value = 0;
-        unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
-        Ok(value)
-    }
-
     /// Get current context with arbitary lifetime
     ///
     /// - This function returns error when no current context exists.
@@ -151,7 +140,6 @@ impl<'device> Context<'device> {
 
     /// Pops the current CUDA context from the current CPU thread.
     pub fn pop_current() -> Result<&'device Self> {
-        cuda_driver_init();
         let context = unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
@@ -167,6 +155,29 @@ impl<'device> Context<'device> {
     pub fn push_current(&self) -> Result<()> {
         unsafe { cuCtxPushCurrent_v2(&self.context as *const _ as *mut _) }.check()?;
         Ok(())
+    }
+}
+
+/// Marker for context stack managed by CUDA runtime
+pub struct ContextStack;
+thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell::new(ContextStack)));
+
+/// Get thread-local context stack managed by CUDA runtime
+pub fn get_context_stack() -> Rc<RefCell<ContextStack>> {
+    cuda_driver_init();
+    CONTEXT_STACK.with(|rc| rc.clone())
+}
+
+impl ContextStack {
+    pub fn set_limit(&mut self, limit: CUlimit, value: usize) -> Result<()> {
+        unsafe { cuCtxSetLimit(limit, value) }.check()?;
+        Ok(())
+    }
+
+    pub fn get_limit(&self, limit: CUlimit) -> Result<usize> {
+        let mut value = 0;
+        unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
+        Ok(value)
     }
 }
 
@@ -230,37 +241,51 @@ mod context_tests {
     fn create_set_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let _ctx = device.create_context_auto()?;
-        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+        get_context_stack()
+            .borrow_mut()
+            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
         Ok(())
     }
 
     #[should_panic]
     #[test]
     fn set_limit_none() {
-        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128).unwrap();
+        get_context_stack()
+            .borrow_mut()
+            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)
+            .unwrap();
     }
 
     #[test]
     fn create_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let _ctx = device.create_context_auto()?;
-        let _stack_size = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE)?;
+        let _stack_size = get_context_stack()
+            .borrow()
+            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)?;
         Ok(())
     }
 
     #[should_panic]
     #[test]
     fn get_limit_none() {
-        let _stack_size = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE).unwrap();
+        let _stack_size = get_context_stack()
+            .borrow()
+            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)
+            .unwrap();
     }
 
     #[test]
     fn set_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let _ctx = device.create_context_auto()?;
-        Context::set_limit_current(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
-        let limit = Context::get_limit_current(CUlimit::CU_LIMIT_STACK_SIZE)?;
-        assert_eq!(limit, 128);
+        get_context_stack()
+            .borrow_mut()
+            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+        let stack_size = get_context_stack()
+            .borrow()
+            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)?;
+        assert_eq!(stack_size, 128);
         Ok(())
     }
 }

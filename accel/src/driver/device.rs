@@ -115,6 +115,10 @@ impl Context {
         self as *const Context as *mut CUctx_st
     }
 
+    unsafe fn into_raw(self: Box<Self>) -> CUcontext {
+        Box::into_raw(self) as *mut CUctx_st
+    }
+
     /// Cast pointer to Rust box (owned)
     unsafe fn as_box(ctx: CUcontext) -> Box<Self> {
         Box::from_raw(ctx as *mut Context)
@@ -195,6 +199,25 @@ impl ContextStack {
         let mut value = 0;
         unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
         Ok(value)
+    }
+
+    /// Pops the current CUDA context from the current CPU thread.
+    pub fn pop(&mut self) -> Result<Box<Context>> {
+        let context = unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
+            context.assume_init()
+        };
+        if context.is_null() {
+            bail!("No current context");
+        }
+        Ok(unsafe { Context::as_box(context) })
+    }
+
+    /// Pushes a context on the current CPU thread.
+    pub fn push(&mut self, ctx: Box<Context>) -> Result<()> {
+        unsafe { cuCtxPushCurrent_v2(ctx.into_raw()) }.check()?;
+        Ok(())
     }
 }
 

@@ -80,7 +80,7 @@ impl Device {
         Ok(unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxCreate_v2(context.as_mut_ptr(), flags as u32, self.device).check()?;
-            Box::from_raw(context.assume_init() as *mut Context)
+            Context::as_box(context.assume_init())
         })
     }
 
@@ -90,7 +90,12 @@ impl Device {
     }
 }
 
-/// Handler for CUDA Driver context
+/// Marker struct for CUDA Driver context
+///
+/// ```
+/// # use accel::driver::device::Context;
+/// assert_eq!(std::mem::size_of::<Context>(), 0);  // zero-sized
+/// ```
 #[repr(C)]
 #[derive(Debug)]
 pub struct Context {
@@ -99,17 +104,30 @@ pub struct Context {
 
 impl Drop for Context {
     fn drop(&mut self) {
-        unsafe { cuCtxDestroy_v2(&mut self.context as *mut _) }
+        unsafe { cuCtxDestroy_v2(self.as_raw()) }
             .check()
             .expect("Context remove failed");
     }
 }
 
 impl Context {
+    unsafe fn as_raw(&self) -> CUcontext {
+        self as *const Context as *mut CUctx_st
+    }
+
+    /// Cast pointer to Rust box (owned)
+    unsafe fn as_box(ctx: CUcontext) -> Box<Self> {
+        Box::from_raw(ctx as *mut Context)
+    }
+
+    /// Cast pointer to Rust reference (not owned)
+    unsafe fn as_ref<'a>(ctx: CUcontext) -> &'a Self {
+        (ctx as *mut Self).as_ref().unwrap()
+    }
+
     pub fn api_version(&self) -> Result<u32> {
         let mut version: u32 = 0;
-        unsafe { cuCtxGetApiVersion(&self.context as *const _ as *mut _, &mut version as *mut _) }
-            .check()?;
+        unsafe { cuCtxGetApiVersion(self.as_raw(), &mut version as *mut _) }.check()?;
         Ok(version)
     }
 
@@ -126,14 +144,14 @@ impl Context {
         if context.is_null() {
             bail!("No current context");
         }
-        Ok(unsafe { (context as *mut Self).as_ref() }.unwrap())
+        Ok(unsafe { Context::as_ref(context) })
     }
 
     /// Binds the specified CUDA context to the calling CPU thread.
     ///
     /// If there exists a CUDA context stack on the calling CPU thread, this will replace the top of that stack
     pub fn set_current(&self) -> Result<()> {
-        unsafe { cuCtxSetCurrent(&self.context as *const _ as *mut _) }.check()?;
+        unsafe { cuCtxSetCurrent(self.as_raw()) }.check()?;
         Ok(())
     }
 
@@ -147,12 +165,12 @@ impl Context {
         if context.is_null() {
             bail!("No current context");
         }
-        Ok(unsafe { (context as *mut Self).as_ref() }.unwrap())
+        Ok(unsafe { Context::as_ref(context) })
     }
 
     /// Pushes a context on the current CPU thread.
     pub fn push_current(&self) -> Result<()> {
-        unsafe { cuCtxPushCurrent_v2(&self.context as *const _ as *mut _) }.check()?;
+        unsafe { cuCtxPushCurrent_v2(self.as_raw()) }.check()?;
         Ok(())
     }
 }

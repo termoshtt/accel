@@ -35,3 +35,8 @@ This project is developed on [GitLab](https://gitlab.com/termoshtt/accel) and mi
 Licence
 --------
 MIT-License
+
+Sponsors
+--------
+- [RICOS Co. Ltd](https://www.ricos.co.jp/)
+  - GPU instances for CI and development

@@ -37,6 +37,10 @@ test:accel:
     - cargo run --example assert
   tags:
     - gpu
+  only:
+    - master
+    - tags
+    - /^gpu\/.*/
 
 .build:
   image: docker:stable

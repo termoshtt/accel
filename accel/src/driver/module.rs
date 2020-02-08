@@ -273,7 +273,8 @@ mod tests {
         }
         "#;
         let device = Device::nth(0).unwrap();
-        let _ctx = device.create_context_auto().unwrap();
+        let ctx = device.create_context_auto().unwrap();
+        ctx.push().unwrap();
         let _mod = Module::from_str(ptx)?;
         Ok(())
     }

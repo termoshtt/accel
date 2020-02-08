@@ -13,8 +13,8 @@ use anyhow::{bail, Result};
 use cuda::*;
 use std::{cell::RefCell, mem::MaybeUninit, rc::Rc};
 
-pub use cuda::CUlimit as Limit;
 pub use cuda::CUctx_flags_enum as ContextFlag;
+pub use cuda::CUlimit as Limit;
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -72,20 +72,14 @@ impl Device {
         Ok(String::from_utf8(bytes)?)
     }
 
-    /// Create a new context on the device
-    ///
-    /// If a context is already current to the thread,
-    /// it is supplanted by the newly created context and may be restored by a subsequent call to cuCtxPopCurrent().
-    pub fn create_context(&self, flags: ContextFlag) -> Result<Box<Context>> {
-        cuda_driver_init();
-        Ok(unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxCreate_v2(context.as_mut_ptr(), flags as u32, self.device).check()?;
-            Context::as_box(context.assume_init())
-        })
+    /// Create a new CUDA context on this device
+    pub fn create_context(&self, flag: ContextFlag) -> Result<Box<Context>> {
+        let stack = get_context_stack();
+        let ctx = stack.borrow_mut().create(self, flag)?;
+        Ok(ctx)
     }
 
-    /// Create a new context on the device with defacult option (`CU_CTX_SCHED_AUTO`)
+    /// Create a new CUDA context on this device
     pub fn create_context_auto(&self) -> Result<Box<Context>> {
         self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
     }
@@ -125,58 +119,14 @@ impl Context {
         Box::from_raw(ctx as *mut Context)
     }
 
-    /// Cast pointer to Rust reference (not owned)
-    unsafe fn as_ref<'a>(ctx: CUcontext) -> &'a Self {
-        (ctx as *mut Self).as_ref().unwrap()
-    }
-
     pub fn api_version(&self) -> Result<u32> {
         let mut version: u32 = 0;
         unsafe { cuCtxGetApiVersion(self.as_raw(), &mut version as *mut _) }.check()?;
         Ok(version)
     }
 
-    /// Get current context with arbitary lifetime
-    ///
-    /// - This function returns error when no current context exists.
-    pub fn get_current<'stack>() -> Result<&'stack Self> {
-        cuda_driver_init();
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxGetCurrent(context.as_mut_ptr()).check()?;
-            context.assume_init()
-        };
-        if context.is_null() {
-            bail!("No current context");
-        }
-        Ok(unsafe { Context::as_ref(context) })
-    }
-
-    /// Binds the specified CUDA context to the calling CPU thread.
-    ///
-    /// If there exists a CUDA context stack on the calling CPU thread, this will replace the top of that stack
-    pub fn set_current(&self) -> Result<()> {
-        unsafe { cuCtxSetCurrent(self.as_raw()) }.check()?;
-        Ok(())
-    }
-
-    /// Pops the current CUDA context from the current CPU thread.
-    pub fn pop_current<'stack>() -> Result<&'stack Self> {
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
-            context.assume_init()
-        };
-        if context.is_null() {
-            bail!("No current context");
-        }
-        Ok(unsafe { Context::as_ref(context) })
-    }
-
-    /// Pushes a context on the current CPU thread.
-    pub fn push_current(&self) -> Result<()> {
-        unsafe { cuCtxPushCurrent_v2(self.as_raw()) }.check()?;
-        Ok(())
+    pub fn push(self: Box<Self>) -> Result<()> {
+        Ok(get_context_stack().borrow_mut().push(self)?)
     }
 }
 
@@ -209,6 +159,19 @@ impl ContextStack {
         let mut value = 0;
         unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
         Ok(value)
+    }
+
+    pub fn create(&mut self, device: &Device, flag: ContextFlag) -> Result<Box<Context>> {
+        let context = unsafe {
+            let mut context = MaybeUninit::uninit();
+            cuCtxCreate_v2(context.as_mut_ptr(), flag as u32, device.device).check()?;
+            context.assume_init()
+        };
+        if context.is_null() {
+            bail!("Cannot crate a new context");
+        }
+        // Drop this context ref, and pop from stack
+        self.pop()
     }
 
     /// Pops the current CUDA context from the current CPU thread.
@@ -260,37 +223,11 @@ mod context_tests {
     }
 
     #[test]
-    fn create_get() -> anyhow::Result<()> {
-        let device = Device::nth(0)?;
-        let _ctx1 = device.create_context_auto()?;
-        let _ctx2 = Context::get_current()?;
-        Ok(())
-    }
-
-    #[test]
-    fn create_pop() -> anyhow::Result<()> {
-        let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
-        let _poped_ctx = Context::pop_current()?;
-        Ok(())
-    }
-
-    #[should_panic]
-    #[test]
-    fn get_none() {
-        Context::get_current().unwrap();
-    }
-
-    #[should_panic]
-    #[test]
-    fn pop_none() {
-        Context::pop_current().unwrap();
-    }
-
-    #[test]
     fn create_set_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
+        ctx.push()?;
+
         get_context_stack()
             .borrow_mut()
             .set_limit(Limit::CU_LIMIT_STACK_SIZE, 128)?;
@@ -309,7 +246,9 @@ mod context_tests {
     #[test]
     fn create_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
+        ctx.push()?;
+
         let _stack_size = get_context_stack()
             .borrow()
             .get_limit(Limit::CU_LIMIT_STACK_SIZE)?;
@@ -328,7 +267,9 @@ mod context_tests {
     #[test]
     fn set_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
+        ctx.push()?;
+
         get_context_stack()
             .borrow_mut()
             .set_limit(Limit::CU_LIMIT_STACK_SIZE, 128)?;

@@ -155,24 +155,25 @@ mod tests {
     }
 
     #[test]
+    fn set_drop_set() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let guard = ctx.set()?;
+        drop(guard);
+        let ctx = device.create_context_auto()?;
+        let guard = ctx.set()?;
+        drop(guard);
+        Ok(())
+    }
+
+    #[test]
     fn two_contexts() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let ctx1 = device.create_context_auto()?;
         let ctx2 = device.create_context_auto()?;
         let _guard1 = ctx1.set()?;
-        let _guard2 = ctx2.set()?;
-        Ok(())
-    }
-
-    #[test]
-    fn two_contexts_drop() -> anyhow::Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-        let guard1 = ctx1.set()?;
-        let guard2 = ctx2.set()?;
-        drop(guard1);
-        drop(guard2);
+        // Cannot set two context at the same time
+        assert!(ctx2.set().is_err());
         Ok(())
     }
 }

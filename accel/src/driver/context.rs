@@ -145,4 +145,34 @@ mod tests {
         let _ctx = device.create_context_auto()?;
         Ok(())
     }
+
+    #[test]
+    fn set() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _guard = ctx.set()?;
+        Ok(())
+    }
+
+    #[test]
+    fn two_contexts() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let ctx1 = device.create_context_auto()?;
+        let ctx2 = device.create_context_auto()?;
+        let _guard1 = ctx1.set()?;
+        let _guard2 = ctx2.set()?;
+        Ok(())
+    }
+
+    #[test]
+    fn two_contexts_drop() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let ctx1 = device.create_context_auto()?;
+        let ctx2 = device.create_context_auto()?;
+        let guard1 = ctx1.set()?;
+        let guard2 = ctx2.set()?;
+        drop(guard1);
+        drop(guard2);
+        Ok(())
+    }
 }

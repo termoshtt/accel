@@ -35,7 +35,7 @@ impl Context {
     }
 
     /// Cast pointer to Rust box (owned)
-    unsafe fn as_box(ctx: CUcontext) -> Box<Self> {
+    unsafe fn new(ctx: CUcontext) -> Box<Self> {
         Box::from_raw(ctx as *mut Context)
     }
 
@@ -110,7 +110,7 @@ impl ContextStack {
             bail!("Cannot crate a new context");
         }
         self.current = Some(context);
-        unsafe { self.pop() }
+        self.pop()
     }
 
     /// Make context "current" on this thread
@@ -126,11 +126,11 @@ impl ContextStack {
     }
 
     /// Pops the current CUDA context from the current CPU thread.
-    unsafe fn pop(&mut self) -> Result<Box<Context>> {
+    pub fn pop(&mut self) -> Result<Box<Context>> {
         if self.current.is_none() {
             bail!("No current context");
         }
-        let context = {
+        let context = unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
             context.assume_init()
@@ -139,17 +139,19 @@ impl ContextStack {
             bail!("No current context");
         }
         self.current = None;
-        Ok(Context::as_box(context))
+        Ok(unsafe { Context::new(context) })
     }
 
     /// Pushes a context on the current CPU thread.
-    unsafe fn push(&mut self, ctx: Box<Context>) -> Result<()> {
+    pub fn push(&mut self, ctx: Box<Context>) -> Result<()> {
         if self.current.is_some() {
             bail!("Context already exists");
         }
-        let raw = ctx.into_raw();
-        cuCtxPushCurrent_v2(raw).check()?;
-        self.current = Some(raw);
+        unsafe {
+            let raw = ctx.into_raw();
+            cuCtxPushCurrent_v2(raw).check()?;
+            self.current = Some(raw);
+        }
         Ok(())
     }
 }

@@ -72,25 +72,25 @@ impl Device {
         Ok(String::from_utf8(bytes)?)
     }
 
-    /// Create a new CUDA context on this device
+    /// Create a new CUDA context on this device.
+    /// Be sure that returned context is not "current".
+    ///
+    /// ```
+    /// # use accel::driver::device::*;
+    /// let device = Device::nth(0).unwrap();
+    /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
+    /// ```
     pub fn create_context(&self, flag: ContextFlag) -> Result<Box<Context>> {
-        let stack = get_context_stack();
-        let ctx = stack.borrow_mut().create(self, flag)?;
-        Ok(ctx)
+        Ok(get_context_stack().borrow_mut().create(self, flag)?)
     }
 
-    /// Create a new CUDA context on this device
+    /// Create a new CUDA context on this device with default flag
     pub fn create_context_auto(&self) -> Result<Box<Context>> {
         self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
     }
 }
 
 /// Marker struct for CUDA Driver context
-///
-/// ```
-/// # use accel::driver::device::Context;
-/// assert_eq!(std::mem::size_of::<Context>(), 0);  // zero-sized
-/// ```
 #[repr(C)]
 #[derive(Debug)]
 pub struct Context {
@@ -119,14 +119,42 @@ impl Context {
         Box::from_raw(ctx as *mut Context)
     }
 
-    pub fn api_version(&self) -> Result<u32> {
+    pub fn version(&self) -> Result<u32> {
         let mut version: u32 = 0;
         unsafe { cuCtxGetApiVersion(self.as_raw(), &mut version as *mut _) }.check()?;
         Ok(version)
     }
 
-    pub fn push(self: Box<Self>) -> Result<()> {
-        Ok(get_context_stack().borrow_mut().push(self)?)
+    /// Set context to the "current" of this thread
+    ///
+    /// ```
+    /// # use accel::driver::device::*;
+    /// let device = Device::nth(0).unwrap();
+    /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
+    /// let _ctx_gurad = ctx.set().unwrap();  // Push ctx to current thread
+    ///                                       // Pop ctx when drop
+    /// ```
+    pub fn set(&self) -> Result<ContextGuard> {
+        Ok(get_context_stack().borrow().set(self)?)
+    }
+}
+
+/// RAII handler for CUDA context
+pub struct ContextGuard<'ctx> {
+    context: &'ctx Context,
+}
+
+impl<'ctx> Drop for ContextGuard<'ctx> {
+    fn drop(&mut self) {
+        let ctx = get_context_stack()
+            .borrow_mut()
+            .pop()
+            .expect("Failed to pop context");
+        unsafe {
+            if ctx.into_raw() != self.context.as_raw() {
+                panic!("Pop different CUDA context");
+            }
+        }
     }
 }
 
@@ -140,8 +168,9 @@ thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell:
 /// # use accel::driver::device::*;
 /// let device = Device::nth(0).unwrap();
 /// let ctx = device.create_context_auto().unwrap();
-/// ctx.push().unwrap();
-/// let _stack_size = get_context_stack()
+/// let _ctx_gurad = ctx.set().unwrap(); // needs "current" context
+///
+/// let stack_size = get_context_stack()
 ///     .borrow()
 ///     .get_limit(Limit::CU_LIMIT_STACK_SIZE).unwrap();
 /// ```
@@ -173,6 +202,12 @@ impl ContextStack {
         }
         // Drop this context ref, and pop from stack
         self.pop()
+    }
+
+    /// Make context "current" on this thread
+    pub fn set<'ctx>(&self, ctx: &'ctx Context) -> Result<ContextGuard<'ctx>> {
+        unsafe { cuCtxPushCurrent_v2(ctx.as_raw()) }.check()?;
+        Ok(ContextGuard { context: ctx })
     }
 
     /// Pops the current CUDA context from the current CPU thread.
@@ -227,7 +262,7 @@ mod context_tests {
     fn create_set_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        ctx.push()?;
+        let _st = ctx.set()?;
 
         get_context_stack()
             .borrow_mut()
@@ -248,7 +283,7 @@ mod context_tests {
     fn create_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        ctx.push()?;
+        let _st = ctx.set()?;
 
         let _stack_size = get_context_stack()
             .borrow()
@@ -269,7 +304,7 @@ mod context_tests {
     fn set_get_limit() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        ctx.push()?;
+        let _st = ctx.set()?;
 
         get_context_stack()
             .borrow_mut()

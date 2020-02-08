@@ -89,10 +89,6 @@ thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell:
 /// let device = Device::nth(0).unwrap();
 /// let ctx = device.create_context_auto().unwrap();
 /// let _ctx_gurad = ctx.set().unwrap(); // needs "current" context
-///
-/// let stack_size = get_context_stack()
-///     .borrow()
-///     .get_limit(Limit::CU_LIMIT_STACK_SIZE).unwrap();
 /// ```
 pub fn get_context_stack() -> Rc<RefCell<ContextStack>> {
     cuda_driver_init();

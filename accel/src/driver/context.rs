@@ -55,7 +55,7 @@ impl Context {
     ///                                       // Pop ctx when drop
     /// ```
     pub fn set(&self) -> Result<ContextGuard> {
-        Ok(get_context_stack().borrow().set(self)?)
+        Ok(ContextStack::get().borrow_mut().set(self)?)
     }
 }
 
@@ -66,11 +66,11 @@ pub struct ContextGuard<'ctx> {
 
 impl<'ctx> Drop for ContextGuard<'ctx> {
     fn drop(&mut self) {
-        let ctx = get_context_stack()
-            .borrow_mut()
-            .pop()
-            .expect("Failed to pop context");
         unsafe {
+            let ctx = ContextStack::get()
+                .borrow_mut()
+                .pop()
+                .expect("Failed to pop context");
             if ctx.into_raw() != self.context.as_raw() {
                 panic!("Pop different CUDA context");
             }
@@ -79,10 +79,6 @@ impl<'ctx> Drop for ContextGuard<'ctx> {
 }
 
 /// Marker for context stack managed by CUDA runtime
-pub struct ContextStack;
-thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell::new(ContextStack)));
-
-/// Get thread-local context stack managed by CUDA runtime
 ///
 /// ```
 /// # use accel::driver::device::*;
@@ -90,13 +86,21 @@ thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell:
 /// let ctx = device.create_context_auto().unwrap();
 /// let _ctx_gurad = ctx.set().unwrap(); // needs "current" context
 /// ```
-pub fn get_context_stack() -> Rc<RefCell<ContextStack>> {
-    cuda_driver_init();
-    CONTEXT_STACK.with(|rc| rc.clone())
+pub struct ContextStack {
+    current: Option<CUcontext>,
 }
+thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell::new(ContextStack { current: None })));
 
 impl ContextStack {
+    pub fn get() -> Rc<RefCell<Self>> {
+        cuda_driver_init();
+        CONTEXT_STACK.with(|rc| rc.clone())
+    }
+
     pub fn create(&mut self, device: CUdevice, flag: ContextFlag) -> Result<Box<Context>> {
+        if self.current.is_some() {
+            bail!("Context already exists");
+        }
         let context = unsafe {
             let mut context = MaybeUninit::uninit();
             cuCtxCreate_v2(context.as_mut_ptr(), flag as u32, device).check()?;
@@ -105,19 +109,28 @@ impl ContextStack {
         if context.is_null() {
             bail!("Cannot crate a new context");
         }
-        // Drop this context ref, and pop from stack
-        self.pop()
+        self.current = Some(context);
+        unsafe { self.pop() }
     }
 
     /// Make context "current" on this thread
-    pub fn set<'ctx>(&self, ctx: &'ctx Context) -> Result<ContextGuard<'ctx>> {
-        unsafe { cuCtxPushCurrent_v2(ctx.as_raw()) }.check()?;
+    pub fn set<'ctx>(&mut self, ctx: &'ctx Context) -> Result<ContextGuard<'ctx>> {
+        if self.current.is_some() {
+            bail!("Context already exists");
+        }
+        unsafe {
+            cuCtxPushCurrent_v2(ctx.as_raw()).check()?;
+            self.current = Some(ctx.as_raw());
+        }
         Ok(ContextGuard { context: ctx })
     }
 
     /// Pops the current CUDA context from the current CPU thread.
-    pub fn pop(&mut self) -> Result<Box<Context>> {
-        let context = unsafe {
+    unsafe fn pop(&mut self) -> Result<Box<Context>> {
+        if self.current.is_none() {
+            bail!("No current context");
+        }
+        let context = {
             let mut context = MaybeUninit::uninit();
             cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
             context.assume_init()
@@ -125,12 +138,18 @@ impl ContextStack {
         if context.is_null() {
             bail!("No current context");
         }
-        Ok(unsafe { Context::as_box(context) })
+        self.current = None;
+        Ok(Context::as_box(context))
     }
 
     /// Pushes a context on the current CPU thread.
-    pub fn push(&mut self, ctx: Box<Context>) -> Result<()> {
-        unsafe { cuCtxPushCurrent_v2(ctx.into_raw()) }.check()?;
+    unsafe fn push(&mut self, ctx: Box<Context>) -> Result<()> {
+        if self.current.is_some() {
+            bail!("Context already exists");
+        }
+        let raw = ctx.into_raw();
+        cuCtxPushCurrent_v2(raw).check()?;
+        self.current = Some(raw);
         Ok(())
     }
 }

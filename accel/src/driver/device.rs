@@ -77,7 +77,7 @@ impl Device {
     /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
     /// ```
     pub fn create_context(&self, flag: ContextFlag) -> Result<Box<Context>> {
-        Ok(get_context_stack().borrow_mut().create(self.device, flag)?)
+        Ok(ContextStack::get().borrow_mut().create(self.device, flag)?)
     }
 
     /// Create a new CUDA context on this device with default flag

@@ -1,6 +1,6 @@
 //! Low-level API for CUDA [context].
 //!
-//! [context]:         https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
+//! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
 use crate::error::*;

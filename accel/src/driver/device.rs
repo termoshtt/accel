@@ -1,11 +1,10 @@
-//! Low-level API for [device], [primary context], and (general) [context].
+//! Low-level API for [device] and [primary context]
 //!
 //! - The [primary context] is unique per device and shared with the CUDA runtime API.
 //!   These functions allow integration with other libraries using CUDA
 //!
 //! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
-//! [context]:         https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::{context::*, cuda_driver_init};
 use crate::error::*;

@@ -13,6 +13,7 @@ use anyhow::{bail, Result};
 use cuda::*;
 use std::{cell::RefCell, mem::MaybeUninit, rc::Rc};
 
+pub use cuda::CUlimit as Limit;
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
 /// Handler for device and its primary context
@@ -184,18 +185,27 @@ pub struct ContextStack;
 thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell::new(ContextStack)));
 
 /// Get thread-local context stack managed by CUDA runtime
+///
+/// ```
+/// # use accel::driver::device::*;
+/// let device = Device::nth(0).unwrap();
+/// let _ctx = device.create_context_auto().unwrap();
+/// let _stack_size = get_context_stack()
+///     .borrow()
+///     .get_limit(Limit::CU_LIMIT_STACK_SIZE).unwrap();
+/// ```
 pub fn get_context_stack() -> Rc<RefCell<ContextStack>> {
     cuda_driver_init();
     CONTEXT_STACK.with(|rc| rc.clone())
 }
 
 impl ContextStack {
-    pub fn set_limit(&mut self, limit: CUlimit, value: usize) -> Result<()> {
+    pub fn set_limit(&mut self, limit: Limit, value: usize) -> Result<()> {
         unsafe { cuCtxSetLimit(limit, value) }.check()?;
         Ok(())
     }
 
-    pub fn get_limit(&self, limit: CUlimit) -> Result<usize> {
+    pub fn get_limit(&self, limit: Limit) -> Result<usize> {
         let mut value = 0;
         unsafe { cuCtxGetLimit(&mut value as *mut _, limit) }.check()?;
         Ok(value)
@@ -283,7 +293,7 @@ mod context_tests {
         let _ctx = device.create_context_auto()?;
         get_context_stack()
             .borrow_mut()
-            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+            .set_limit(Limit::CU_LIMIT_STACK_SIZE, 128)?;
         Ok(())
     }
 
@@ -292,7 +302,7 @@ mod context_tests {
     fn set_limit_none() {
         get_context_stack()
             .borrow_mut()
-            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)
+            .set_limit(Limit::CU_LIMIT_STACK_SIZE, 128)
             .unwrap();
     }
 
@@ -302,7 +312,7 @@ mod context_tests {
         let _ctx = device.create_context_auto()?;
         let _stack_size = get_context_stack()
             .borrow()
-            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)?;
+            .get_limit(Limit::CU_LIMIT_STACK_SIZE)?;
         Ok(())
     }
 
@@ -311,7 +321,7 @@ mod context_tests {
     fn get_limit_none() {
         let _stack_size = get_context_stack()
             .borrow()
-            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)
+            .get_limit(Limit::CU_LIMIT_STACK_SIZE)
             .unwrap();
     }
 
@@ -321,10 +331,10 @@ mod context_tests {
         let _ctx = device.create_context_auto()?;
         get_context_stack()
             .borrow_mut()
-            .set_limit(CUlimit::CU_LIMIT_STACK_SIZE, 128)?;
+            .set_limit(Limit::CU_LIMIT_STACK_SIZE, 128)?;
         let stack_size = get_context_stack()
             .borrow()
-            .get_limit(CUlimit::CU_LIMIT_STACK_SIZE)?;
+            .get_limit(Limit::CU_LIMIT_STACK_SIZE)?;
         assert_eq!(stack_size, 128);
         Ok(())
     }

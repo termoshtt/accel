@@ -139,7 +139,8 @@ thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell:
 /// ```
 /// # use accel::driver::device::*;
 /// let device = Device::nth(0).unwrap();
-/// let _ctx = device.create_context_auto().unwrap();
+/// let ctx = device.create_context_auto().unwrap();
+/// ctx.push().unwrap();
 /// let _stack_size = get_context_stack()
 ///     .borrow()
 ///     .get_limit(Limit::CU_LIMIT_STACK_SIZE).unwrap();

@@ -274,7 +274,8 @@ mod tests {
         "#;
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _cg = ctx.set()?;
+        dbg!(&ctx);
+        ctx.push()?;
         let _mod = Module::from_str(ptx)?;
         Ok(())
     }

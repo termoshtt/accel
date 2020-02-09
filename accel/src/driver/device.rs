@@ -37,8 +37,8 @@ impl Device {
 
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let device = ffi_new!(cuDeviceGet; id);
-        let primary_context = ffi_new!(cuDevicePrimaryCtxRetain; device);
+        let device = ffi_new!(cuDeviceGet, id);
+        let primary_context = ffi_new!(cuDevicePrimaryCtxRetain, device);
         Ok(Device {
             device,
             primary_context,

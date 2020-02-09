@@ -3,10 +3,10 @@
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
-use crate::error::*;
+use crate::{error::*, ffi_new};
 use anyhow::{bail, Result};
 use cuda::*;
-use std::{cell::RefCell, mem::MaybeUninit, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
@@ -101,11 +101,7 @@ impl ContextStack {
         if self.current.is_some() {
             bail!("Context already exists");
         }
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxCreate_v2(context.as_mut_ptr(), flag as u32, device).check()?;
-            context.assume_init()
-        };
+        let context = ffi_new!(cuCtxCreate_v2, flag as u32, device);
         if context.is_null() {
             bail!("Cannot crate a new context");
         }
@@ -130,11 +126,7 @@ impl ContextStack {
         if self.current.is_none() {
             bail!("No current context");
         }
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
-            context.assume_init()
-        };
+        let context = ffi_new!(cuCtxPopCurrent_v2);
         if context.is_null() {
             bail!("No current context");
         }

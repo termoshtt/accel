@@ -10,7 +10,16 @@ use super::{context::*, cuda_driver_init};
 use crate::error::*;
 use anyhow::Result;
 use cuda::*;
-use std::mem::MaybeUninit;
+
+macro_rules! ffi_new {
+    ($ffi:path; $($args:expr),*) => {
+        unsafe {
+            let mut value = ::std::mem::MaybeUninit::uninit();
+            $ffi(value.as_mut_ptr(), $($args),*).check()?;
+            value.assume_init()
+        }
+    }
+}
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -38,16 +47,8 @@ impl Device {
 
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let device = unsafe {
-            let mut device = MaybeUninit::uninit();
-            cuDeviceGet(device.as_mut_ptr(), id).check()?;
-            device.assume_init()
-        };
-        let primary_context = unsafe {
-            let mut primary_context = MaybeUninit::uninit();
-            cuDevicePrimaryCtxRetain(primary_context.as_mut_ptr(), device).check()?;
-            primary_context.assume_init()
-        };
+        let device = ffi_new!(cuDeviceGet; id);
+        let primary_context = ffi_new!(cuDevicePrimaryCtxRetain; device);
         Ok(Device {
             device,
             primary_context,

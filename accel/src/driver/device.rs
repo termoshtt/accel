@@ -7,19 +7,9 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::error::*;
+use crate::{error::*, ffi_new};
 use anyhow::Result;
 use cuda::*;
-
-macro_rules! ffi_new {
-    ($ffi:path; $($args:expr),*) => {
-        unsafe {
-            let mut value = ::std::mem::MaybeUninit::uninit();
-            $ffi(value.as_mut_ptr(), $($args),*).check()?;
-            value.assume_init()
-        }
-    }
-}
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]

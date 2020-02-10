@@ -273,8 +273,7 @@ mod tests {
         }
         "#;
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
-        let _cg = ctx.set()?;
+        let _ctx = device.create_context_auto()?;
         let _mod = Module::from_str(ptx)?;
         Ok(())
     }

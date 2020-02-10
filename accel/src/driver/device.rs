@@ -7,16 +7,14 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::error::*;
+use crate::{error::*, ffi_new};
 use anyhow::Result;
 use cuda::*;
-use std::mem::MaybeUninit;
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {
     device: CUdevice,
-    primary_context: CUcontext,
 }
 
 impl Drop for Device {
@@ -38,20 +36,8 @@ impl Device {
 
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let device = unsafe {
-            let mut device = MaybeUninit::uninit();
-            cuDeviceGet(device.as_mut_ptr(), id).check()?;
-            device.assume_init()
-        };
-        let primary_context = unsafe {
-            let mut primary_context = MaybeUninit::uninit();
-            cuDevicePrimaryCtxRetain(primary_context.as_mut_ptr(), device).check()?;
-            primary_context.assume_init()
-        };
-        Ok(Device {
-            device,
-            primary_context,
-        })
+        let device = ffi_new!(cuDeviceGet, id);
+        Ok(Device { device })
     }
 
     /// Get total memory of GPU
@@ -76,12 +62,12 @@ impl Device {
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
     /// ```
-    pub fn create_context(&self, flag: ContextFlag) -> Result<Box<Context>> {
-        Ok(ContextStack::get().borrow_mut().create(self.device, flag)?)
+    pub fn create_context(&self, flag: ContextFlag) -> Result<Context> {
+        Ok(Context::create(self.device, flag)?)
     }
 
     /// Create a new CUDA context on this device with default flag
-    pub fn create_context_auto(&self) -> Result<Box<Context>> {
+    pub fn create_context_auto(&self) -> Result<Context> {
         self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
     }
 }

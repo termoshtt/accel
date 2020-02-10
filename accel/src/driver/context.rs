@@ -2,156 +2,79 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use super::cuda_driver_init;
-use crate::error::*;
-use anyhow::{bail, Result};
+use crate::{error::*, ffi_new};
+use anyhow::{bail, ensure, Result};
 use cuda::*;
-use std::{cell::RefCell, mem::MaybeUninit, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 pub use cuda::CUctx_flags_enum as ContextFlag;
 
 /// Marker struct for CUDA Driver context
-#[repr(C)]
 #[derive(Debug)]
 pub struct Context {
-    context: CUctx_st,
+    ptr: CUcontext,
 }
 
 impl Drop for Context {
     fn drop(&mut self) {
-        unsafe { cuCtxDestroy_v2(self.as_raw()) }
+        unsafe { cuCtxDestroy_v2(self.ptr) }
             .check()
             .expect("Context remove failed");
     }
 }
 
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
+
+thread_local! {static CONTEXT_STACK_LOCK: Rc<RefCell<Option<CUcontext>>> = Rc::new(RefCell::new(None)) }
+fn get_lock() -> Rc<RefCell<Option<CUcontext>>> {
+    CONTEXT_STACK_LOCK.with(|rc| rc.clone())
+}
+
 impl Context {
-    unsafe fn as_raw(&self) -> CUcontext {
-        self as *const Context as *mut CUctx_st
+    /// Create on the top of context stack
+    pub fn create(device: CUdevice, flag: ContextFlag) -> Result<Self> {
+        let ptr = ffi_new!(cuCtxCreate_v2, flag as u32, device);
+        if ptr.is_null() {
+            bail!("Cannot crate a new context");
+        }
+        CONTEXT_STACK_LOCK.with(|rc| *rc.borrow_mut() = Some(ptr));
+        Ok(Context { ptr })
     }
 
-    unsafe fn into_raw(self: Box<Self>) -> CUcontext {
-        Box::into_raw(self) as *mut CUctx_st
-    }
-
-    /// Cast pointer to Rust box (owned)
-    unsafe fn new(ctx: CUcontext) -> Box<Self> {
-        Box::from_raw(ctx as *mut Context)
+    /// Check this context is "current" on this thread
+    pub fn is_current(&self) -> Result<bool> {
+        let current = ffi_new!(cuCtxGetCurrent);
+        Ok(current == self.ptr)
     }
 
     pub fn version(&self) -> Result<u32> {
         let mut version: u32 = 0;
-        unsafe { cuCtxGetApiVersion(self.as_raw(), &mut version as *mut _) }.check()?;
+        unsafe { cuCtxGetApiVersion(self.ptr, &mut version as *mut _) }.check()?;
         Ok(version)
     }
 
-    /// Set context to the "current" of this thread
-    ///
-    /// ```
-    /// # use accel::driver::device::*;
-    /// let device = Device::nth(0).unwrap();
-    /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
-    /// let _ctx_gurad = ctx.set().unwrap();  // Push ctx to current thread
-    ///                                       // Pop ctx when drop
-    /// ```
-    pub fn set(&self) -> Result<ContextGuard> {
-        Ok(ContextStack::get().borrow_mut().set(self)?)
-    }
-}
-
-/// RAII handler for CUDA context
-pub struct ContextGuard<'ctx> {
-    context: &'ctx Context,
-}
-
-impl<'ctx> Drop for ContextGuard<'ctx> {
-    fn drop(&mut self) {
-        unsafe {
-            let ctx = ContextStack::get()
-                .borrow_mut()
-                .pop()
-                .expect("Failed to pop context");
-            if ctx.into_raw() != self.context.as_raw() {
-                panic!("Pop different CUDA context");
-            }
-        }
-    }
-}
-
-/// Marker for context stack managed by CUDA runtime
-///
-/// ```
-/// # use accel::driver::device::*;
-/// let device = Device::nth(0).unwrap();
-/// let ctx = device.create_context_auto().unwrap();
-/// let _ctx_gurad = ctx.set().unwrap(); // needs "current" context
-/// ```
-pub struct ContextStack {
-    current: Option<CUcontext>,
-}
-thread_local!(static CONTEXT_STACK: Rc<RefCell<ContextStack>> = Rc::new(RefCell::new(ContextStack { current: None })));
-
-impl ContextStack {
-    pub fn get() -> Rc<RefCell<Self>> {
-        cuda_driver_init();
-        CONTEXT_STACK.with(|rc| rc.clone())
+    /// Push to the context stack of this thread
+    pub fn push(&mut self) -> Result<()> {
+        let lock = get_lock();
+        ensure!(lock.borrow().is_none(), "No context before push");
+        unsafe { cuCtxPushCurrent_v2(self.ptr) }.check()?;
+        *lock.borrow_mut() = Some(self.ptr);
+        Ok(())
     }
 
-    pub fn create(&mut self, device: CUdevice, flag: ContextFlag) -> Result<Box<Context>> {
-        if self.current.is_some() {
-            bail!("Context already exists");
+    /// Pop from the context stack of this thread
+    pub fn pop(&mut self) -> Result<()> {
+        let lock = get_lock();
+        if lock.borrow().is_none() {
+            bail!("No countext has been set");
         }
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxCreate_v2(context.as_mut_ptr(), flag as u32, device).check()?;
-            context.assume_init()
-        };
-        if context.is_null() {
-            bail!("Cannot crate a new context");
-        }
-        self.current = Some(context);
-        self.pop()
-    }
-
-    /// Make context "current" on this thread
-    pub fn set<'ctx>(&mut self, ctx: &'ctx Context) -> Result<ContextGuard<'ctx>> {
-        if self.current.is_some() {
-            bail!("Context already exists");
-        }
-        unsafe {
-            cuCtxPushCurrent_v2(ctx.as_raw()).check()?;
-            self.current = Some(ctx.as_raw());
-        }
-        Ok(ContextGuard { context: ctx })
-    }
-
-    /// Pops the current CUDA context from the current CPU thread.
-    pub fn pop(&mut self) -> Result<Box<Context>> {
-        if self.current.is_none() {
+        let ptr = ffi_new!(cuCtxPopCurrent_v2);
+        if ptr.is_null() {
             bail!("No current context");
         }
-        let context = unsafe {
-            let mut context = MaybeUninit::uninit();
-            cuCtxPopCurrent_v2(context.as_mut_ptr()).check()?;
-            context.assume_init()
-        };
-        if context.is_null() {
-            bail!("No current context");
-        }
-        self.current = None;
-        Ok(unsafe { Context::new(context) })
-    }
-
-    /// Pushes a context on the current CPU thread.
-    pub fn push(&mut self, ctx: Box<Context>) -> Result<()> {
-        if self.current.is_some() {
-            bail!("Context already exists");
-        }
-        unsafe {
-            let raw = ctx.into_raw();
-            cuCtxPushCurrent_v2(raw).check()?;
-            self.current = Some(raw);
-        }
+        ensure!(ptr == self.ptr, "Pop must return same pointer");
+        *lock.borrow_mut() = None;
         Ok(())
     }
 }
@@ -163,38 +86,54 @@ mod tests {
     #[test]
     fn create() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
+        dbg!(&ctx);
         Ok(())
     }
 
     #[test]
-    fn set() -> anyhow::Result<()> {
+    fn push() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
-        let _guard = ctx.set()?;
+        let mut ctx = device.create_context_auto()?;
+        assert!(ctx.is_current()?);
+        assert!(ctx.push().is_err());
         Ok(())
     }
 
     #[test]
-    fn set_drop_set() -> anyhow::Result<()> {
+    fn pop() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
-        let guard = ctx.set()?;
-        drop(guard);
-        let ctx = device.create_context_auto()?;
-        let guard = ctx.set()?;
-        drop(guard);
+        let mut ctx = device.create_context_auto()?;
+        assert!(ctx.is_current()?);
+        ctx.pop()?;
+        assert!(!ctx.is_current()?);
         Ok(())
     }
 
     #[test]
-    fn two_contexts() -> anyhow::Result<()> {
+    fn push_pop() -> anyhow::Result<()> {
+        let device = Device::nth(0)?;
+        let mut ctx = device.create_context_auto()?;
+        assert!(ctx.is_current()?);
+        ctx.pop()?;
+        assert!(!ctx.is_current()?);
+        ctx.push()?;
+        assert!(ctx.is_current()?);
+        Ok(())
+    }
+
+    #[test]
+    fn thread() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
         let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-        let _guard1 = ctx1.set()?;
-        // Cannot set two context at the same time
-        assert!(ctx2.set().is_err());
+        assert!(ctx1.is_current()?); // "current" on this thread
+        let th = std::thread::spawn(move || -> anyhow::Result<()> {
+            assert!(!ctx1.is_current()?); // ctx1 is NOT current on this thread
+            let ctx2 = device.create_context_auto()?;
+            assert!(ctx2.is_current()?);
+            Ok(())
+        });
+        th.join().unwrap()?;
         Ok(())
     }
 }

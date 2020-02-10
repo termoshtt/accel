@@ -10,8 +10,7 @@ fn main() -> anyhow::Result<()> {
     let grid = Grid::x(1);
     let block = Block::x(4);
     let device = driver::Device::nth(0)?;
-    let ctx = device.create_context_auto()?;
-    let _guard = ctx.set()?;
+    let _ctx = device.create_context_auto()?;
     assert(grid, block)?;
     Ok(())
 }

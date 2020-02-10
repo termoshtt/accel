@@ -15,7 +15,6 @@ use cuda::*;
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {
     device: CUdevice,
-    primary_context: CUcontext,
 }
 
 impl Drop for Device {
@@ -38,11 +37,7 @@ impl Device {
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
         let device = ffi_new!(cuDeviceGet, id);
-        let primary_context = ffi_new!(cuDevicePrimaryCtxRetain, device);
-        Ok(Device {
-            device,
-            primary_context,
-        })
+        Ok(Device { device })
     }
 
     /// Get total memory of GPU

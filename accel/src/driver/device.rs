@@ -17,14 +17,6 @@ pub struct Device {
     device: CUdevice,
 }
 
-impl Drop for Device {
-    fn drop(&mut self) {
-        unsafe { cuDevicePrimaryCtxRelease(self.device) }
-            .check()
-            .expect("Failed to release primary context");
-    }
-}
-
 impl Device {
     /// Get number of available GPUs
     pub fn get_count() -> Result<usize> {

@@ -3,6 +3,7 @@
 pub mod context;
 pub mod device;
 pub mod kernel;
+pub mod linker;
 pub mod module;
 
 use crate::error::Check;

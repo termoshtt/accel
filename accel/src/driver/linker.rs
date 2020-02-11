@@ -9,11 +9,10 @@ use anyhow::Result;
 use cuda::*;
 use std::{
     collections::HashMap,
-    ffi::CStr,
-    os::raw::{c_char, c_uint, c_void},
+    ffi::{CStr, CString},
+    os::raw::{c_uint, c_void},
     path::{Path, PathBuf},
     ptr::null_mut,
-    str::FromStr,
 };
 
 /// Option for JIT compile
@@ -111,17 +110,16 @@ impl Linker {
     unsafe fn add_data(
         &mut self,
         input_type: CUjitInputType,
-        data: *mut c_void,
-        size: usize,
+        data: &[u8],
         opt: &JITOption,
     ) -> Result<()> {
         let (nopts, mut opts, mut opt_vals) = parse(opt);
-        let name = str2cstring(&"\0");
+        let name = CString::new("").unwrap();
         cuLinkAddData_v2(
             self.0,
             input_type,
-            data,
-            size,
+            data.as_ptr() as *mut _,
+            data.len(),
             name.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
@@ -138,12 +136,12 @@ impl Linker {
         path: &Path,
         opt: &JITOption,
     ) -> Result<()> {
-        let filename = str2cstring(path.to_str().unwrap()).as_mut_ptr();
+        let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = parse(opt);
         cuLinkAddFile_v2(
             self.0,
             input_type,
-            filename,
+            filename.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
             opt_vals.as_mut_ptr(),
@@ -156,15 +154,11 @@ impl Linker {
     pub fn add(&mut self, data: &Data, opt: &JITOption) -> Result<()> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
-                let mut cstr = str2cstring(ptx);
-                let ptr = cstr.as_mut_ptr() as *mut _;
-                let n = cstr.len();
-                self.add_data(data.input_type(), ptr, n, opt)?;
+                let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
+                self.add_data(data.input_type(), cstr.as_bytes_with_nul(), opt)?;
             },
             Data::Cubin(ref bin) => unsafe {
-                let ptr = bin.as_ptr() as *mut _;
-                let n = bin.len();
-                self.add_data(data.input_type(), ptr, n, opt)?;
+                self.add_data(data.input_type(), &bin, opt)?;
             },
             Data::PTXFile(ref path) | Data::CubinFile(ref path) => unsafe {
                 self.add_file(data.input_type(), path, opt)?;
@@ -185,9 +179,4 @@ impl Linker {
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
-}
-
-fn str2cstring(s: &str) -> Vec<c_char> {
-    let cstr = String::from_str(s).unwrap() + "\0";
-    cstr.into_bytes().into_iter().map(|c| c as c_char).collect()
 }

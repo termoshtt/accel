@@ -7,12 +7,7 @@ use super::{cuda_driver_init, kernel::Kernel, linker::*};
 use crate::error::*;
 use anyhow::Result;
 use cuda::*;
-use std::{
-    os::raw::{c_char, c_void},
-    path::Path,
-    ptr::null_mut,
-    str::FromStr,
-};
+use std::{ffi::CString, os::raw::c_void, path::Path, ptr::null_mut};
 
 /// OOP-like wrapper of `cuModule*` APIs
 #[derive(Debug)]
@@ -23,7 +18,7 @@ impl Module {
     pub fn load(data: &Data) -> Result<Self> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
-                let cstr = str2cstring(ptx);
+                let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
                 Self::load_data(cstr.as_ptr() as _)
             },
             Data::Cubin(ref bin) => unsafe {
@@ -47,7 +42,7 @@ impl Module {
     pub fn load_file(path: &Path) -> Result<Self> {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
-        let filename = str2cstring(path.to_str().unwrap());
+        let filename = CString::new(path.to_str().unwrap()).expect("Invalid Path");
         cuda_driver_init();
         unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
         Ok(Module(handle))
@@ -60,7 +55,7 @@ impl Module {
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
-        let name = str2cstring(name);
+        let name = CString::new(name).expect("Invalid Kernel name");
         let mut func = null_mut();
         cuda_driver_init();
         unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
@@ -75,11 +70,6 @@ impl Drop for Module {
             .check()
             .expect("Failed to unload module");
     }
-}
-
-fn str2cstring(s: &str) -> Vec<c_char> {
-    let cstr = String::from_str(s).unwrap() + "\0";
-    cstr.into_bytes().into_iter().map(|c| c as c_char).collect()
 }
 
 #[cfg(test)]

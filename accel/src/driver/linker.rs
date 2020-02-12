@@ -187,7 +187,7 @@ mod jit_config_tests {
     #[test]
     fn info_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.info_log_buffer = Some(CString::new("info.log").unwrap());
+        cfg.info_log_buffer = Some(LogBuffer {});
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(
@@ -203,7 +203,7 @@ mod jit_config_tests {
     #[test]
     fn error_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.error_log_buffer = Some(CString::new("error.log").unwrap());
+        cfg.error_log_buffer = Some(LogBuffer {});
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(

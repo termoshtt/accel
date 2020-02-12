@@ -21,113 +21,92 @@ use std::{
 /// http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
 pub type JITOption = Option<HashMap<CUjit_option, *mut c_void>>;
 
-pub struct JIT {
-    /// CU_JIT_MAX_REGISTERS
+/// Configure generator for [CUjit_option] required in `cuLink*` APIs
+///
+/// [CUjit_option]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
+#[derive(Debug, Default)]
+pub struct JITConfig {
+    /// CU_JIT_MAX_REGISTERS, Applies to compiler only
     ///
     /// - Max number of registers that a thread may use.
-    /// - Option type: unsigned int
-    /// - Applies to: compiler only
     pub max_registers: Option<u32>,
 
-    /// CU_JIT_THREADS_PER_BLOCK
+    /// CU_JIT_THREADS_PER_BLOCK, Applies to compiler only
     ///
     /// - **IN**: Specifies minimum number of threads per block to target compilation for
-    /// - **OUT**: Returns the number of threads the compiler actually targeted. This restricts the resource utilization fo the compiler (e.g. max registers) such that a block with the given number of threads should be able to launch based on register limitations. Note, this option does not currently take into account any other resource limitations, such as shared memory utilization. Cannot be combined with CU_JIT_TARGET.
-    /// - Option type: unsigned int
-    /// - Applies to: compiler only
+    /// - **OUT**: Returns the number of threads the compiler actually targeted.
+    ///   This restricts the resource utilization fo the compiler (e.g. max registers) such that a block with the given number of threads should be able to launch based on register limitations.
+    ///
+    /// Note
+    /// ----
+    /// This option does not currently take into account any other resource limitations, such as shared memory utilization. Cannot be combined with CU_JIT_TARGET.
     pub threads_per_block: Option<u32>,
 
-    /// CU_JIT_WALL_TIME
+    /// CU_JIT_WALL_TIME, Applies to compiler and linker
     ///
     /// - Overwrites the option value with the total wall clock time, in milliseconds, spent in the compiler and linker
     /// - Option type: float
-    /// - Applies to: compiler and linker
     pub wall_time: Option<f32>,
 
-    /// CU_JIT_INFO_LOG_BUFFER
+    /// CU_JIT_INFO_LOG_BUFFER, Applies to compiler and linker
     ///
     /// - Pointer to a buffer in which to print any log messages that are informational in nature (the buffer size is specified via option CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES)
-    /// - Option type: char *
-    /// - Applies to: compiler and linker
-    pub info_log_buffer: Option<u32>,
-
-    /// CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES
+    ///
+    /// CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES, Applies to compiler and linker
     ///
     /// - **IN**: Log buffer size in bytes. Log messages will be capped at this size (including null terminator)
     /// - **OUT**: Amount of log buffer filled with messages
-    /// - Option type: unsigned int
-    /// - Applies to: compiler and linker
-    pub info_log_buffer_size_bytes: Option<u32>,
+    pub info_log_buffer: Option<CString>,
 
-    /// CU_JIT_ERROR_LOG_BUFFER
+    /// CU_JIT_ERROR_LOG_BUFFER, Applies to compiler and linker
     ///
     /// - Pointer to a buffer in which to print any log messages that reflect errors (the buffer size is specified via option CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES)
-    /// - Option type: char *
-    /// - Applies to: compiler and linker
-    pub error_log_buffer: Option<u32>,
-
-    /// CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES
+    ///
+    /// CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES, Applies to compiler and linker
     ///
     /// - **IN**: Log buffer size in bytes. Log messages will be capped at this size (including null terminator)
     /// - **OUT**: Amount of log buffer filled with messages
-    /// - Option type: unsigned int
-    /// - Applies to: compiler and linker
-    pub error_log_buffer_size_bytes: Option<u32>,
+    pub error_log_buffer: Option<CString>,
 
-    /// CU_JIT_OPTIMIZATION_LEVEL
+    /// CU_JIT_OPTIMIZATION_LEVEL, Applies to compiler only
     ///
     /// - Level of optimizations to apply to generated code (0 - 4), with 4 being the default and highest level of optimizations.
-    /// - Option type: unsigned int
-    /// - Applies to: compiler only
     pub optimization_level: Option<u32>,
 
-    /// CU_JIT_TARGET_FROM_CUCONTEXT
+    /// CU_JIT_TARGET_FROM_CUCONTEXT, Applies to compiler and linker
     ///
     /// - No option value required. Determines the target based on the current attached context (default)
-    /// - Option type: No option value needed
-    /// - Applies to: compiler and linker
     pub target_from_cucontext: Option<()>,
 
-    /// CU_JIT_TARGET
+    /// CU_JIT_TARGET, Applies to compiler and linker
     ///
     /// - Target is chosen based on supplied CUjit_target. Cannot be combined with CU_JIT_THREADS_PER_BLOCK.
-    /// - Option type: unsigned int for enumerated type CUjit_target
-    /// - Applies to: compiler and linker
     pub target: Option<CUjit_target>,
 
-    /// CU_JIT_FALLBACK_STRATEGY
+    /// CU_JIT_FALLBACK_STRATEGY, Applies to compiler only
     ///
-    /// - Specifies choice of fallback strategy if matching cubin is not found. Choice is based on supplied CUjit_fallback. This option cannot be used with cuLink* APIs as the linker requires exact matches.
-    /// - Option type: unsigned int for enumerated type CUjit_fallback
-    /// - Applies to: compiler only
+    /// - Specifies choice of fallback strategy if matching cubin is not found. Choice is based on supplied CUjit_fallback.
+    ///   This option cannot be used with cuLink* APIs as the linker requires exact matches.
     pub fallback_strategy: Option<CUjit_fallback>,
 
-    /// CU_JIT_GENERATE_DEBUG_INFO
+    /// CU_JIT_GENERATE_DEBUG_INFO, Applies to compiler and linker
     ///
     /// - Specifies whether to create debug information in output (-g) (0: false, default)
-    /// - Option type: int
-    /// - Applies to: compiler and linker
     pub generate_debug_info: Option<i32>,
 
-    /// CU_JIT_LOG_VERBOSE
+    /// CU_JIT_LOG_VERBOSE, Applies to compiler and linker
     ///
     /// - Generate verbose log messages (0: false, default)
-    /// - Option type: int
-    /// - Applies to: compiler and linker
     pub log_verbose: Option<i32>,
 
-    /// CU_JIT_GENERATE_LINE_INFO
+    /// CU_JIT_GENERATE_LINE_INFO, Applies to compiler only
     ///
     /// - Generate line number information (-lineinfo) (0: false, default)
-    /// - Option type: int
-    /// - Applies to: compiler only
     pub generate_line_info: Option<i32>,
 
-    /// CU_JIT_CACHE_MODE
+    /// CU_JIT_CACHE_MODE, Applies to compiler only
     ///
     /// - Specifies whether to enable caching explicitly (-dlcm) Choice is based on supplied CUjit_cacheMode_enum.
-    /// - Option type: unsigned int for enumerated type CUjit_cacheMode_enum
-    /// - Applies to: compiler only
     pub cache_mode: Option<CUjit_cacheMode_enum>,
 
     /// CU_JIT_NEW_SM3X_OPT
@@ -138,29 +117,28 @@ pub struct JIT {
     /// CU_JIT_FAST_COMPILE
     pub fast_compile: bool,
 
-    /// CU_JIT_GLOBAL_SYMBOL_NAMES
+    /// CU_JIT_GLOBAL_SYMBOL_NAMES, Applies to dynamic linker only
     ///
     /// - Array of device symbol names that will be relocated to the corresponing host addresses stored in CU_JIT_GLOBAL_SYMBOL_ADDRESSES.
     ///   Must contain CU_JIT_GLOBAL_SYMBOL_COUNT entries. When loding a device module, driver will relocate all encountered unresolved symbols to the host addresses.
     ///   It is only allowed to register symbols that correspond to unresolved global variables. It is illegal to register the same device symbol at multiple addresses.
-    /// - Option type: const char **
-    /// - Applies to: dynamic linker only
-    pub global_symbol_names: Option<u32>,
-
-    /// CU_JIT_GLOBAL_SYMBOL_ADDRESSES
+    ///
+    /// CU_JIT_GLOBAL_SYMBOL_ADDRESSES, Applies to dynamic linker only
     ///
     /// - Array of host addresses that will be used to relocate corresponding device symbols stored in CU_JIT_GLOBAL_SYMBOL_NAMES.
     ///   Must contain CU_JIT_GLOBAL_SYMBOL_COUNT entries.
-    /// - Option type: void **
-    /// - Applies to: dynamic linker only
-    pub global_symbol_addresses: Option<u32>,
-
-    /// CU_JIT_GLOBAL_SYMBOL_COUNT
+    ///
+    /// CU_JIT_GLOBAL_SYMBOL_COUNT, Applies to dynamic linker only
     ///
     /// - Number of entries in CU_JIT_GLOBAL_SYMBOL_NAMES and CU_JIT_GLOBAL_SYMBOL_ADDRESSES arrays.
-    /// - Option type: unsigned int
-    /// - Applies to: dynamic linker only
-    pub global_symbol_count: Option<u32>,
+    pub global_symbol: HashMap<CString, *mut u8>,
+}
+
+impl JITConfig {
+    /// Pack configure into C API compatible format
+    fn pack(&self) -> (u32, Vec<CUjit_option>, Vec<*mut u8>) {
+        unimplemented!()
+    }
 }
 
 /// Parse JIT option to use for `cuLink*` APIs

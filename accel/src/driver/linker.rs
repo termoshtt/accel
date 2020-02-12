@@ -180,6 +180,43 @@ impl JITConfig {
     }
 }
 
+#[cfg(test)]
+mod jit_config_tests {
+    use super::*;
+
+    #[test]
+    fn info_log_buffer() {
+        let mut cfg = JITConfig::default();
+        cfg.info_log_buffer = Some(CString::new("info.log").unwrap());
+        let (size, opt_types, opt_values) = cfg.pack();
+        assert_eq!(size, 2);
+        assert_eq!(
+            opt_types,
+            vec![
+                CUjit_option::CU_JIT_INFO_LOG_BUFFER,
+                CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES
+            ]
+        );
+        assert_eq!(opt_values.len(), 2);
+    }
+
+    #[test]
+    fn error_log_buffer() {
+        let mut cfg = JITConfig::default();
+        cfg.error_log_buffer = Some(CString::new("error.log").unwrap());
+        let (size, opt_types, opt_values) = cfg.pack();
+        assert_eq!(size, 2);
+        assert_eq!(
+            opt_types,
+            vec![
+                CUjit_option::CU_JIT_INFO_LOG_BUFFER,
+                CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES
+            ]
+        );
+        assert_eq!(opt_values.len(), 2);
+    }
+}
+
 /// Represent the resource of CUDA middle-IR (PTX/cubin)
 #[derive(Debug)]
 pub enum Data {

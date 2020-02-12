@@ -10,6 +10,7 @@ use cuda::*;
 use std::{
     collections::HashMap,
     ffi::{CStr, CString},
+    mem::MaybeUninit,
     os::raw::c_void,
     path::{Path, PathBuf},
     ptr::null_mut,
@@ -240,10 +241,12 @@ impl Linker {
     pub fn create(option: &JITConfig) -> Result<Self> {
         cuda_driver_init();
         let (n, mut opt, mut opts) = option.pack();
-        let mut st = null_mut();
-        unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
-            .check()?;
-        Ok(Linker(st))
+        let state = unsafe {
+            let mut state = MaybeUninit::uninit();
+            cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), state.as_mut_ptr()).check()?;
+            state.assume_init()
+        };
+        Ok(Linker(state))
     }
 
     /// Wrapper of cuLinkAddData
@@ -318,5 +321,16 @@ impl Linker {
             cuLinkComplete(self.0, &mut cb as *mut _, null_mut()).check()?;
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create() {
+        let jit_cfg = JITConfig::default();
+        let _linker = Linker::create(&jit_cfg);
     }
 }

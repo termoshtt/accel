@@ -286,3 +286,14 @@ impl Linker {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create() {
+        let jit_cfg = JITConfig::default();
+        let _linker = Linker::create(&jit_cfg);
+    }
+}

@@ -10,16 +10,10 @@ use cuda::*;
 use std::{
     collections::HashMap,
     ffi::{CStr, CString},
-    os::raw::{c_uint, c_void},
+    os::raw::c_void,
     path::{Path, PathBuf},
     ptr::null_mut,
 };
-
-/// Option for JIT compile
-///
-/// A wrapper of `CUjit_option`
-/// http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
-pub type JITOption = Option<HashMap<CUjit_option, *mut c_void>>;
 
 /// Configure generator for [CUjit_option] required in `cuLink*` APIs
 ///
@@ -131,24 +125,13 @@ pub struct JITConfig {
     /// CU_JIT_GLOBAL_SYMBOL_COUNT, Applies to dynamic linker only
     ///
     /// - Number of entries in CU_JIT_GLOBAL_SYMBOL_NAMES and CU_JIT_GLOBAL_SYMBOL_ADDRESSES arrays.
-    pub global_symbol: HashMap<CString, *mut u8>,
+    pub global_symbol: HashMap<CString, *mut c_void>,
 }
 
 impl JITConfig {
     /// Pack configure into C API compatible format
-    fn pack(&self) -> (u32, Vec<CUjit_option>, Vec<*mut u8>) {
+    fn pack(&self) -> (u32, Vec<CUjit_option>, Vec<*mut c_void>) {
         unimplemented!()
-    }
-}
-
-/// Parse JIT option to use for `cuLink*` APIs
-fn parse(option: &JITOption) -> (c_uint, Vec<CUjit_option>, Vec<*mut c_void>) {
-    if let &Some(ref hmap) = option {
-        let opt_name: Vec<_> = hmap.keys().cloned().collect();
-        let opt_value = hmap.values().cloned().collect();
-        (opt_name.len() as c_uint, opt_name, opt_value)
-    } else {
-        (0, Vec::new(), Vec::new())
     }
 }
 
@@ -206,7 +189,7 @@ impl Drop for Linker {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(data: &[Data], opt: &JITOption) -> Result<Module> {
+pub fn link(data: &[Data], opt: &JITConfig) -> Result<Module> {
     let mut l = Linker::create(opt)?;
     for d in data {
         l.add(d, opt)?;
@@ -217,9 +200,9 @@ pub fn link(data: &[Data], opt: &JITOption) -> Result<Module> {
 
 impl Linker {
     /// Create a new Linker
-    pub fn create(option: &JITOption) -> Result<Self> {
+    pub fn create(option: &JITConfig) -> Result<Self> {
         cuda_driver_init();
-        let (n, mut opt, mut opts) = parse(option);
+        let (n, mut opt, mut opts) = option.pack();
         let mut st = null_mut();
         unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
             .check()?;
@@ -231,9 +214,9 @@ impl Linker {
         &mut self,
         input_type: CUjitInputType,
         data: &[u8],
-        opt: &JITOption,
+        opt: &JITConfig,
     ) -> Result<()> {
-        let (nopts, mut opts, mut opt_vals) = parse(opt);
+        let (nopts, mut opts, mut opt_vals) = opt.pack();
         let name = CString::new("").unwrap();
         cuLinkAddData_v2(
             self.0,
@@ -254,10 +237,10 @@ impl Linker {
         &mut self,
         input_type: CUjitInputType,
         path: &Path,
-        opt: &JITOption,
+        opt: &JITConfig,
     ) -> Result<()> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
-        let (nopts, mut opts, mut opt_vals) = parse(opt);
+        let (nopts, mut opts, mut opt_vals) = opt.pack();
         cuLinkAddFile_v2(
             self.0,
             input_type,
@@ -271,7 +254,7 @@ impl Linker {
     }
 
     /// Add a resouce into the linker stack.
-    pub fn add(&mut self, data: &Data, opt: &JITOption) -> Result<()> {
+    pub fn add(&mut self, data: &Data, opt: &JITConfig) -> Result<()> {
         match *data {
             Data::PTX(ref ptx) => unsafe {
                 let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");

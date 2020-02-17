@@ -10,16 +10,16 @@
 .target sm_30
 .address_size 64
 
-	// .globl	_Z2f1i
+	// .globl	_Z1fi
 
-.visible .func  (.param .b32 func_retval0) _Z2f1i(
-	.param .b32 _Z2f1i_param_0
+.visible .func  (.param .b32 func_retval0) _Z1fi(
+	.param .b32 _Z1fi_param_0
 )
 {
 	.reg .b32 	%r<3>;
 
 
-	ld.param.u32 	%r1, [_Z2f1i_param_0];
+	ld.param.u32 	%r1, [_Z1fi_param_0];
 	shl.b32 	%r2, %r1, 1;
 	st.param.b32	[func_retval0+0], %r2;
 	ret;

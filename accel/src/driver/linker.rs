@@ -5,7 +5,7 @@
 
 use super::{cuda_driver_init, module::*};
 use crate::{error::*, ffi_call, ffi_call_unsafe};
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use cuda::*;
 use std::{
     collections::HashMap,
@@ -131,7 +131,8 @@ pub struct JITConfig {
 impl JITConfig {
     /// Pack configure into C API compatible format
     fn pack(&self) -> (u32, Vec<CUjit_option>, Vec<*mut c_void>) {
-        unimplemented!()
+        // TODO
+        (0, Vec::new(), Vec::new())
     }
 }
 
@@ -156,13 +157,19 @@ impl Data {
     }
 
     /// Constructor for `Data::PTXFile`
-    pub fn ptx_file(path: &Path) -> Data {
-        Data::PTXFile(path.to_owned())
+    pub fn ptx_file(path: &Path) -> Result<Self> {
+        ensure!(path.exists(), "PTX file does not found: {}", path.display());
+        Ok(Data::PTXFile(path.to_owned()))
     }
 
     /// Constructor for `Data::CubinFile`
-    pub fn cubin_file(path: &Path) -> Data {
-        Data::CubinFile(path.to_owned())
+    pub fn cubin_file(path: &Path) -> Result<Self> {
+        ensure!(
+            path.exists(),
+            "cubin file does not found: {}",
+            path.display()
+        );
+        Ok(Data::CubinFile(path.to_owned()))
     }
 }
 
@@ -289,11 +296,40 @@ impl Linker {
 
 #[cfg(test)]
 mod tests {
+    use super::super::device::*;
     use super::*;
 
     #[test]
-    fn create() {
+    fn create() -> Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+
         let jit_cfg = JITConfig::default();
-        let _linker = Linker::create(&jit_cfg);
+        let _linker = Linker::create(&jit_cfg)?;
+        Ok(())
+    }
+
+    #[test]
+    fn ptx_file() -> Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+
+        let jit_cfg = JITConfig::default();
+        let mut linker = Linker::create(&jit_cfg)?;
+        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        linker.add(&data, &jit_cfg)?;
+        Ok(())
+    }
+
+    #[test]
+    fn cubin_file() -> Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context_auto()?;
+
+        let jit_cfg = JITConfig::default();
+        let mut linker = Linker::create(&jit_cfg)?;
+        let data = Data::cubin_file(Path::new("tests/data/dest.cubin"))?;
+        linker.add(&data, &jit_cfg)?;
+        Ok(())
     }
 }

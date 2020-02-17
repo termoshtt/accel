@@ -10,26 +10,26 @@
 .target sm_30
 .address_size 64
 
-	// .globl	_Z9add_and_tPKiS0_Pi
-.extern .func  (.param .b32 func_retval0) _Z2f1i
+	// .globl	_Z3addPKiS0_Pi
+.extern .func  (.param .b32 func_retval0) _Z1fi
 (
-	.param .b32 _Z2f1i_param_0
+	.param .b32 _Z1fi_param_0
 )
 ;
 
-.visible .entry _Z9add_and_tPKiS0_Pi(
-	.param .u64 _Z9add_and_tPKiS0_Pi_param_0,
-	.param .u64 _Z9add_and_tPKiS0_Pi_param_1,
-	.param .u64 _Z9add_and_tPKiS0_Pi_param_2
+.visible .entry _Z3addPKiS0_Pi(
+	.param .u64 _Z3addPKiS0_Pi_param_0,
+	.param .u64 _Z3addPKiS0_Pi_param_1,
+	.param .u64 _Z3addPKiS0_Pi_param_2
 )
 {
 	.reg .b32 	%r<9>;
 	.reg .b64 	%rd<11>;
 
 
-	ld.param.u64 	%rd1, [_Z9add_and_tPKiS0_Pi_param_0];
-	ld.param.u64 	%rd2, [_Z9add_and_tPKiS0_Pi_param_1];
-	ld.param.u64 	%rd3, [_Z9add_and_tPKiS0_Pi_param_2];
+	ld.param.u64 	%rd1, [_Z3addPKiS0_Pi_param_0];
+	ld.param.u64 	%rd2, [_Z3addPKiS0_Pi_param_1];
+	ld.param.u64 	%rd3, [_Z3addPKiS0_Pi_param_2];
 	cvta.to.global.u64 	%rd4, %rd3;
 	cvta.to.global.u64 	%rd5, %rd2;
 	cvta.to.global.u64 	%rd6, %rd1;
@@ -51,7 +51,7 @@
 	st.param.b32	[param0+0], %r7;
 	.param .b32 retval0;
 	call.uni (retval0), 
-	_Z2f1i, 
+	_Z1fi, 
 	(
 	param0
 	);

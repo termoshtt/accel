@@ -1,12 +1,12 @@
-.PHONY: all clean ptx
+.PHONY: all clean
 
-all: dest.cubin
+all: add.ptx add.cubin
 
 clean:
 	rm *.ptx *.cubin
 
 %.ptx: %.cu
-	nvcc --keep-device-functions -ptx $<
+	nvcc -ptx $<
 
-dest.cubin: add.ptx sub.ptx
-	nvlink --arch=sm_70 $^ -o $@
+%.cubin: %.cu
+	nvcc -cubin $<

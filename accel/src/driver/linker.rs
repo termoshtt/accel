@@ -3,7 +3,7 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{cuda_driver_init, module::*};
+use super::module::*;
 use crate::error::*;
 use anyhow::*;
 use cuda::*;
@@ -19,7 +19,7 @@ use std::{
 /// Configure generator for [CUjit_option] required in `cuLink*` APIs
 ///
 /// [CUjit_option]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct JITConfig {
     /// CU_JIT_MAX_REGISTERS, Applies to compiler only
     ///
@@ -221,52 +221,41 @@ impl Data {
     }
 }
 
-/// OOP-like wrapper for `cuLink*` APIs
-#[derive(Debug)]
-pub struct Linker(CUlinkState);
+/// Consuming builder for cubin from PTX and cubins
+pub struct Linker {
+    state: CUlinkState,
+    cfg: JITConfig,
+}
 
 impl Drop for Linker {
     fn drop(&mut self) {
-        unsafe { cuLinkDestroy(self.0) }
+        unsafe { cuLinkDestroy(self.state) }
             .check()
             .expect("Failed to release Linker");
     }
 }
 
-/// Link PTX/cubin into a module
-pub fn link(data: &[Data], opt: &JITConfig) -> Result<Module> {
-    let mut l = Linker::create(opt)?;
-    for d in data {
-        l.add(d, opt)?;
-    }
-    let cubin = l.complete()?;
-    Module::load(&cubin)
-}
-
 impl Linker {
     /// Create a new Linker
-    pub fn create(option: &JITConfig) -> Result<Self> {
-        cuda_driver_init();
-        let (n, mut opt, mut opts) = option.pack();
+    pub fn create(cfg: &JITConfig) -> Result<Self> {
+        let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
             cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), state.as_mut_ptr()).check()?;
             state.assume_init()
         };
-        Ok(Linker(state))
+        Ok(Linker {
+            state,
+            cfg: cfg.clone(),
+        })
     }
 
     /// Wrapper of cuLinkAddData
-    unsafe fn add_data(
-        &mut self,
-        input_type: CUjitInputType,
-        data: &[u8],
-        opt: &JITConfig,
-    ) -> Result<()> {
-        let (nopts, mut opts, mut opt_vals) = opt.pack();
+    unsafe fn add_data(self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
+        let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
         cuLinkAddData_v2(
-            self.0,
+            self.state,
             input_type,
             data.as_ptr() as *mut _,
             data.len(),
@@ -276,20 +265,15 @@ impl Linker {
             opt_vals.as_mut_ptr(),
         )
         .check()?;
-        Ok(())
+        Ok(self)
     }
 
     /// Wrapper of cuLinkAddFile
-    unsafe fn add_file(
-        &mut self,
-        input_type: CUjitInputType,
-        path: &Path,
-        opt: &JITConfig,
-    ) -> Result<()> {
+    unsafe fn add_file(self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
-        let (nopts, mut opts, mut opt_vals) = opt.pack();
+        let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         cuLinkAddFile_v2(
-            self.0,
+            self.state,
             input_type,
             filename.as_ptr(),
             nopts,
@@ -297,24 +281,21 @@ impl Linker {
             opt_vals.as_mut_ptr(),
         )
         .check()?;
-        Ok(())
+        Ok(self)
     }
 
     /// Add a resouce into the linker stack.
-    pub fn add(&mut self, data: &Data, opt: &JITConfig) -> Result<()> {
-        match *data {
+    pub fn add(self, data: &Data) -> Result<Self> {
+        Ok(match *data {
             Data::PTX(ref ptx) => unsafe {
                 let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
-                self.add_data(data.input_type(), cstr.as_bytes_with_nul(), opt)?;
+                self.add_data(data.input_type(), cstr.as_bytes_with_nul())?
             },
-            Data::Cubin(ref bin) => unsafe {
-                self.add_data(data.input_type(), &bin, opt)?;
-            },
+            Data::Cubin(ref bin) => unsafe { self.add_data(data.input_type(), &bin)? },
             Data::PTXFile(ref path) | Data::CubinFile(ref path) => unsafe {
-                self.add_file(data.input_type(), path, opt)?;
+                self.add_file(data.input_type(), path)?
             },
-        };
-        Ok(())
+        })
     }
 
     /// Wrapper of cuLinkComplete
@@ -322,13 +303,23 @@ impl Linker {
     /// LinkComplete returns a reference to cubin,
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
-    pub fn complete(&mut self) -> Result<Data> {
+    pub fn complete(self) -> Result<Data> {
         let mut cb = null_mut();
         unsafe {
-            cuLinkComplete(self.0, &mut cb as *mut _, null_mut()).check()?;
+            cuLinkComplete(self.state, &mut cb as *mut _, null_mut()).check()?;
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
+}
+
+/// Link PTX/cubin into a module
+pub fn link(data: &[Data], opt: &JITConfig) -> Result<Module> {
+    let mut l = Linker::create(opt)?;
+    for d in data {
+        l = l.add(d)?;
+    }
+    let cubin = l.complete()?;
+    Module::load(&cubin)
 }
 
 #[cfg(test)]
@@ -352,9 +343,9 @@ mod tests {
         let _ctx = device.create_context_auto()?;
 
         let jit_cfg = JITConfig::default();
-        let mut linker = Linker::create(&jit_cfg)?;
+        let linker = Linker::create(&jit_cfg)?;
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
-        linker.add(&data, &jit_cfg)?;
+        linker.add(&data)?;
         Ok(())
     }
 
@@ -364,9 +355,9 @@ mod tests {
         let _ctx = device.create_context_auto()?;
 
         let jit_cfg = JITConfig::default();
-        let mut linker = Linker::create(&jit_cfg)?;
+        let linker = Linker::create(&jit_cfg)?;
         let data = Data::cubin_file(Path::new("tests/data/dest.cubin"))?;
-        linker.add(&data, &jit_cfg)?;
+        linker.add(&data)?;
         Ok(())
     }
 }

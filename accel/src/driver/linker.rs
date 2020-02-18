@@ -356,7 +356,7 @@ mod tests {
 
         let jit_cfg = JITConfig::default();
         let linker = Linker::create(&jit_cfg)?;
-        let data = Data::cubin_file(Path::new("tests/data/dest.cubin"))?;
+        let data = Data::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())
     }

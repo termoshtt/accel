@@ -37,6 +37,16 @@ impl LogBuffer {
     fn buffer_ptr(&mut self) -> *mut u8 {
         self.buffer.as_mut_ptr()
     }
+
+    pub fn as_str(&self) -> Result<&str> {
+        let msg = std::str::from_utf8(&self.buffer[..self.length as usize])?;
+        Ok(msg)
+    }
+
+    pub fn reset(&mut self) {
+        self.length = self.buffer.len() as u32;
+        self.buffer.iter_mut().for_each(|val| *val = 0_u8);
+    }
 }
 
 /// Configure generator for [CUjit_option] required in `cuLink*` APIs
@@ -376,13 +386,16 @@ impl<'ctx> Linker<'ctx> {
     /// LinkComplete returns a reference to cubin,
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
-    pub fn complete(self) -> Result<Data> {
+    pub fn complete(mut self) -> Result<(Data, Option<LogBuffer>, Option<LogBuffer>)> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let mut cb = null_mut();
-        unsafe {
+        let cubin = unsafe {
             cuLinkComplete(self.state, &mut cb as *mut _, null_mut()).check()?;
-            Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
-        }
+            Data::cubin(CStr::from_ptr(cb as _).to_bytes())
+        };
+        let info = std::mem::replace(&mut self.cfg.info_log_buffer, None);
+        let err = std::mem::replace(&mut self.cfg.info_log_buffer, None);
+        Ok((cubin, info, err))
     }
 }
 
@@ -392,7 +405,7 @@ pub fn link(ctx: &Context, data: &[Data], opt: JITConfig) -> Result<Module> {
     for d in data {
         l = l.add(d)?;
     }
-    let cubin = l.complete()?;
+    let (cubin, _, _) = l.complete()?;
     Module::load(&cubin)
 }
 
@@ -442,6 +455,22 @@ mod tests {
             .add(&data_sub)?
             .complete()?;
         Ok(())
+    }
+
+    #[test]
+    fn log_buffer() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+
+        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let mut cfg = JITConfig::default();
+        cfg.info_log_buffer = Some(LogBuffer::new(1024));
+        cfg.error_log_buffer = Some(LogBuffer::new(1024));
+
+        let (_cubin, info, err) = Linker::create(&ctx, cfg)?.add(&data)?.complete()?;
+        dbg!(info);
+        dbg!(err);
+        panic!()
     }
 
     #[test]

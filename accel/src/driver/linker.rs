@@ -3,9 +3,9 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::module::*;
+use super::{context::*, module::*};
 use crate::error::*;
-use anyhow::*;
+use anyhow::{ensure, Result};
 use cuda::*;
 use std::{
     collections::HashMap,
@@ -222,12 +222,13 @@ impl Data {
 }
 
 /// Consuming builder for cubin from PTX and cubins
-pub struct Linker {
+pub struct Linker<'ctx> {
     state: CUlinkState,
     cfg: JITConfig,
+    context: &'ctx Context,
 }
 
-impl Drop for Linker {
+impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
         unsafe { cuLinkDestroy(self.state) }
             .check()
@@ -235,9 +236,10 @@ impl Drop for Linker {
     }
 }
 
-impl Linker {
+impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
-    pub fn create(cfg: &JITConfig) -> Result<Self> {
+    pub fn create(context: &'ctx Context, cfg: &JITConfig) -> Result<Self> {
+        ensure!(context.is_current()?, "Given context is not current");
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
@@ -247,11 +249,13 @@ impl Linker {
         Ok(Linker {
             state,
             cfg: cfg.clone(),
+            context,
         })
     }
 
     /// Wrapper of cuLinkAddData
     unsafe fn add_data(self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
+        ensure!(self.context.is_current()?, "Given context is not current");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
         cuLinkAddData_v2(
@@ -270,6 +274,7 @@ impl Linker {
 
     /// Wrapper of cuLinkAddFile
     unsafe fn add_file(self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
+        ensure!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         cuLinkAddFile_v2(
@@ -304,6 +309,7 @@ impl Linker {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Data> {
+        ensure!(self.context.is_current()?, "Given context is not current");
         let mut cb = null_mut();
         unsafe {
             cuLinkComplete(self.state, &mut cb as *mut _, null_mut()).check()?;
@@ -313,8 +319,8 @@ impl Linker {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(data: &[Data], opt: &JITConfig) -> Result<Module> {
-    let mut l = Linker::create(opt)?;
+pub fn link(ctx: &Context, data: &[Data], opt: &JITConfig) -> Result<Module> {
+    let mut l = Linker::create(ctx, opt)?;
     for d in data {
         l = l.add(d)?;
     }
@@ -330,22 +336,94 @@ mod tests {
     #[test]
     fn create() -> Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
 
         let jit_cfg = JITConfig::default();
-        let _linker = Linker::create(&jit_cfg)?;
+        let _linker = Linker::create(&ctx, &jit_cfg)?;
+        Ok(())
+    }
+
+    #[test]
+    fn non_current_context() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx1 = device.create_context_auto()?;
+        let ctx2 = device.create_context_auto()?;
+
+        let jit_cfg = JITConfig::default();
+        assert!(Linker::create(&ctx1, &jit_cfg).is_err());
+        let _linker = Linker::create(&ctx2, &jit_cfg)?;
         Ok(())
     }
 
     #[test]
     fn ptx_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
 
         let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&jit_cfg)?;
+        let linker = Linker::create(&ctx, &jit_cfg)?;
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
+        Ok(())
+    }
+
+    #[test]
+    fn linking() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+
+        let jit_cfg = JITConfig::default();
+        let data_add = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data_sub = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let _module = Linker::create(&ctx, &jit_cfg)?
+            .add(&data_add)?
+            .add(&data_sub)?
+            .complete()?;
+        Ok(())
+    }
+
+    #[test]
+    fn switch_context_while_linking() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx1 = device.create_context_auto()?;
+        let ctx2 = device.create_context_auto()?;
+
+        // ctx2 is current
+        let jit_cfg = JITConfig::default();
+        let linker = Linker::create(&ctx2, &jit_cfg)?;
+        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let linker = linker.add(&data)?;
+
+        // ctx2 -> ctx1
+        ctx2.pop()?;
+        ctx1.push()?;
+        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        assert!(linker.add(&data).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn restart_linking() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx1 = device.create_context_auto()?;
+        let ctx2 = device.create_context_auto()?;
+
+        // ctx2 is current
+        let jit_cfg = JITConfig::default();
+        let linker = Linker::create(&ctx2, &jit_cfg)?;
+        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let linker = linker.add(&data)?;
+
+        // ctx2 -> ctx1
+        ctx2.pop()?;
+        ctx1.push()?;
+
+        // ctx1 -> ctx2
+        ctx1.pop()?;
+        ctx2.push()?;
+        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let _linker = linker.add(&data)?;
         Ok(())
     }
 
@@ -353,10 +431,10 @@ mod tests {
     #[test]
     fn cubin_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
 
         let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&jit_cfg)?;
+        let linker = Linker::create(&ctx, &jit_cfg)?;
         let data = Data::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())

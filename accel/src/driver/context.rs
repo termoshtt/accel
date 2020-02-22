@@ -53,16 +53,19 @@ impl Context {
     }
 
     /// Push to the context stack of this thread
-    pub fn push(&mut self) -> Result<()> {
+    pub fn push(&self) -> Result<()> {
         let lock = get_lock();
-        ensure!(lock.borrow().is_none(), "No context before push");
+        ensure!(
+            lock.borrow().is_none(),
+            "Context already exists on this thread. Please pop it before push new context."
+        );
         ffi_call_unsafe!(cuCtxPushCurrent_v2, self.ptr)?;
         *lock.borrow_mut() = Some(self.ptr);
         Ok(())
     }
 
     /// Pop from the context stack of this thread
-    pub fn pop(&mut self) -> Result<()> {
+    pub fn pop(&self) -> Result<()> {
         let lock = get_lock();
         if lock.borrow().is_none() {
             bail!("No countext has been set");
@@ -92,7 +95,7 @@ mod tests {
     #[test]
     fn push() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let mut ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
         assert!(ctx.push().is_err());
         Ok(())
@@ -101,7 +104,7 @@ mod tests {
     #[test]
     fn pop() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let mut ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
         ctx.pop()?;
         assert!(!ctx.is_current()?);
@@ -111,7 +114,7 @@ mod tests {
     #[test]
     fn push_pop() -> anyhow::Result<()> {
         let device = Device::nth(0)?;
-        let mut ctx = device.create_context_auto()?;
+        let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
         ctx.pop()?;
         assert!(!ctx.is_current()?);

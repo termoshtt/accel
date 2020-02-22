@@ -16,6 +16,29 @@ use std::{
     ptr::null_mut,
 };
 
+#[derive(Debug, Clone)]
+pub struct LogBuffer {
+    length: u32,
+    buffer: Vec<u8>,
+}
+
+impl LogBuffer {
+    pub fn new(size: usize) -> Self {
+        LogBuffer {
+            length: size as u32,
+            buffer: vec![0_u8; size],
+        }
+    }
+
+    fn length_ptr(&mut self) -> *mut u32 {
+        &mut self.length as *mut _
+    }
+
+    fn buffer_ptr(&mut self) -> *mut u8 {
+        self.buffer.as_mut_ptr()
+    }
+}
+
 /// Configure generator for [CUjit_option] required in `cuLink*` APIs
 ///
 /// [CUjit_option]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TYPES.html#group__CUDA__TYPES_1g5527fa8030d5cabedc781a04dbd1997d
@@ -51,7 +74,7 @@ pub struct JITConfig {
     ///
     /// - **IN**: Log buffer size in bytes. Log messages will be capped at this size (including null terminator)
     /// - **OUT**: Amount of log buffer filled with messages
-    pub info_log_buffer: Option<CString>,
+    pub info_log_buffer: Option<LogBuffer>,
 
     /// CU_JIT_ERROR_LOG_BUFFER, Applies to compiler and linker
     ///
@@ -61,7 +84,7 @@ pub struct JITConfig {
     ///
     /// - **IN**: Log buffer size in bytes. Log messages will be capped at this size (including null terminator)
     /// - **OUT**: Amount of log buffer filled with messages
-    pub error_log_buffer: Option<CString>,
+    pub error_log_buffer: Option<LogBuffer>,
 
     /// CU_JIT_OPTIMIZATION_LEVEL, Applies to compiler only
     ///
@@ -131,9 +154,54 @@ pub struct JITConfig {
 
 impl JITConfig {
     /// Pack configure into C API compatible format
-    fn pack(&self) -> (u32, Vec<CUjit_option>, Vec<*mut c_void>) {
-        // TODO
-        (0, Vec::new(), Vec::new())
+    fn pack(&mut self) -> (u32, Vec<CUjit_option>, Vec<*mut c_void>) {
+        let mut opt_keys = Vec::new();
+        let mut opt_values = Vec::new();
+
+        macro_rules! check_option {
+            ( $tag:ident, $opt_name:ident) => {
+                if let Some($opt_name) = self.$opt_name.as_ref() {
+                    opt_keys.push(CUjit_option::$tag);
+                    opt_values.push($opt_name as *const _ as *mut c_void);
+                }
+            };
+        }
+        check_option!(CU_JIT_MAX_REGISTERS, max_registers);
+        check_option!(CU_JIT_THREADS_PER_BLOCK, threads_per_block);
+        check_option!(CU_JIT_WALL_TIME, wall_time);
+        check_option!(CU_JIT_OPTIMIZATION_LEVEL, optimization_level);
+        check_option!(CU_JIT_TARGET, target);
+        check_option!(CU_JIT_FALLBACK_STRATEGY, fallback_strategy);
+        check_option!(CU_JIT_GENERATE_DEBUG_INFO, generate_debug_info);
+        check_option!(CU_JIT_LOG_VERBOSE, log_verbose);
+        check_option!(CU_JIT_GENERATE_LINE_INFO, generate_line_info);
+        check_option!(CU_JIT_CACHE_MODE, cache_mode);
+        check_option!(CU_JIT_NEW_SM3X_OPT, new_sm3x_opt);
+
+        if self.fast_compile {
+            opt_keys.push(CUjit_option::CU_JIT_FAST_COMPILE);
+            opt_values.push(&self.fast_compile as *const bool as *mut c_void);
+        }
+
+        if let Some(info_log_buffer) = self.info_log_buffer.as_mut() {
+            opt_keys.push(CUjit_option::CU_JIT_INFO_LOG_BUFFER);
+            opt_keys.push(CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES);
+            opt_values.push(info_log_buffer.buffer_ptr() as *mut c_void);
+            opt_values.push(info_log_buffer.length_ptr() as *mut c_void);
+        }
+
+        if let Some(error_log_buffer) = self.error_log_buffer.as_mut() {
+            opt_keys.push(CUjit_option::CU_JIT_ERROR_LOG_BUFFER);
+            opt_keys.push(CUjit_option::CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES);
+            opt_values.push(error_log_buffer.buffer_ptr() as *mut c_void);
+            opt_values.push(error_log_buffer.length_ptr() as *mut c_void);
+        }
+
+        if self.global_symbol.len() != 0 {
+            unimplemented!("GLOBAL_SYMBOL flags are not supported yet"); // FIXME
+        }
+        assert_eq!(opt_keys.len(), opt_values.len());
+        (opt_keys.len() as u32, opt_keys, opt_values)
     }
 }
 
@@ -144,7 +212,7 @@ mod jit_config_tests {
     #[test]
     fn info_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.info_log_buffer = Some(CString::new("info.log").unwrap());
+        cfg.info_log_buffer = Some(LogBuffer::new(1024));
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(
@@ -160,14 +228,14 @@ mod jit_config_tests {
     #[test]
     fn error_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.error_log_buffer = Some(CString::new("error.log").unwrap());
+        cfg.error_log_buffer = Some(LogBuffer::new(1024));
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(
             opt_types,
             vec![
-                CUjit_option::CU_JIT_INFO_LOG_BUFFER,
-                CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES
+                CUjit_option::CU_JIT_ERROR_LOG_BUFFER,
+                CUjit_option::CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES
             ]
         );
         assert_eq!(opt_values.len(), 2);
@@ -238,7 +306,7 @@ impl<'ctx> Drop for Linker<'ctx> {
 
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
-    pub fn create(context: &'ctx Context, cfg: &JITConfig) -> Result<Self> {
+    pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
         ensure!(context.is_current()?, "Given context is not current");
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
@@ -248,13 +316,13 @@ impl<'ctx> Linker<'ctx> {
         };
         Ok(Linker {
             state,
-            cfg: cfg.clone(),
+            cfg,
             context,
         })
     }
 
     /// Wrapper of cuLinkAddData
-    unsafe fn add_data(self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
+    unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
@@ -273,7 +341,7 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddFile
-    unsafe fn add_file(self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
+    unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
@@ -319,7 +387,7 @@ impl<'ctx> Linker<'ctx> {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: &Context, data: &[Data], opt: &JITConfig) -> Result<Module> {
+pub fn link(ctx: &Context, data: &[Data], opt: JITConfig) -> Result<Module> {
     let mut l = Linker::create(ctx, opt)?;
     for d in data {
         l = l.add(d)?;
@@ -337,9 +405,7 @@ mod tests {
     fn create() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-
-        let jit_cfg = JITConfig::default();
-        let _linker = Linker::create(&ctx, &jit_cfg)?;
+        let _linker = Linker::create(&ctx, JITConfig::default())?;
         Ok(())
     }
 
@@ -349,9 +415,8 @@ mod tests {
         let ctx1 = device.create_context_auto()?;
         let ctx2 = device.create_context_auto()?;
 
-        let jit_cfg = JITConfig::default();
-        assert!(Linker::create(&ctx1, &jit_cfg).is_err());
-        let _linker = Linker::create(&ctx2, &jit_cfg)?;
+        assert!(Linker::create(&ctx1, JITConfig::default()).is_err());
+        let _linker = Linker::create(&ctx2, JITConfig::default())?;
         Ok(())
     }
 
@@ -359,9 +424,7 @@ mod tests {
     fn ptx_file() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-
-        let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&ctx, &jit_cfg)?;
+        let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
         Ok(())
@@ -372,10 +435,9 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
 
-        let jit_cfg = JITConfig::default();
         let data_add = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         let data_sub = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        let _module = Linker::create(&ctx, &jit_cfg)?
+        let _module = Linker::create(&ctx, JITConfig::default())?
             .add(&data_add)?
             .add(&data_sub)?
             .complete()?;
@@ -389,8 +451,7 @@ mod tests {
         let ctx2 = device.create_context_auto()?;
 
         // ctx2 is current
-        let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&ctx2, &jit_cfg)?;
+        let linker = Linker::create(&ctx2, JITConfig::default())?;
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         let linker = linker.add(&data)?;
 
@@ -410,8 +471,7 @@ mod tests {
         let ctx2 = device.create_context_auto()?;
 
         // ctx2 is current
-        let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&ctx2, &jit_cfg)?;
+        let linker = Linker::create(&ctx2, JITConfig::default())?;
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         let linker = linker.add(&data)?;
 
@@ -432,9 +492,7 @@ mod tests {
     fn cubin_file() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-
-        let jit_cfg = JITConfig::default();
-        let linker = Linker::create(&ctx, &jit_cfg)?;
+        let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Data::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())

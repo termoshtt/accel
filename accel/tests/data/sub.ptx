@@ -10,21 +10,21 @@
 .target sm_30
 .address_size 64
 
-	// .globl	_Z3addPKiS0_Pi
+	// .globl	_Z3subPKiS0_Pi
 
-.visible .entry _Z3addPKiS0_Pi(
-	.param .u64 _Z3addPKiS0_Pi_param_0,
-	.param .u64 _Z3addPKiS0_Pi_param_1,
-	.param .u64 _Z3addPKiS0_Pi_param_2
+.visible .entry _Z3subPKiS0_Pi(
+	.param .u64 _Z3subPKiS0_Pi_param_0,
+	.param .u64 _Z3subPKiS0_Pi_param_1,
+	.param .u64 _Z3subPKiS0_Pi_param_2
 )
 {
 	.reg .b32 	%r<8>;
 	.reg .b64 	%rd<11>;
 
 
-	ld.param.u64 	%rd1, [_Z3addPKiS0_Pi_param_0];
-	ld.param.u64 	%rd2, [_Z3addPKiS0_Pi_param_1];
-	ld.param.u64 	%rd3, [_Z3addPKiS0_Pi_param_2];
+	ld.param.u64 	%rd1, [_Z3subPKiS0_Pi_param_0];
+	ld.param.u64 	%rd2, [_Z3subPKiS0_Pi_param_1];
+	ld.param.u64 	%rd3, [_Z3subPKiS0_Pi_param_2];
 	cvta.to.global.u64 	%rd4, %rd3;
 	cvta.to.global.u64 	%rd5, %rd2;
 	cvta.to.global.u64 	%rd6, %rd1;
@@ -37,7 +37,7 @@
 	ld.global.u32 	%r5, [%rd8];
 	add.s64 	%rd9, %rd5, %rd7;
 	ld.global.u32 	%r6, [%rd9];
-	add.s32 	%r7, %r6, %r5;
+	sub.s32 	%r7, %r5, %r6;
 	add.s64 	%rd10, %rd4, %rd7;
 	st.global.u32 	[%rd10], %r7;
 	ret;

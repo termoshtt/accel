@@ -16,9 +16,28 @@ use std::{
     ptr::null_mut,
 };
 
-// TODO
 #[derive(Debug, Clone)]
-pub struct LogBuffer {}
+pub struct LogBuffer {
+    length: u32,
+    buffer: Vec<u8>,
+}
+
+impl LogBuffer {
+    pub fn new(size: usize) -> Self {
+        LogBuffer {
+            length: size as u32,
+            buffer: vec![0_u8; size],
+        }
+    }
+
+    fn length_ptr(&mut self) -> *mut u32 {
+        &mut self.length as *mut _
+    }
+
+    fn buffer_ptr(&mut self) -> *mut u8 {
+        self.buffer.as_mut_ptr()
+    }
+}
 
 /// Configure generator for [CUjit_option] required in `cuLink*` APIs
 ///
@@ -164,16 +183,22 @@ impl JITConfig {
             opt_values.push(&self.fast_compile as *const bool as *mut c_void);
         }
 
-        if let Some(_info_log_buffer) = self.info_log_buffer.as_mut() {
-            unimplemented!("Log for JIT is not supported yet");
+        if let Some(info_log_buffer) = self.info_log_buffer.as_mut() {
+            opt_keys.push(CUjit_option::CU_JIT_INFO_LOG_BUFFER);
+            opt_keys.push(CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES);
+            opt_values.push(info_log_buffer.buffer_ptr() as *mut c_void);
+            opt_values.push(info_log_buffer.length_ptr() as *mut c_void);
         }
 
-        if let Some(_error_log_buffer) = self.error_log_buffer.as_mut() {
-            unimplemented!("Log for JIT is not supported yet");
+        if let Some(error_log_buffer) = self.error_log_buffer.as_mut() {
+            opt_keys.push(CUjit_option::CU_JIT_ERROR_LOG_BUFFER);
+            opt_keys.push(CUjit_option::CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES);
+            opt_values.push(error_log_buffer.buffer_ptr() as *mut c_void);
+            opt_values.push(error_log_buffer.length_ptr() as *mut c_void);
         }
 
         if self.global_symbol.len() != 0 {
-            unimplemented!("GLOBAL_SYMBOL flags are not supported yet");
+            unimplemented!("GLOBAL_SYMBOL flags are not supported yet"); // FIXME
         }
         assert_eq!(opt_keys.len(), opt_values.len());
         (opt_keys.len() as u32, opt_keys, opt_values)
@@ -187,7 +212,7 @@ mod jit_config_tests {
     #[test]
     fn info_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.info_log_buffer = Some(LogBuffer {});
+        cfg.info_log_buffer = Some(LogBuffer::new(1024));
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(
@@ -203,14 +228,14 @@ mod jit_config_tests {
     #[test]
     fn error_log_buffer() {
         let mut cfg = JITConfig::default();
-        cfg.error_log_buffer = Some(LogBuffer {});
+        cfg.error_log_buffer = Some(LogBuffer::new(1024));
         let (size, opt_types, opt_values) = cfg.pack();
         assert_eq!(size, 2);
         assert_eq!(
             opt_types,
             vec![
-                CUjit_option::CU_JIT_INFO_LOG_BUFFER,
-                CUjit_option::CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES
+                CUjit_option::CU_JIT_ERROR_LOG_BUFFER,
+                CUjit_option::CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES
             ]
         );
         assert_eq!(opt_values.len(), 2);

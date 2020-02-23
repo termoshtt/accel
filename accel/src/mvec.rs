@@ -1,4 +1,4 @@
-use super::{error::*, ffi_call};
+use super::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::Result;
 use cudart::*;
 use std::mem::size_of;
@@ -23,7 +23,7 @@ impl<T: Copy> MVec<T> {
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
-        ffi_call!(
+        ffi_call_unsafe!(
             cudaMemset,
             self.ptr as *mut c_void,
             0,
@@ -51,7 +51,7 @@ impl<T: Copy> MVec<T> {
     /// Load data from host_vector into device_vector
     pub fn set(&mut self, data: &[T]) -> Result<()> {
         assert!(self.len() == data.len());
-        ffi_call!(
+        ffi_call_unsafe!(
             cudaMemcpy,
             self.ptr as *mut c_void,
             data.as_ptr() as *const c_void,
@@ -64,7 +64,7 @@ impl<T: Copy> MVec<T> {
     /// Load data from device_vector into host_vector
     pub fn get(&self, buffer: &mut [T]) -> Result<()> {
         assert!(self.len() == buffer.len());
-        ffi_call!(
+        ffi_call_unsafe!(
             cudaMemcpy,
             buffer.as_mut_ptr() as *mut c_void,
             self.ptr as *const c_void,
@@ -82,7 +82,7 @@ impl<T: Copy> MVec<T> {
 
 impl<T> Drop for MVec<T> {
     fn drop(&mut self) {
-        ffi_call!(cudaFree, self.ptr as *mut c_void).expect("Free failed");
+        ffi_call_unsafe!(cudaFree, self.ptr as *mut c_void).expect("Free failed");
     }
 }
 

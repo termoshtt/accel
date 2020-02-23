@@ -4,7 +4,7 @@
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use super::{cuda_driver_init, kernel::Kernel};
-use crate::{error::*, ffi_call};
+use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::Result;
 use cuda::*;
 use std::{
@@ -80,7 +80,7 @@ pub struct Linker(CUlinkState);
 
 impl Drop for Linker {
     fn drop(&mut self) {
-        ffi_call!(cuLinkDestroy, self.0).expect("Failed to release Linker");
+        ffi_call_unsafe!(cuLinkDestroy, self.0).expect("Failed to release Linker");
     }
 }
 
@@ -100,7 +100,7 @@ impl Linker {
         cuda_driver_init();
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
-        ffi_call!(
+        ffi_call_unsafe!(
             cuLinkCreate_v2,
             n,
             opt.as_mut_ptr(),
@@ -225,7 +225,7 @@ impl Module {
         let m = &mut handle as *mut CUmodule;
         let filename = str2cstring(path.to_str().unwrap());
         cuda_driver_init();
-        ffi_call!(cuModuleLoad, m, filename.as_ptr())?;
+        ffi_call_unsafe!(cuModuleLoad, m, filename.as_ptr())?;
         Ok(Module(handle))
     }
 
@@ -239,7 +239,7 @@ impl Module {
         let name = str2cstring(name);
         let mut func = null_mut();
         cuda_driver_init();
-        ffi_call!(
+        ffi_call_unsafe!(
             cuModuleGetFunction,
             &mut func as *mut CUfunction,
             self.0,
@@ -251,7 +251,7 @@ impl Module {
 
 impl Drop for Module {
     fn drop(&mut self) {
-        ffi_call!(cuModuleUnload, self.0).expect("Failed to unload module");
+        ffi_call_unsafe!(cuModuleUnload, self.0).expect("Failed to unload module");
     }
 }
 

@@ -7,7 +7,7 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::{error::*, ffi_call, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new};
 use anyhow::Result;
 use cuda::*;
 
@@ -22,7 +22,7 @@ impl Device {
     pub fn get_count() -> Result<usize> {
         cuda_driver_init();
         let mut count: i32 = 0;
-        ffi_call!(cuDeviceGetCount, &mut count as *mut i32)?;
+        ffi_call_unsafe!(cuDeviceGetCount, &mut count as *mut i32)?;
         Ok(count as usize)
     }
 
@@ -35,14 +35,14 @@ impl Device {
     /// Get total memory of GPU
     pub fn total_memory(&self) -> Result<usize> {
         let mut mem = 0;
-        ffi_call!(cuDeviceTotalMem_v2, &mut mem as *mut _, self.device)?;
+        ffi_call_unsafe!(cuDeviceTotalMem_v2, &mut mem as *mut _, self.device)?;
         Ok(mem)
     }
 
     /// Get name of GPU
     pub fn get_name(&self) -> Result<String> {
         let mut bytes: Vec<u8> = vec![0_u8; 1024];
-        ffi_call!(
+        ffi_call_unsafe!(
             cuDeviceGetName,
             bytes.as_mut_ptr() as *mut i8,
             1024,

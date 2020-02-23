@@ -16,14 +16,20 @@ pub use uvec::UVec;
 #[macro_export]
 macro_rules! ffi_call {
     ($ffi:path, $($args:expr),*) => {
-        unsafe {
-            $ffi($($args),*).check(stringify!($ffi))
-        }
+        $ffi($($args),*).check(stringify!($ffi))
     };
     ($ffi:path) => {
-        unsafe {
-            $ffi().check(stringify!($ffi))
-        }
+        $ffi().check(stringify!($ffi))
+    };
+}
+
+#[macro_export]
+macro_rules! ffi_call_unsafe {
+    ($ffi:path, $($args:expr),*) => {
+        unsafe { $ffi($($args),*).check(stringify!($ffi)) }
+    };
+    ($ffi:path) => {
+        unsafe { $ffi().check(stringify!($ffi)) }
     };
 }
 

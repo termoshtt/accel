@@ -2,7 +2,7 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{error::*, ffi_call, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new};
 use anyhow::{bail, ensure, Result};
 use cuda::*;
 use std::{cell::RefCell, rc::Rc};
@@ -17,7 +17,7 @@ pub struct Context {
 
 impl Drop for Context {
     fn drop(&mut self) {
-        ffi_call!(cuCtxDestroy_v2, self.ptr).expect("Context remove failed");
+        ffi_call_unsafe!(cuCtxDestroy_v2, self.ptr).expect("Context remove failed");
     }
 }
 
@@ -48,7 +48,7 @@ impl Context {
 
     pub fn version(&self) -> Result<u32> {
         let mut version: u32 = 0;
-        ffi_call!(cuCtxGetApiVersion, self.ptr, &mut version as *mut _)?;
+        ffi_call_unsafe!(cuCtxGetApiVersion, self.ptr, &mut version as *mut _)?;
         Ok(version)
     }
 
@@ -56,7 +56,7 @@ impl Context {
     pub fn push(&mut self) -> Result<()> {
         let lock = get_lock();
         ensure!(lock.borrow().is_none(), "No context before push");
-        ffi_call!(cuCtxPushCurrent_v2, self.ptr)?;
+        ffi_call_unsafe!(cuCtxPushCurrent_v2, self.ptr)?;
         *lock.borrow_mut() = Some(self.ptr);
         Ok(())
     }

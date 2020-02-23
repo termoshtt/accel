@@ -1,4 +1,4 @@
-use super::{error::*, ffi_call};
+use super::{error::*, ffi_call, ffi_call_unsafe};
 use cudart::*;
 
 use anyhow::Result;
@@ -31,7 +31,7 @@ impl<T> UVec<T> {
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
-        ffi_call!(
+        ffi_call_unsafe!(
             cudaMemset,
             self.ptr as *mut c_void,
             0,
@@ -85,7 +85,7 @@ impl<T> IndexMut<usize> for UVec<T> {
 
 impl<T> Drop for UVec<T> {
     fn drop(&mut self) {
-        ffi_call!(cudaFree, self.ptr as *mut c_void).expect("Free failed");
+        ffi_call_unsafe!(cudaFree, self.ptr as *mut c_void).expect("Free failed");
     }
 }
 

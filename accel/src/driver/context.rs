@@ -2,7 +2,7 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{error::*, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new};
 use anyhow::{bail, ensure, Result};
 use cuda::*;
 use std::{cell::RefCell, rc::Rc};
@@ -17,9 +17,7 @@ pub struct Context {
 
 impl Drop for Context {
     fn drop(&mut self) {
-        unsafe { cuCtxDestroy_v2(self.ptr) }
-            .check()
-            .expect("Context remove failed");
+        ffi_call_unsafe!(cuCtxDestroy_v2, self.ptr).expect("Context remove failed");
     }
 }
 
@@ -34,7 +32,7 @@ fn get_lock() -> Rc<RefCell<Option<CUcontext>>> {
 impl Context {
     /// Create on the top of context stack
     pub fn create(device: CUdevice, flag: ContextFlag) -> Result<Self> {
-        let ptr = ffi_new!(cuCtxCreate_v2, flag as u32, device);
+        let ptr = ffi_new!(cuCtxCreate_v2, flag as u32, device)?;
         if ptr.is_null() {
             bail!("Cannot crate a new context");
         }
@@ -44,13 +42,13 @@ impl Context {
 
     /// Check this context is "current" on this thread
     pub fn is_current(&self) -> Result<bool> {
-        let current = ffi_new!(cuCtxGetCurrent);
+        let current = ffi_new!(cuCtxGetCurrent)?;
         Ok(current == self.ptr)
     }
 
     pub fn version(&self) -> Result<u32> {
         let mut version: u32 = 0;
-        unsafe { cuCtxGetApiVersion(self.ptr, &mut version as *mut _) }.check()?;
+        ffi_call_unsafe!(cuCtxGetApiVersion, self.ptr, &mut version as *mut _)?;
         Ok(version)
     }
 
@@ -58,7 +56,7 @@ impl Context {
     pub fn push(&mut self) -> Result<()> {
         let lock = get_lock();
         ensure!(lock.borrow().is_none(), "No context before push");
-        unsafe { cuCtxPushCurrent_v2(self.ptr) }.check()?;
+        ffi_call_unsafe!(cuCtxPushCurrent_v2, self.ptr)?;
         *lock.borrow_mut() = Some(self.ptr);
         Ok(())
     }
@@ -69,7 +67,7 @@ impl Context {
         if lock.borrow().is_none() {
             bail!("No countext has been set");
         }
-        let ptr = ffi_new!(cuCtxPopCurrent_v2);
+        let ptr = ffi_new!(cuCtxPopCurrent_v2)?;
         if ptr.is_null() {
             bail!("No current context");
         }

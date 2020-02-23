@@ -4,7 +4,7 @@
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use super::{cuda_driver_init, kernel::Kernel};
-use crate::error::*;
+use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::Result;
 use cuda::*;
 use std::{
@@ -80,9 +80,7 @@ pub struct Linker(CUlinkState);
 
 impl Drop for Linker {
     fn drop(&mut self) {
-        unsafe { cuLinkDestroy(self.0) }
-            .check()
-            .expect("Failed to release Linker");
+        ffi_call_unsafe!(cuLinkDestroy, self.0).expect("Failed to release Linker");
     }
 }
 
@@ -102,8 +100,13 @@ impl Linker {
         cuda_driver_init();
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
-        unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
-            .check()?;
+        ffi_call_unsafe!(
+            cuLinkCreate_v2,
+            n,
+            opt.as_mut_ptr(),
+            opts.as_mut_ptr(),
+            &mut st as *mut _
+        )?;
         Ok(Linker(st))
     }
 
@@ -117,7 +120,8 @@ impl Linker {
     ) -> Result<()> {
         let (nopts, mut opts, mut opt_vals) = parse(opt);
         let name = str2cstring(&"\0");
-        cuLinkAddData_v2(
+        ffi_call!(
+            cuLinkAddData_v2,
             self.0,
             input_type,
             data,
@@ -125,9 +129,8 @@ impl Linker {
             name.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(())
     }
 
@@ -140,15 +143,15 @@ impl Linker {
     ) -> Result<()> {
         let filename = str2cstring(path.to_str().unwrap()).as_mut_ptr();
         let (nopts, mut opts, mut opt_vals) = parse(opt);
-        cuLinkAddFile_v2(
+        ffi_call!(
+            cuLinkAddFile_v2,
             self.0,
             input_type,
             filename,
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(())
     }
 
@@ -181,7 +184,7 @@ impl Linker {
     pub fn complete(&mut self) -> Result<Data> {
         let mut cb = null_mut();
         unsafe {
-            cuLinkComplete(self.0, &mut cb as *mut _, null_mut()).check()?;
+            ffi_call!(cuLinkComplete, self.0, &mut cb as *mut _, null_mut())?;
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
@@ -212,7 +215,7 @@ impl Module {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         cuda_driver_init();
-        cuModuleLoadData(m, ptr).check()?;
+        ffi_call!(cuModuleLoadData, m, ptr)?;
         Ok(Module(handle))
     }
 
@@ -222,7 +225,7 @@ impl Module {
         let m = &mut handle as *mut CUmodule;
         let filename = str2cstring(path.to_str().unwrap());
         cuda_driver_init();
-        unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
+        ffi_call_unsafe!(cuModuleLoad, m, filename.as_ptr())?;
         Ok(Module(handle))
     }
 
@@ -236,17 +239,19 @@ impl Module {
         let name = str2cstring(name);
         let mut func = null_mut();
         cuda_driver_init();
-        unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
-            .check()?;
+        ffi_call_unsafe!(
+            cuModuleGetFunction,
+            &mut func as *mut CUfunction,
+            self.0,
+            name.as_ptr()
+        )?;
         Ok(Kernel { func, _m: self })
     }
 }
 
 impl Drop for Module {
     fn drop(&mut self) {
-        unsafe { cuModuleUnload(self.0) }
-            .check()
-            .expect("Failed to unload module");
+        ffi_call_unsafe!(cuModuleUnload, self.0).expect("Failed to unload module");
     }
 }
 

@@ -336,9 +336,8 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddData
-    unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
+    unsafe fn add_data(self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
         ensure!(self.context.is_current()?, "Given context is not current");
-        let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
         ffi_call!(
             cuLinkAddData_v2,
@@ -355,7 +354,7 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddFile
-    unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
+    unsafe fn add_file(self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
@@ -398,7 +397,7 @@ impl<'ctx> Linker<'ctx> {
             Data::cubin(CStr::from_ptr(cb as _).to_bytes())
         };
         let info = std::mem::replace(&mut self.cfg.info_log_buffer, None);
-        let err = std::mem::replace(&mut self.cfg.info_log_buffer, None);
+        let err = std::mem::replace(&mut self.cfg.error_log_buffer, None);
         Ok((cubin, info, err))
     }
 }
@@ -468,8 +467,8 @@ mod tests {
 
         let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
         let mut cfg = JITConfig::default();
-        cfg.info_log_buffer = Some(LogBuffer::new(1024));
-        cfg.error_log_buffer = Some(LogBuffer::new(1024));
+        cfg.info_log_buffer = Some(LogBuffer::new(16));
+        cfg.error_log_buffer = Some(LogBuffer::new(16));
 
         let (_cubin, info, err) = Linker::create(&ctx, cfg)?.add(&data)?.complete()?;
         dbg!(info);

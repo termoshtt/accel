@@ -1,4 +1,4 @@
-use super::error::*;
+use super::{error::*, ffi_call};
 use cudart::*;
 
 use anyhow::Result;
@@ -18,12 +18,12 @@ pub struct UVec<T> {
 impl<T> UVec<T> {
     pub unsafe fn uninitialized(n: usize) -> Result<Self> {
         let mut ptr: *mut c_void = null_mut();
-        cudaMallocManaged(
+        ffi_call!(
+            cudaMallocManaged,
             &mut ptr as *mut *mut c_void,
             n * size_of::<T>(),
-            cudaMemAttachGlobal,
-        )
-        .check()?;
+            cudaMemAttachGlobal
+        )?;
         Ok(UVec {
             ptr: ptr as *mut T,
             n,
@@ -31,7 +31,12 @@ impl<T> UVec<T> {
     }
 
     pub fn fill_zero(&mut self) -> Result<()> {
-        unsafe { cudaMemset(self.ptr as *mut c_void, 0, self.n * size_of::<T>()) }.check()?;
+        ffi_call!(
+            cudaMemset,
+            self.ptr as *mut c_void,
+            0,
+            self.n * size_of::<T>()
+        )?;
         Ok(())
     }
 
@@ -80,9 +85,7 @@ impl<T> IndexMut<usize> for UVec<T> {
 
 impl<T> Drop for UVec<T> {
     fn drop(&mut self) {
-        unsafe { cudaFree(self.ptr as *mut c_void) }
-            .check()
-            .expect("Free failed");
+        ffi_call!(cudaFree, self.ptr as *mut c_void).expect("Free failed");
     }
 }
 

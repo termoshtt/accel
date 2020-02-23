@@ -1,13 +1,12 @@
-use crate::error::*;
+use crate::{error::*, ffi_call, ffi_new};
 use anyhow::Result;
 use cudart::*;
-use std::mem;
 
 pub use cudart::cudaComputeMode as ComputeMode;
 pub use cudart::cudaDeviceProp as DeviceProp;
 
 pub fn sync() -> Result<()> {
-    Ok(unsafe { cudaDeviceSynchronize() }.check()?)
+    Ok(ffi_call!(cudaDeviceSynchronize,)?)
 }
 
 /// Compute Capability of GPU
@@ -35,7 +34,7 @@ impl ComputeCapability {
 
 pub fn num_devices() -> Result<usize> {
     let mut count = 0;
-    unsafe { cudaGetDeviceCount(&mut count as *mut _) }.check()?;
+    ffi_call!(cudaGetDeviceCount, &mut count as *mut _)?;
     Ok(count as usize)
 }
 
@@ -45,7 +44,7 @@ pub struct Device(::std::os::raw::c_int);
 impl Device {
     pub fn current() -> Result<Self> {
         let mut id = 0;
-        unsafe { cudaGetDevice(&mut id as *mut _) }.check()?;
+        ffi_call!(cudaGetDevice, &mut id as *mut _)?;
         Ok(Device(id))
     }
 
@@ -77,7 +76,7 @@ impl Device {
     }
 
     pub fn set(id: i32) -> Result<Self> {
-        unsafe { cudaSetDevice(id) }.check()?;
+        ffi_call!(cudaSetDevice, id)?;
         Ok(Device(id))
     }
 
@@ -138,16 +137,13 @@ impl Device {
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {
-        unsafe {
-            let mut prop = mem::MaybeUninit::uninit().assume_init();
-            cudaGetDeviceProperties(&mut prop as *mut _, self.0).check()?;
-            Ok(prop)
-        }
+        let prop = ffi_new!(cudaGetDeviceProperties, self.0)?;
+        Ok(prop)
     }
 
     pub fn get_attr(&self, attr: cudaDeviceAttr) -> Result<i32> {
         let mut value = 0;
-        unsafe { cudaDeviceGetAttribute(&mut value as *mut _, attr, self.0) }.check()?;
+        ffi_call!(cudaDeviceGetAttribute, &mut value as *mut _, attr, self.0)?;
         Ok(value)
     }
 }

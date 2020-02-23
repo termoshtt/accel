@@ -4,7 +4,7 @@
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use super::{cuda_driver_init, kernel::Kernel, linker::*};
-use crate::error::*;
+use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::Result;
 use cuda::*;
 use std::{ffi::CString, os::raw::c_void, path::Path, ptr::null_mut};
@@ -34,7 +34,7 @@ impl Module {
         let mut handle = null_mut();
         let m = &mut handle as *mut CUmodule;
         cuda_driver_init();
-        cuModuleLoadData(m, ptr).check()?;
+        ffi_call!(cuModuleLoadData, m, ptr)?;
         Ok(Module(handle))
     }
 
@@ -44,7 +44,7 @@ impl Module {
         let m = &mut handle as *mut CUmodule;
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid Path");
         cuda_driver_init();
-        unsafe { cuModuleLoad(m, filename.as_ptr()) }.check()?;
+        ffi_call_unsafe!(cuModuleLoad, m, filename.as_ptr())?;
         Ok(Module(handle))
     }
 
@@ -58,17 +58,19 @@ impl Module {
         let name = CString::new(name).expect("Invalid Kernel name");
         let mut func = null_mut();
         cuda_driver_init();
-        unsafe { cuModuleGetFunction(&mut func as *mut CUfunction, self.0, name.as_ptr()) }
-            .check()?;
+        ffi_call_unsafe!(
+            cuModuleGetFunction,
+            &mut func as *mut CUfunction,
+            self.0,
+            name.as_ptr()
+        )?;
         Ok(Kernel { func, _m: self })
     }
 }
 
 impl Drop for Module {
     fn drop(&mut self) {
-        unsafe { cuModuleUnload(self.0) }
-            .check()
-            .expect("Failed to unload module");
+        ffi_call_unsafe!(cuModuleUnload, self.0).expect("Failed to unload module");
     }
 }
 

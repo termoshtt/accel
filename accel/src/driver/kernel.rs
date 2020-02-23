@@ -1,7 +1,7 @@
 //! Execution control in
 //! [CUDA Deriver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html)
 
-use crate::error::*;
+use crate::{error::*, ffi_call};
 use anyhow::Result;
 use cuda::*;
 use cudart::*;
@@ -27,7 +27,8 @@ impl<'m> Kernel<'m> {
         grid: Grid,
         block: Block,
     ) -> Result<()> {
-        Ok(cuLaunchKernel(
+        Ok(ffi_call!(
+            cuLaunchKernel,
             self.func,
             grid.x,
             grid.y,
@@ -35,12 +36,11 @@ impl<'m> Kernel<'m> {
             block.x,
             block.y,
             block.z,
-            0,          // FIXME: no shared memory
-            null_mut(), // use default stream
+            0,          /* FIXME: no shared memory */
+            null_mut(), /* use default stream */
             args,
-            null_mut(), // no extra
-        )
-        .check()?)
+            null_mut() /* no extra */
+        )?)
     }
 }
 

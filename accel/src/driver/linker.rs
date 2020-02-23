@@ -4,7 +4,7 @@
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use super::{context::*, module::*};
-use crate::error::*;
+use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
 use std::{
@@ -308,9 +308,7 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        unsafe { cuLinkDestroy(self.state) }
-            .check()
-            .expect("Failed to release Linker");
+        ffi_call_unsafe!(cuLinkDestroy, self.state).expect("Failed to release Linker");
     }
 }
 
@@ -321,7 +319,13 @@ impl<'ctx> Linker<'ctx> {
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
-            cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), state.as_mut_ptr()).check()?;
+            ffi_call!(
+                cuLinkCreate_v2,
+                n,
+                opt.as_mut_ptr(),
+                opts.as_mut_ptr(),
+                state.as_mut_ptr()
+            )?;
             state.assume_init()
         };
         Ok(Linker {
@@ -336,7 +340,8 @@ impl<'ctx> Linker<'ctx> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
-        cuLinkAddData_v2(
+        ffi_call!(
+            cuLinkAddData_v2,
             self.state,
             input_type,
             data.as_ptr() as *mut _,
@@ -344,9 +349,8 @@ impl<'ctx> Linker<'ctx> {
             name.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
@@ -355,15 +359,15 @@ impl<'ctx> Linker<'ctx> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
-        cuLinkAddFile_v2(
+        ffi_call!(
+            cuLinkAddFile_v2,
             self.state,
             input_type,
             filename.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
@@ -390,7 +394,7 @@ impl<'ctx> Linker<'ctx> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let mut cb = null_mut();
         let cubin = unsafe {
-            cuLinkComplete(self.state, &mut cb as *mut _, null_mut()).check()?;
+            ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;
             Data::cubin(CStr::from_ptr(cb as _).to_bytes())
         };
         let info = std::mem::replace(&mut self.cfg.info_log_buffer, None);

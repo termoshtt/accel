@@ -9,7 +9,7 @@ use anyhow::{ensure, Result};
 use cuda::*;
 use std::{
     collections::HashMap,
-    ffi::{CStr, CString},
+    ffi::CString,
     mem::MaybeUninit,
     os::raw::c_void,
     path::{Path, PathBuf},
@@ -391,10 +391,16 @@ impl<'ctx> Linker<'ctx> {
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(mut self) -> Result<(Data, Option<LogBuffer>, Option<LogBuffer>)> {
         ensure!(self.context.is_current()?, "Given context is not current");
-        let mut cb = null_mut();
         let cubin = unsafe {
-            ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;
-            Data::cubin(CStr::from_ptr(cb as _).to_bytes())
+            let mut data: *mut c_void = null_mut();
+            let mut size = 0;
+            ffi_call!(
+                cuLinkComplete,
+                self.state,
+                &mut data as *mut *mut c_void,
+                &mut size as *mut usize
+            )?;
+            Data::cubin(std::slice::from_raw_parts(data as *const u8, size))
         };
         let info = std::mem::replace(&mut self.cfg.info_log_buffer, None);
         let err = std::mem::replace(&mut self.cfg.error_log_buffer, None);

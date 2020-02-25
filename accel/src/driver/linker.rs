@@ -471,7 +471,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
 
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Data::ptx_file(Path::new("tests/data/link_error.ptx"))?;
         let mut cfg = JITConfig::default();
         cfg.info_log_buffer = Some(LogBuffer::new(16));
         cfg.error_log_buffer = Some(LogBuffer::new(16));

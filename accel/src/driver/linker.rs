@@ -4,7 +4,7 @@
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
 use super::{cuda_driver_init, module::*};
-use crate::error::*;
+use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::Result;
 use cuda::*;
 use std::{
@@ -79,9 +79,7 @@ pub struct Linker(CUlinkState);
 
 impl Drop for Linker {
     fn drop(&mut self) {
-        unsafe { cuLinkDestroy(self.0) }
-            .check()
-            .expect("Failed to release Linker");
+        ffi_call_unsafe!(cuLinkDestroy, self.0).expect("Failed to release Linker");
     }
 }
 
@@ -101,8 +99,13 @@ impl Linker {
         cuda_driver_init();
         let (n, mut opt, mut opts) = parse(option);
         let mut st = null_mut();
-        unsafe { cuLinkCreate_v2(n, opt.as_mut_ptr(), opts.as_mut_ptr(), &mut st as *mut _) }
-            .check()?;
+        ffi_call_unsafe!(
+            cuLinkCreate_v2,
+            n,
+            opt.as_mut_ptr(),
+            opts.as_mut_ptr(),
+            &mut st as *mut _
+        )?;
         Ok(Linker(st))
     }
 
@@ -115,7 +118,8 @@ impl Linker {
     ) -> Result<()> {
         let (nopts, mut opts, mut opt_vals) = parse(opt);
         let name = CString::new("").unwrap();
-        cuLinkAddData_v2(
+        ffi_call!(
+            cuLinkAddData_v2,
             self.0,
             input_type,
             data.as_ptr() as *mut _,
@@ -123,9 +127,8 @@ impl Linker {
             name.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(())
     }
 
@@ -138,15 +141,15 @@ impl Linker {
     ) -> Result<()> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = parse(opt);
-        cuLinkAddFile_v2(
+        ffi_call!(
+            cuLinkAddFile_v2,
             self.0,
             input_type,
             filename.as_ptr(),
             nopts,
             opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr(),
-        )
-        .check()?;
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(())
     }
 
@@ -175,7 +178,7 @@ impl Linker {
     pub fn complete(&mut self) -> Result<Data> {
         let mut cb = null_mut();
         unsafe {
-            cuLinkComplete(self.0, &mut cb as *mut _, null_mut()).check()?;
+            ffi_call!(cuLinkComplete, self.0, &mut cb as *mut _, null_mut())?;
             Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }

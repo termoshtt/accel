@@ -24,23 +24,40 @@ test:accel-derive:
     - cd accel-derive
     - cargo test
 
-test:accel:
-  stage: test
+.with_gpu:
   before_script:
     - nvidia-smi
-  script:
-    - cd accel
-    - cargo test
-    - cargo run --example add
-    - cargo run --example add_managed
-    - cargo run --example printf
-    - cargo run --example assert
   tags:
     - gpu
   only:
     - master
     - tags
     - /^gpu\/.*/
+
+test:accel:
+  extends: .with_gpu
+  stage: test
+  script:
+    - cd accel
+    - cargo test
+
+test:examples:
+  extends: .with_gpu
+  stage: test
+  script:
+    - cd accel
+    - cargo run --example add
+    - cargo run --example add_managed
+    - cargo run --example printf
+    - cargo run --example assert
+
+test:ignored:
+  extends: .with_gpu
+  stage: test
+  script:
+    - cd accel
+    - cargo test -- --ignored
+  allow_failure: true
 
 .build:
   image: docker:stable

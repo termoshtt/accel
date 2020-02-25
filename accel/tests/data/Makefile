@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: add.ptx add.cubin sub.ptx sub.cubin
+all: add.ptx add.cubin sub.ptx sub.cubin link_error.ptx
 
 clean:
 	rm *.ptx *.cubin

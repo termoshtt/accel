@@ -183,7 +183,7 @@ impl JITConfig {
 /// Represent the resource of CUDA middle-IR (PTX/cubin)
 #[derive(Debug)]
 pub enum Data {
-    PTX(String),
+    PTX(CString),
     PTXFile(PathBuf),
     Cubin(Vec<u8>),
     CubinFile(PathBuf),
@@ -192,7 +192,8 @@ pub enum Data {
 impl Data {
     /// Constructor for `Data::PTX`
     pub fn ptx(s: &str) -> Data {
-        Data::PTX(s.to_owned())
+        let ptx = CString::new(s).expect("Invalid PTX string");
+        Data::PTX(ptx)
     }
 
     /// Constructor for `Data::Cubin`

@@ -5,7 +5,7 @@
 
 use super::{context::*, kernel::Kernel, linker::*};
 use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use cuda::*;
 use std::{ffi::CString, path::Path};
 
@@ -25,6 +25,7 @@ impl<'ctx> Drop for Module<'ctx> {
 impl<'ctx> Module<'ctx> {
     /// integrated loader of Data
     pub fn load(context: &'ctx Context, data: &Data) -> Result<Self> {
+        ensure!(context.is_current()?, "Given context is not current");
         match *data {
             Data::PTX(ref ptx) => {
                 let module = ffi_new_unsafe!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
@@ -49,6 +50,7 @@ impl<'ctx> Module<'ctx> {
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
+        ensure!(self.context.is_current()?, "Given context is not current");
         let name = CString::new(name).expect("Invalid Kernel name");
         let func = ffi_new_unsafe!(cuModuleGetFunction, self.module, name.as_ptr())?;
         Ok(Kernel { func, _m: self })

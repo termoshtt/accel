@@ -24,8 +24,11 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
             use accel::driver::{
                 kernel::void_cast,
                 module::Module,
+                device::Device,
             };
-            let module = Module::from_str(#ptx_str)?;
+            let device = Device::nth(0)?;
+            let ctx = device.create_context_auto()?;
+            let module = Module::from_str(&ctx, #ptx_str)?;
             let mut kernel = module.get_kernel(#kernel_name)?;
             let mut args = [#(void_cast(&#input_values)),*];
             unsafe { kernel.launch(args.as_mut_ptr(), grid, block)? };

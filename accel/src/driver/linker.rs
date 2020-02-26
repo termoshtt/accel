@@ -329,13 +329,13 @@ impl<'ctx> Linker<'ctx> {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: &Context, data: &[Data], opt: JITConfig) -> Result<Module> {
+pub fn link<'ctx>(ctx: &'ctx Context, data: &[Data], opt: JITConfig) -> Result<Module<'ctx>> {
     let mut l = Linker::create(ctx, opt)?;
     for d in data {
         l = l.add(d)?;
     }
     let cubin = l.complete()?;
-    Module::load(&cubin)
+    Module::load(ctx, &cubin)
 }
 
 #[cfg(test)]

@@ -3,75 +3,60 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{cuda_driver_init, kernel::Kernel, linker::*};
-use crate::{error::*, ffi_call, ffi_call_unsafe};
+use super::{context::*, kernel::Kernel, linker::*};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::Result;
 use cuda::*;
-use std::{ffi::CString, os::raw::c_void, path::Path, ptr::null_mut};
+use std::{ffi::CString, path::Path};
 
 /// OOP-like wrapper of `cuModule*` APIs
 #[derive(Debug)]
-pub struct Module(CUmodule);
+pub struct Module<'ctx> {
+    module: CUmodule,
+    context: &'ctx Context,
+}
 
-impl Module {
+impl<'ctx> Drop for Module<'ctx> {
+    fn drop(&mut self) {
+        ffi_call_unsafe!(cuModuleUnload, self.module).expect("Failed to unload module");
+    }
+}
+
+impl<'ctx> Module<'ctx> {
     /// integrated loader of Data
-    pub fn load(data: &Data) -> Result<Self> {
+    pub fn load(context: &'ctx Context, data: &Data) -> Result<Self> {
         match *data {
-            Data::PTX(ref ptx) => unsafe {
-                let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
-                Self::load_data(cstr.as_ptr() as _)
-            },
-            Data::Cubin(ref bin) => unsafe {
-                let ptr = bin.as_ptr() as *mut _;
-                Self::load_data(ptr)
-            },
-            Data::PTXFile(ref path) | Data::CubinFile(ref path) => Self::load_file(path),
+            Data::PTX(ref ptx) => {
+                let module = ffi_new_unsafe!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
+                Ok(Module { module, context })
+            }
+            Data::Cubin(ref bin) => {
+                let module = ffi_new_unsafe!(cuModuleLoadData, bin.as_ptr() as *const _)?;
+                Ok(Module { module, context })
+            }
+            Data::PTXFile(ref path) | Data::CubinFile(ref path) => {
+                let filename = path_to_cstring(path);
+                let module = ffi_new_unsafe!(cuModuleLoad, filename.as_ptr())?;
+                Ok(Module { module, context })
+            }
         }
     }
 
-    /// Wrapper for `cuModuleLoadData`
-    unsafe fn load_data(ptr: *const c_void) -> Result<Self> {
-        let mut handle = null_mut();
-        let m = &mut handle as *mut CUmodule;
-        cuda_driver_init();
-        ffi_call!(cuModuleLoadData, m, ptr)?;
-        Ok(Module(handle))
-    }
-
-    /// Wrapper for `cuModuleLoad`
-    pub fn load_file(path: &Path) -> Result<Self> {
-        let mut handle = null_mut();
-        let m = &mut handle as *mut CUmodule;
-        let filename = CString::new(path.to_str().unwrap()).expect("Invalid Path");
-        cuda_driver_init();
-        ffi_call_unsafe!(cuModuleLoad, m, filename.as_ptr())?;
-        Ok(Module(handle))
-    }
-
-    pub fn from_str(ptx: &str) -> Result<Self> {
+    pub fn from_str(context: &'ctx Context, ptx: &str) -> Result<Self> {
         let data = Data::ptx(ptx);
-        Self::load(&data)
+        Self::load(context, &data)
     }
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
         let name = CString::new(name).expect("Invalid Kernel name");
-        let mut func = null_mut();
-        cuda_driver_init();
-        ffi_call_unsafe!(
-            cuModuleGetFunction,
-            &mut func as *mut CUfunction,
-            self.0,
-            name.as_ptr()
-        )?;
+        let func = ffi_new_unsafe!(cuModuleGetFunction, self.module, name.as_ptr())?;
         Ok(Kernel { func, _m: self })
     }
 }
 
-impl Drop for Module {
-    fn drop(&mut self) {
-        ffi_call_unsafe!(cuModuleUnload, self.0).expect("Failed to unload module");
-    }
+fn path_to_cstring(path: &Path) -> CString {
+    CString::new(path.to_str().unwrap()).expect("Invalid Path")
 }
 
 #[cfg(test)]
@@ -92,8 +77,8 @@ mod tests {
         }
         "#;
         let device = Device::nth(0)?;
-        let _ctx = device.create_context_auto()?;
-        let _mod = Module::from_str(ptx)?;
+        let ctx = device.create_context_auto()?;
+        let _mod = Module::from_str(&ctx, ptx)?;
         Ok(())
     }
 }

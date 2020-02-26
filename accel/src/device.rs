@@ -1,4 +1,4 @@
-use crate::{error::*, ffi_call_unsafe, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::Result;
 use cudart::*;
 
@@ -137,7 +137,7 @@ impl Device {
     }
 
     pub fn get_property(&self) -> Result<DeviceProp> {
-        let prop = ffi_new!(cudaGetDeviceProperties, self.0)?;
+        let prop = ffi_new_unsafe!(cudaGetDeviceProperties, self.0)?;
         Ok(prop)
     }
 

@@ -16,7 +16,7 @@ use super::module::*;
 #[derive(Debug)]
 pub struct Kernel<'m> {
     pub(crate) func: CUfunction,
-    pub(crate) _m: &'m Module,
+    pub(crate) _m: &'m Module<'m>,
 }
 
 impl<'m> Kernel<'m> {

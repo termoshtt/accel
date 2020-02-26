@@ -36,15 +36,25 @@ macro_rules! ffi_call_unsafe {
 #[macro_export]
 macro_rules! ffi_new {
     ($ffi:path, $($args:expr),*) => {
-        unsafe {
+        {
             let mut value = ::std::mem::MaybeUninit::uninit();
             $ffi(value.as_mut_ptr(), $($args),*).check(stringify!($ffi)).map(|_| value.assume_init())
         }
     };
     ($ffi:path) => {
-        unsafe {
+        {
             let mut value = ::std::mem::MaybeUninit::uninit();
             $ffi(value.as_mut_ptr()).check(stringify!($ffi)).map(|_| value.assume_init())
         }
+    };
+}
+
+#[macro_export]
+macro_rules! ffi_new_unsafe {
+    ($ffi:path, $($args:expr),*) => {
+        unsafe { $crate::ffi_new!($ffi, $($args),*) }
+    };
+    ($ffi:path) => {
+        unsafe { $crate::ffi_new!($ffi) }
     };
 }

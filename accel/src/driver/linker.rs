@@ -3,7 +3,7 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{context::*, module::*};
+use super::{context::*, instruction::*, module::*};
 use crate::{error::*, ffi_call, ffi_call_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
@@ -12,7 +12,7 @@ use std::{
     ffi::{CStr, CString},
     mem::MaybeUninit,
     os::raw::c_void,
-    path::{Path, PathBuf},
+    path::Path,
     ptr::null_mut,
 };
 
@@ -180,53 +180,6 @@ impl JITConfig {
     }
 }
 
-/// Represent the resource of CUDA middle-IR (PTX/cubin)
-#[derive(Debug)]
-pub enum Data {
-    PTX(String),
-    PTXFile(PathBuf),
-    Cubin(Vec<u8>),
-    CubinFile(PathBuf),
-}
-
-impl Data {
-    /// Constructor for `Data::PTX`
-    pub fn ptx(s: &str) -> Data {
-        Data::PTX(s.to_owned())
-    }
-
-    /// Constructor for `Data::Cubin`
-    pub fn cubin(sl: &[u8]) -> Data {
-        Data::Cubin(sl.to_vec())
-    }
-
-    /// Constructor for `Data::PTXFile`
-    pub fn ptx_file(path: &Path) -> Result<Self> {
-        ensure!(path.exists(), "PTX file does not found: {}", path.display());
-        Ok(Data::PTXFile(path.to_owned()))
-    }
-
-    /// Constructor for `Data::CubinFile`
-    pub fn cubin_file(path: &Path) -> Result<Self> {
-        ensure!(
-            path.exists(),
-            "cubin file does not found: {}",
-            path.display()
-        );
-        Ok(Data::CubinFile(path.to_owned()))
-    }
-}
-
-impl Data {
-    /// Get type of PTX/cubin
-    fn input_type(&self) -> CUjitInputType {
-        match *self {
-            Data::PTX(_) | Data::PTXFile(_) => CUjitInputType_enum::CU_JIT_INPUT_PTX,
-            Data::Cubin(_) | Data::CubinFile(_) => CUjitInputType_enum::CU_JIT_INPUT_CUBIN,
-        }
-    }
-}
-
 /// Consuming builder for cubin from PTX and cubins
 pub struct Linker<'ctx> {
     state: CUlinkState,
@@ -300,14 +253,14 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Add a resouce into the linker stack.
-    pub fn add(self, data: &Data) -> Result<Self> {
+    pub fn add(self, data: &Instruction) -> Result<Self> {
         Ok(match *data {
-            Data::PTX(ref ptx) => unsafe {
+            Instruction::PTX(ref ptx) => unsafe {
                 let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
                 self.add_data(data.input_type(), cstr.as_bytes_with_nul())?
             },
-            Data::Cubin(ref bin) => unsafe { self.add_data(data.input_type(), &bin)? },
-            Data::PTXFile(ref path) | Data::CubinFile(ref path) => unsafe {
+            Instruction::Cubin(ref bin) => unsafe { self.add_data(data.input_type(), &bin)? },
+            Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => unsafe {
                 self.add_file(data.input_type(), path)?
             },
         })
@@ -318,24 +271,28 @@ impl<'ctx> Linker<'ctx> {
     /// LinkComplete returns a reference to cubin,
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
-    pub fn complete(self) -> Result<Data> {
+    pub fn complete(self) -> Result<Instruction> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let mut cb = null_mut();
         unsafe {
             ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;
-            Ok(Data::cubin(CStr::from_ptr(cb as _).to_bytes()))
+            Ok(Instruction::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: &Context, data: &[Data], opt: JITConfig) -> Result<Module> {
+pub fn link<'ctx>(
+    ctx: &'ctx Context,
+    data: &[Instruction],
+    opt: JITConfig,
+) -> Result<Module<'ctx>> {
     let mut l = Linker::create(ctx, opt)?;
     for d in data {
         l = l.add(d)?;
     }
     let cubin = l.complete()?;
-    Module::load(&cubin)
+    Module::load(ctx, &cubin)
 }
 
 #[cfg(test)]
@@ -367,7 +324,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
         Ok(())
     }
@@ -377,8 +334,8 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
 
-        let data_add = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let data_sub = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let data_add = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data_sub = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
         let _module = Linker::create(&ctx, JITConfig::default())?
             .add(&data_add)?
             .add(&data_sub)?
@@ -394,13 +351,13 @@ mod tests {
 
         // ctx2 is current
         let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         let linker = linker.add(&data)?;
 
         // ctx2 -> ctx1
         ctx2.pop()?;
         ctx1.push()?;
-        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
         assert!(linker.add(&data).is_err());
 
         Ok(())
@@ -414,7 +371,7 @@ mod tests {
 
         // ctx2 is current
         let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         let linker = linker.add(&data)?;
 
         // ctx2 -> ctx1
@@ -424,7 +381,7 @@ mod tests {
         // ctx1 -> ctx2
         ctx1.pop()?;
         ctx2.push()?;
-        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
         let _linker = linker.add(&data)?;
         Ok(())
     }
@@ -435,7 +392,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Data::cubin_file(Path::new("tests/data/add.cubin"))?;
+        let data = Instruction::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())
     }

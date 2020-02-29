@@ -1,5 +1,6 @@
 use accel::*;
 use accel_derive::kernel;
+use anyhow::Result;
 
 #[kernel]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
@@ -9,11 +10,11 @@ pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let n = 32;
-    let mut a = UVec::new(n).unwrap();
-    let mut b = UVec::new(n).unwrap();
-    let mut c = UVec::new(n).unwrap();
+    let mut a = UVec::new(n)?;
+    let mut b = UVec::new(n)?;
+    let mut c = UVec::new(n)?;
 
     for i in 0..n {
         a[i] = i as f64;
@@ -22,10 +23,14 @@ fn main() {
     println!("a = {:?}", a.as_slice());
     println!("b = {:?}", b.as_slice());
 
+    let device = driver::Device::nth(0)?;
+    let ctx = device.create_context_auto()?;
     let grid = Grid::x(1);
     let block = Block::x(n as u32);
-    add(grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n).expect("Kernel call failed");
+    add(&ctx, grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n).expect("Kernel call failed");
 
-    device::sync().unwrap();
+    device::sync()?;
     println!("c = {:?}", c.as_slice());
+
+    Ok(())
 }

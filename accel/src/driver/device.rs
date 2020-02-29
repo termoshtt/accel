@@ -7,7 +7,7 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::{error::*, ffi_call_unsafe, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::Result;
 use cuda::*;
 
@@ -28,7 +28,7 @@ impl Device {
 
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let device = ffi_new!(cuDeviceGet, id)?;
+        let device = ffi_new_unsafe!(cuDeviceGet, id)?;
         Ok(Device { device })
     }
 

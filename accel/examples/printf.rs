@@ -1,5 +1,6 @@
 use accel::*;
 use accel_derive::kernel;
+use anyhow::Result;
 
 #[kernel]
 pub fn print() {
@@ -7,11 +8,11 @@ pub fn print() {
     accel_core::println!("Hello from {}", i);
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
+    let device = driver::Device::nth(0)?;
+    let ctx = device.create_context_auto()?;
     let grid = Grid::x(1);
     let block = Block::x(4);
-    let device = driver::Device::nth(0)?;
-    let _ctx = device.create_context_auto()?;
-    print(grid, block)?;
+    print(&ctx, grid, block)?;
     Ok(())
 }

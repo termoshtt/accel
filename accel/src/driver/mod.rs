@@ -2,7 +2,7 @@
 
 pub mod context;
 pub mod device;
-pub mod kernel;
+pub mod instruction;
 pub mod linker;
 pub mod module;
 

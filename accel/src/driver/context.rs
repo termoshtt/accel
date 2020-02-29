@@ -2,7 +2,7 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{error::*, ffi_call_unsafe, ffi_new};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{bail, ensure, Result};
 use cuda::*;
 use std::{cell::RefCell, rc::Rc};
@@ -32,7 +32,7 @@ fn get_lock() -> Rc<RefCell<Option<CUcontext>>> {
 impl Context {
     /// Create on the top of context stack
     pub fn create(device: CUdevice, flag: ContextFlag) -> Result<Self> {
-        let ptr = ffi_new!(cuCtxCreate_v2, flag as u32, device)?;
+        let ptr = ffi_new_unsafe!(cuCtxCreate_v2, flag as u32, device)?;
         if ptr.is_null() {
             bail!("Cannot crate a new context");
         }
@@ -42,7 +42,7 @@ impl Context {
 
     /// Check this context is "current" on this thread
     pub fn is_current(&self) -> Result<bool> {
-        let current = ffi_new!(cuCtxGetCurrent)?;
+        let current = ffi_new_unsafe!(cuCtxGetCurrent)?;
         Ok(current == self.ptr)
     }
 
@@ -70,7 +70,7 @@ impl Context {
         if lock.borrow().is_none() {
             bail!("No countext has been set");
         }
-        let ptr = ffi_new!(cuCtxPopCurrent_v2)?;
+        let ptr = ffi_new_unsafe!(cuCtxPopCurrent_v2)?;
         if ptr.is_null() {
             bail!("No current context");
         }

@@ -20,7 +20,6 @@ proc-macro2 = "1.0.7"
 quote = "1.0.2"
 syn = { version = "1.0", features =  ["full", "extra-traits"] }
 
-inflections = "*"
 dirs = "2.0.2"
 maplit = "1.0.2"
 serde = { version = "1.0.104", features = ["derive"] }

@@ -1,4 +1,3 @@
-use super::module::*;
 use anyhow::{ensure, Result};
 use cuda::*;
 use std::{ffi::*, path::*};

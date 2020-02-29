@@ -24,16 +24,15 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
         mod #ident {
             pub const PTX_STR: &'static str = #ptx_str;
         }
-        #vis #fn_token #ident(grid: accel::Grid, block: accel::Block, #inputs) -> anyhow::Result<()> {
-            use accel::driver::{
-                module::*,
-                device::Device,
-            };
-            let device = Device::nth(0)?;
-            let ctx = device.create_context_auto()?;
-            let module = Module::from_str(&ctx, #ident::PTX_STR)?;
+        #vis #fn_token #ident(
+            ctx: & ::accel::driver::context::Context,
+            grid: ::accel::Grid,
+            block: ::accel::Block,
+            #inputs
+        ) -> anyhow::Result<()> {
+            let module = ::accel::driver::module::Module::from_str(&ctx, #ident::PTX_STR)?;
             let mut kernel = module.get_kernel(#kernel_name)?;
-            let mut args = [#(void_cast(&#input_values)),*];
+            let mut args = [#(::accel::driver::module::void_cast(&#input_values)),*];
             unsafe { kernel.launch(args.as_mut_ptr(), grid, block)? };
             Ok(())
         }

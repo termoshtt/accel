@@ -26,8 +26,7 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
         }
         #vis #fn_token #ident(grid: accel::Grid, block: accel::Block, #inputs) -> anyhow::Result<()> {
             use accel::driver::{
-                kernel::void_cast,
-                module::Module,
+                module::*,
                 device::Device,
             };
             let device = Device::nth(0)?;

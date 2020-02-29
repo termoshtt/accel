@@ -9,7 +9,7 @@ pub mod error;
 pub mod mvec;
 pub mod uvec;
 
-pub use driver::kernel::{Block, Grid};
+pub use driver::module::{Block, Grid};
 pub use mvec::MVec;
 pub use uvec::UVec;
 

@@ -3,7 +3,7 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{context::*, linker::*};
+use super::{context::*, instruction::*};
 use crate::{error::*, ffi_call, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
@@ -137,19 +137,19 @@ impl<'ctx> Drop for Module<'ctx> {
 }
 
 impl<'ctx> Module<'ctx> {
-    /// integrated loader of Data
-    pub fn load(context: &'ctx Context, data: &Data) -> Result<Self> {
+    /// integrated loader of Instruction
+    pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
         ensure!(context.is_current()?, "Given context is not current");
         match *data {
-            Data::PTX(ref ptx) => {
+            Instruction::PTX(ref ptx) => {
                 let module = ffi_new_unsafe!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
                 Ok(Module { module, context })
             }
-            Data::Cubin(ref bin) => {
+            Instruction::Cubin(ref bin) => {
                 let module = ffi_new_unsafe!(cuModuleLoadData, bin.as_ptr() as *const _)?;
                 Ok(Module { module, context })
             }
-            Data::PTXFile(ref path) | Data::CubinFile(ref path) => {
+            Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
                 let module = ffi_new_unsafe!(cuModuleLoad, filename.as_ptr())?;
                 Ok(Module { module, context })
@@ -158,7 +158,7 @@ impl<'ctx> Module<'ctx> {
     }
 
     pub fn from_str(context: &'ctx Context, ptx: &str) -> Result<Self> {
-        let data = Data::ptx(ptx);
+        let data = Instruction::ptx(ptx);
         Self::load(context, &data)
     }
 

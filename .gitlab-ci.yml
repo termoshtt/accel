@@ -50,6 +50,7 @@ test:examples:
     - cargo run --example add_managed
     - cargo run --example printf
     - cargo run --example assert
+    - cargo run --example ptx_str
 
 test:ignored:
   extends: .with_gpu

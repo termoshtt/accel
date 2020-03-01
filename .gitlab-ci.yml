@@ -70,6 +70,8 @@ pages:
   artifacts:
     paths:
       - public
+  only:
+    - master
 
 .build:
   image: docker:stable

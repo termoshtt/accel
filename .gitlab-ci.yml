@@ -63,6 +63,7 @@ test:ignored:
 
 pages:
   stage: deploy
+  image: rust
   script:
     - cargo doc --no-deps
     - mv target/doc public

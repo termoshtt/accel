@@ -3,6 +3,7 @@ image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
 stages:
   - docker
   - test
+  - deploy
 
 cache:
   paths:
@@ -59,6 +60,15 @@ test:ignored:
     - cd accel
     - cargo test -- --ignored
   allow_failure: true
+
+pages:
+  stage: deploy
+  script:
+    - cargo doc --no-deps
+    - mv target/doc public
+  artifacts:
+    paths:
+      - public
 
 .build:
   image: docker:stable

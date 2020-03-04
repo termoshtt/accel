@@ -1,4 +1,4 @@
-use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
+use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::Result;
 use cudart::*;
 

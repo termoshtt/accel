@@ -7,7 +7,7 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
+use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::Result;
 use cuda::*;
 

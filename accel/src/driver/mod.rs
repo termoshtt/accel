@@ -4,6 +4,7 @@ pub mod context;
 pub mod device;
 pub mod instruction;
 pub mod linker;
+pub mod memory;
 pub mod module;
 
 use crate::ffi_call_unsafe;

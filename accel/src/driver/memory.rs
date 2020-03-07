@@ -2,8 +2,10 @@ use super::context::*;
 use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
+use std::mem::MaybeUninit;
 
 pub use cuda::CUmemAttach_flags_enum as AttachFlag;
+pub use cuda::CUmemorytype_enum as MemoryType;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MemoryInfo {
@@ -51,6 +53,18 @@ impl DeviceMemory {
     pub fn len(&self) -> usize {
         self.size
     }
+
+    pub fn memory_type(&self) -> Result<MemoryType> {
+        let ty = MaybeUninit::uninit();
+        ffi_call_unsafe!(
+            cuPointerGetAttribute,
+            ty.as_ptr() as *mut _,
+            CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE,
+            self.ptr
+        )?;
+        let ty = unsafe { ty.assume_init() };
+        Ok(ty)
+    }
 }
 
 #[cfg(test)]
@@ -75,6 +89,17 @@ mod tests {
         let ctx = device.create_context_auto()?;
         let mem = DeviceMemory::new(&ctx, 12)?;
         assert_eq!(mem.len(), 12);
+        Ok(())
+    }
+
+    #[test]
+    fn memory_type() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let mem = DeviceMemory::new(&ctx, 12)?;
+        assert_eq!(mem.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
+        let mem = DeviceMemory::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+        assert_eq!(mem.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
         Ok(())
     }
 }

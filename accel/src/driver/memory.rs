@@ -13,16 +13,18 @@ pub struct MemoryInfo {
     pub total: usize,
 }
 
-pub fn get_info(ctx: &Context) -> Result<MemoryInfo> {
-    ensure!(ctx.is_current()?, "Given context must be current");
-    let mut free = 0;
-    let mut total = 0;
-    ffi_call_unsafe!(
-        cuMemGetInfo_v2,
-        &mut free as *mut usize,
-        &mut total as *mut usize
-    )?;
-    Ok(MemoryInfo { free, total })
+impl MemoryInfo {
+    pub fn get(ctx: &Context) -> Result<Self> {
+        ensure!(ctx.is_current()?, "Given context must be current");
+        let mut free = 0;
+        let mut total = 0;
+        ffi_call_unsafe!(
+            cuMemGetInfo_v2,
+            &mut free as *mut usize,
+            &mut total as *mut usize
+        )?;
+        Ok(MemoryInfo { free, total })
+    }
 }
 
 /// low-level wrapper
@@ -83,7 +85,7 @@ mod tests {
     fn info() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let mem_info = get_info(&ctx)?;
+        let mem_info = MemoryInfo::get(&ctx)?;
         dbg!(&mem_info);
         assert!(mem_info.free > 0);
         assert!(mem_info.total > mem_info.free);

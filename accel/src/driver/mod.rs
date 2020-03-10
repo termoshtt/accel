@@ -4,9 +4,10 @@ pub mod context;
 pub mod device;
 pub mod instruction;
 pub mod linker;
+pub mod memory;
 pub mod module;
 
-use crate::{error::Check, ffi_call_unsafe};
+use crate::ffi_call_unsafe;
 use std::sync::Once;
 
 pub use device::Device;

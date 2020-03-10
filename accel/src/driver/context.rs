@@ -2,7 +2,7 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
+use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{bail, ensure, Result};
 use cuda::*;
 use std::{cell::RefCell, rc::Rc};

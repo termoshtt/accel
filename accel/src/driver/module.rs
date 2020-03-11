@@ -3,21 +3,20 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{context::*, instruction::*};
+use super::{context::*, instruction::*, *};
 use crate::{error::*, ffi_call, ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
-use cudart::*;
-use std::{ffi::*, ops::Deref, path::Path, ptr::null_mut};
+use std::{ffi::*, path::Path, ptr::null_mut};
 
 /// CUDA Kernel function
 #[derive(Debug)]
-pub struct Kernel<'m> {
+pub struct Kernel<'ctx> {
     func: CUfunction,
-    _m: &'m Module<'m>,
+    _m: &'ctx Module<'ctx>,
 }
 
-impl<'m> Kernel<'m> {
+impl<'ctx> Kernel<'ctx> {
     /// Launch CUDA kernel using `cuLaunchKernel`
     pub unsafe fn launch(
         &mut self,
@@ -67,62 +66,6 @@ pub fn void_cast<T: ?Sized>(r: &T) -> *mut c_void {
     &*r as *const T as *mut c_void
 }
 
-/// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct Block(dim3);
-
-impl Deref for Block {
-    type Target = dim3;
-    fn deref(&self) -> &dim3 {
-        &self.0
-    }
-}
-
-impl Block {
-    /// one-dimensional
-    pub fn x(x: u32) -> Self {
-        Block(dim3 { x: x, y: 1, z: 1 })
-    }
-
-    /// two-dimensional
-    pub fn xy(x: u32, y: u32) -> Self {
-        Block(dim3 { x: x, y: y, z: 1 })
-    }
-
-    /// three-dimensional
-    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
-        Block(dim3 { x: x, y: y, z: z })
-    }
-}
-
-/// Size of Grid (grid of blocks) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct Grid(dim3);
-
-impl Deref for Grid {
-    type Target = dim3;
-    fn deref(&self) -> &dim3 {
-        &self.0
-    }
-}
-
-impl Grid {
-    /// one-dimensional
-    pub fn x(x: u32) -> Self {
-        Grid(dim3 { x: x, y: 1, z: 1 })
-    }
-
-    /// two-dimensional
-    pub fn xy(x: u32, y: u32) -> Self {
-        Grid(dim3 { x: x, y: y, z: 1 })
-    }
-
-    /// three-dimensional
-    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
-        Grid(dim3 { x: x, y: y, z: z })
-    }
-}
-
 /// OOP-like wrapper of `cuModule*` APIs
 #[derive(Debug)]
 pub struct Module<'ctx> {
@@ -163,7 +106,7 @@ impl<'ctx> Module<'ctx> {
     }
 
     /// Wrapper of `cuModuleGetFunction`
-    pub fn get_kernel<'m>(&'m self, name: &str) -> Result<Kernel<'m>> {
+    pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
         ensure!(self.context.is_current()?, "Given context is not current");
         let name = CString::new(name).expect("Invalid Kernel name");
         let func = ffi_new_unsafe!(cuModuleGetFunction, self.module, name.as_ptr())?;

@@ -19,3 +19,53 @@ fn cuda_driver_init() {
         ffi_call_unsafe!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
     })
 }
+
+/// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct Block {
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+}
+
+impl Block {
+    /// one-dimensional
+    pub fn x(x: u32) -> Self {
+        Block { x: x, y: 1, z: 1 }
+    }
+
+    /// two-dimensional
+    pub fn xy(x: u32, y: u32) -> Self {
+        Block { x: x, y: y, z: 1 }
+    }
+
+    /// three-dimensional
+    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
+        Block { x: x, y: y, z: z }
+    }
+}
+
+/// Size of Grid (grid of blocks) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct Grid {
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+}
+
+impl Grid {
+    /// one-dimensional
+    pub fn x(x: u32) -> Self {
+        Grid { x: x, y: 1, z: 1 }
+    }
+
+    /// two-dimensional
+    pub fn xy(x: u32, y: u32) -> Self {
+        Grid { x: x, y: y, z: 1 }
+    }
+
+    /// three-dimensional
+    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
+        Grid { x: x, y: y, z: z }
+    }
+}

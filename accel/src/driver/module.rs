@@ -93,6 +93,66 @@ impl_device_send!(usize);
 impl_device_send!(f32);
 impl_device_send!(f64);
 
+/// Arbitary number of tuple of kernel arguments
+///
+/// ```
+/// # use accel::driver::module::*;
+/// # use std::ffi::*;
+/// let a: i32 = 10;
+/// let b: f32 = 1.0;
+/// assert_eq!(
+///   KernelParameters::kernel_params(&(&a, &b)),
+///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
+/// );
+/// ```
+pub trait KernelParameters {
+    /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
+    ///
+    /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
+    fn kernel_params(&self) -> Vec<*mut c_void>;
+}
+
+impl KernelParameters for () {
+    fn kernel_params(&self) -> Vec<*mut c_void> {
+        Vec::new()
+    }
+}
+
+impl<'a, T: DeviceSend> KernelParameters for (&'a T,) {
+    fn kernel_params(&self) -> Vec<*mut c_void> {
+        vec![self.0.as_ptr()]
+    }
+}
+
+impl<'a, T1: DeviceSend, T2: DeviceSend> KernelParameters for (&'a T1, &'a T2) {
+    fn kernel_params(&self) -> Vec<*mut c_void> {
+        vec![self.0.as_ptr(), self.1.as_ptr()]
+    }
+}
+
+/// CUDA Kernel launcher trait
+pub trait Launchable {
+    type Args: KernelParameters;
+    fn get_kernel(&self) -> &Kernel;
+    fn launch(&self, grid: Grid, block: Block, args: Self::Args) -> Result<()> {
+        let mut params = args.kernel_params();
+        Ok(ffi_call_unsafe!(
+            cuLaunchKernel,
+            self.get_func().func,
+            grid.x,
+            grid.y,
+            grid.z,
+            block.x,
+            block.y,
+            block.z,
+            0,          /* FIXME: no shared memory */
+            null_mut(), /* use default stream */
+            params.as_mut_ptr(),
+            null_mut() /* no extra */
+        )?)
+    }
+}
+
 /// Get type-erased pointer
 ///
 /// ```

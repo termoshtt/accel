@@ -138,7 +138,7 @@ pub trait Launchable {
         let mut params = args.kernel_params();
         Ok(ffi_call_unsafe!(
             cuLaunchKernel,
-            self.get_func().func,
+            self.get_kernel().func,
             grid.x,
             grid.y,
             grid.z,

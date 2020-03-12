@@ -41,6 +41,58 @@ impl<'ctx> Kernel<'ctx> {
     }
 }
 
+/// Type which can be sent to the device as kernel argument
+///
+/// Pointer
+/// --------
+///
+/// ```
+/// # use accel::driver::module::*;
+/// # use std::ffi::*;
+/// let a: i32 = 10;
+/// let p = &a as *const i32;
+/// assert_eq!(DeviceSend::as_ptr(&p), p as *mut c_void);
+/// ```
+pub trait DeviceSend: Sized {
+    fn as_ptr(&self) -> *mut c_void;
+}
+
+impl<T> DeviceSend for *mut T {
+    fn as_ptr(&self) -> *mut c_void {
+        *self as *mut c_void
+    }
+}
+
+impl<T> DeviceSend for *const T {
+    fn as_ptr(&self) -> *mut c_void {
+        *self as *mut c_void
+    }
+}
+
+macro_rules! impl_device_send {
+    ($target:ty) => {
+        impl DeviceSend for $target {
+            fn as_ptr(&self) -> *mut c_void {
+                self as *const $target as *mut c_void
+            }
+        }
+    };
+}
+
+impl_device_send!(bool);
+impl_device_send!(i8);
+impl_device_send!(i16);
+impl_device_send!(i32);
+impl_device_send!(i64);
+impl_device_send!(isize);
+impl_device_send!(u8);
+impl_device_send!(u16);
+impl_device_send!(u32);
+impl_device_send!(u64);
+impl_device_send!(usize);
+impl_device_send!(f32);
+impl_device_send!(f64);
+
 /// Get type-erased pointer
 ///
 /// ```

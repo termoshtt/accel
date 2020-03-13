@@ -85,3 +85,22 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> proc_macro::TokenStream
     };
     code.into()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::Result;
+
+    const TEST_KERNEL: &'static str = r#"
+    fn kernel_name(arg1: A, arg2: B) {}
+    "#;
+
+    #[test]
+    fn arg_names() -> Result<()> {
+        let func: syn::ItemFn = syn::parse_str(TEST_KERNEL)?;
+        let args = get_input_arg_names(&func);
+        assert_eq!(args[0].to_string(), "arg1");
+        assert_eq!(args[1].to_string(), "arg2");
+        Ok(())
+    }
+}

@@ -36,16 +36,19 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
         mod #ident {
             use ::accel::driver::{module, context};
             pub const PTX_STR: &'static str = #ptx_str;
+
             pub struct Module<'ctx>(module::Module<'ctx>);
+
             impl<'ctx> Module<'ctx> {
-                pub fn new(&'ctx context::Context) -> Result<Self> {
-                    Module(module::Module::from_str(ctx, PTX_STR))
+                pub fn new(ctx: &'ctx context::Context) -> ::anyhow::Result<Self> {
+                    Ok(Module(module::Module::from_str(ctx, PTX_STR)?))
                 }
             }
+
             impl<'ctx> module::Launchable for Module<'ctx> {
-                type Args: (#(#input_types),*);
-                fn get_kernel(&self) -> ::anyhow::Result<&Kernel> {
-                    self.0.get_kernel(#kernel_name)
+                type Args = (#(#input_types),*);
+                fn get_kernel(&self) -> ::anyhow::Result<module::Kernel> {
+                    Ok(self.0.get_kernel(#kernel_name)?)
                 }
             }
         }
@@ -65,7 +68,7 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
             grid: ::accel::Grid,
             block: ::accel::Block,
             #inputs
-        ) -> anyhow::Result<()> {
+        ) -> ::anyhow::Result<()> {
             let module = ::accel::driver::module::Module::from_str(&ctx, #ident::PTX_STR)?;
             let mut kernel = module.get_kernel(#kernel_name)?;
             let mut args = [#(::accel::driver::module::void_cast(&#input_values)),*];
@@ -87,19 +90,35 @@ pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> proc_macro::TokenStream
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::pretty_print;
     use anyhow::Result;
 
     const TEST_KERNEL: &'static str = r#"
-    fn kernel_name(arg1: A, arg2: B) {}
+    fn kernel_name(arg1: i32, arg2: f64) {}
     "#;
 
     #[test]
     fn arg_names() -> Result<()> {
         let func: syn::ItemFn = syn::parse_str(TEST_KERNEL)?;
-        let args = get_input_arg_names(&func);
+        let args = super::get_input_arg_names(&func);
         assert_eq!(args[0].to_string(), "arg1");
         assert_eq!(args[1].to_string(), "arg2");
+        Ok(())
+    }
+
+    #[test]
+    fn impl_submodule() -> Result<()> {
+        let func: syn::ItemFn = syn::parse_str(TEST_KERNEL)?;
+        let ts = super::impl_submodule("", &func);
+        pretty_print(&ts)?;
+        Ok(())
+    }
+
+    #[test]
+    fn caller() -> Result<()> {
+        let func: syn::ItemFn = syn::parse_str(TEST_KERNEL)?;
+        let ts = super::caller(&func);
+        pretty_print(&ts)?;
         Ok(())
     }
 }

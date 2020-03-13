@@ -133,12 +133,12 @@ impl<'a, T1: DeviceSend, T2: DeviceSend> KernelParameters for (&'a T1, &'a T2) {
 /// CUDA Kernel launcher trait
 pub trait Launchable {
     type Args: KernelParameters;
-    fn get_kernel(&self) -> &Kernel;
+    fn get_kernel(&self) -> Result<&Kernel>;
     fn launch(&self, grid: Grid, block: Block, args: Self::Args) -> Result<()> {
         let mut params = args.kernel_params();
         Ok(ffi_call_unsafe!(
             cuLaunchKernel,
-            self.get_kernel().func,
+            self.get_kernel()?.func,
             grid.x,
             grid.y,
             grid.z,

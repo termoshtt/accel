@@ -61,7 +61,6 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
     let fn_token = &func.sig.fn_token;
     let inputs = &func.sig.inputs;
     let input_values = get_input_arg_names(func);
-    let kernel_name = quote! { #ident }.to_string();
     quote! {
         #vis #fn_token #ident(
             ctx: & ::accel::driver::context::Context,
@@ -69,10 +68,9 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
             block: ::accel::Block,
             #inputs
         ) -> ::anyhow::Result<()> {
-            let module = ::accel::driver::module::Module::from_str(&ctx, #ident::PTX_STR)?;
-            let mut kernel = module.get_kernel(#kernel_name)?;
-            let mut args = [#(::accel::driver::module::void_cast(&#input_values)),*];
-            unsafe { kernel.launch(args.as_mut_ptr(), grid, block)? };
+            use ::accel::driver::module::Launchable;
+            let module = #ident::Module::new(&ctx)?;
+            module.launch(grid, block, (#(&#input_values),*))?;
             Ok(())
         }
     }

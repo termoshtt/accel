@@ -1,6 +1,5 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-
 fn get_input_types(func: &syn::ItemFn) -> Vec<syn::Type> {
     func.sig
         .inputs

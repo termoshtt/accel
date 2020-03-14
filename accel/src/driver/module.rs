@@ -105,34 +105,40 @@ impl_device_send!(f64);
 ///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
 /// );
 /// ```
-pub trait KernelParameters {
+pub trait KernelParameters<'arg> {
     /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
     ///
     /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
     fn kernel_params(&self) -> Vec<*mut c_void>;
 }
 
-impl KernelParameters for () {
-    fn kernel_params(&self) -> Vec<*mut c_void> {
-        Vec::new()
+macro_rules! impl_kernel_parameters {
+    ($($name:ident),*; $($num:tt),*) => {
+        impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
+            fn kernel_params(&self) -> Vec<*mut c_void> {
+                vec![$( self.$num.as_ptr() ),*]
+            }
+        }
     }
 }
 
-impl<'a, T: DeviceSend> KernelParameters for (&'a T,) {
-    fn kernel_params(&self) -> Vec<*mut c_void> {
-        vec![self.0.as_ptr()]
-    }
-}
-
-impl<'a, T1: DeviceSend, T2: DeviceSend> KernelParameters for (&'a T1, &'a T2) {
-    fn kernel_params(&self) -> Vec<*mut c_void> {
-        vec![self.0.as_ptr(), self.1.as_ptr()]
-    }
-}
+impl_kernel_parameters!(;);
+impl_kernel_parameters!(D0; 0);
+impl_kernel_parameters!(D0, D1; 0, 1);
+impl_kernel_parameters!(D0, D1, D2; 0, 1, 2);
+impl_kernel_parameters!(D0, D1, D2, D3; 0, 1, 2, 3);
+impl_kernel_parameters!(D0, D1, D2, D3, D4; 0, 1, 2, 3, 4);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5; 0, 1, 2, 3, 4, 5);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6; 0, 1, 2, 3, 4, 5, 6);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7; 0, 1, 2, 3, 4, 5, 6, 7);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8; 0, 1, 2, 3, 4, 5, 6, 7, 8);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11);
 
 /// CUDA Kernel launcher trait
-pub trait Launchable {
-    type Args: KernelParameters;
+pub trait Launchable<'arg> {
+    type Args: KernelParameters<'arg>;
     fn get_kernel(&self) -> Result<Kernel>;
     fn launch(&self, grid: Grid, block: Block, args: Self::Args) -> Result<()> {
         let mut params = args.kernel_params();

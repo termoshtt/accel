@@ -45,8 +45,8 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
                 }
             }
 
-            impl<'ctx> module::Launchable for Module<'ctx> {
-                type Args = (#(#input_types),*);
+            impl<'arg, 'ctx> module::Launchable<'arg> for Module<'ctx> {
+                type Args = (#(&'arg #input_types),*);
                 fn get_kernel(&self) -> ::anyhow::Result<module::Kernel> {
                     Ok(self.0.get_kernel(#kernel_name)?)
                 }

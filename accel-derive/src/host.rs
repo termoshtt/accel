@@ -76,24 +76,43 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
     }
 }
 
-pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> proc_macro::TokenStream {
+pub fn func2caller(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     let impl_submodule = impl_submodule(ptx_str, func);
     let caller = caller(func);
-    let code = quote! {
+    quote! {
         #impl_submodule
         #caller
-    };
-    code.into()
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::pretty_print;
     use anyhow::Result;
+    use std::{
+        io::Write,
+        process::{Command, Stdio},
+    };
 
     const TEST_KERNEL: &'static str = r#"
     fn kernel_name(arg1: i32, arg2: f64) {}
     "#;
+
+    /// Format TokenStream by rustfmt
+    ///
+    /// This can test if the input TokenStream is valid in terms of rustfmt.
+    fn pretty_print(tt: &impl ToString) -> Result<()> {
+        let mut fmt = Command::new("rustfmt")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
+        fmt.stdin
+            .as_mut()
+            .unwrap()
+            .write(tt.to_string().as_bytes())?;
+        let out = fmt.wait_with_output()?;
+        println!("{}", String::from_utf8_lossy(&out.stdout));
+        Ok(())
+    }
 
     #[test]
     fn arg_names() -> Result<()> {

@@ -12,21 +12,6 @@ fn get_input_types(func: &syn::ItemFn) -> Vec<syn::Type> {
         .collect()
 }
 
-fn get_input_arg_names(func: &syn::ItemFn) -> Vec<syn::Ident> {
-    func.sig
-        .inputs
-        .iter()
-        .map(|arg| match arg {
-            &syn::FnArg::Typed(ref val) => match *val.pat {
-                syn::Pat::Ident(ref pat) => &pat.ident,
-                _ => panic!("Unsupported Input sigunature"),
-            },
-            _ => panic!("Unsupported Input sigunature"),
-        })
-        .cloned()
-        .collect()
-}
-
 fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     let ident = &func.sig.ident;
     let input_types = get_input_types(func);
@@ -46,7 +31,7 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
             }
 
             impl<'arg, 'ctx> module::Launchable<'arg> for Module<'ctx> {
-                type Args = (#(&'arg #input_types),*);
+                type Args = (#(&'arg #input_types,)*);
                 fn get_kernel(&self) -> ::anyhow::Result<module::Kernel> {
                     Ok(self.0.get_kernel(#kernel_name)?)
                 }
@@ -59,18 +44,17 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
     let vis = &func.vis;
     let ident = &func.sig.ident;
     let fn_token = &func.sig.fn_token;
-    let inputs = &func.sig.inputs;
-    let input_values = get_input_arg_names(func);
+    let input_types = get_input_types(func);
     quote! {
-        #vis #fn_token #ident(
+        #vis #fn_token #ident<'arg>(
             ctx: & ::accel::driver::context::Context,
             grid: ::accel::Grid,
             block: ::accel::Block,
-            #inputs
+            args: &(#(&'arg #input_types,)*)
         ) -> ::anyhow::Result<()> {
             use ::accel::driver::module::Launchable;
             let module = #ident::Module::new(&ctx)?;
-            module.launch(grid, block, (#(&#input_values),*))?;
+            module.launch(grid, block, args)?;
             Ok(())
         }
     }
@@ -111,15 +95,6 @@ mod tests {
             .write(tt.to_string().as_bytes())?;
         let out = fmt.wait_with_output()?;
         println!("{}", String::from_utf8_lossy(&out.stdout));
-        Ok(())
-    }
-
-    #[test]
-    fn arg_names() -> Result<()> {
-        let func: syn::ItemFn = syn::parse_str(TEST_KERNEL)?;
-        let args = super::get_input_arg_names(&func);
-        assert_eq!(args[0].to_string(), "arg1");
-        assert_eq!(args[1].to_string(), "arg2");
         Ok(())
     }
 

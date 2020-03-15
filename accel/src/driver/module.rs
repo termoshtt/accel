@@ -115,7 +115,7 @@ impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11; 0, 1, 
 pub trait Launchable<'arg> {
     type Args: KernelParameters<'arg>;
     fn get_kernel(&self) -> Result<Kernel>;
-    fn launch(&self, grid: Grid, block: Block, args: Self::Args) -> Result<()> {
+    fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
         let mut params = args.kernel_params();
         Ok(ffi_call_unsafe!(
             cuLaunchKernel,

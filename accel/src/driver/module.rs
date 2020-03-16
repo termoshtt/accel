@@ -26,7 +26,11 @@ pub struct Kernel<'ctx> {
 /// # use std::ffi::*;
 /// let a: i32 = 10;
 /// let p = &a as *const i32;
-/// assert_eq!(DeviceSend::as_ptr(&p), p as *mut c_void);
+/// assert_eq!(
+///     DeviceSend::as_ptr(&p),
+///     &p as *const *const i32 as *mut c_void
+/// );
+/// assert!(std::ptr::eq(unsafe { *(DeviceSend::as_ptr(&p) as *mut *const i32) }, p));
 /// ```
 pub trait DeviceSend: Sized {
     fn as_ptr(&self) -> *mut c_void;

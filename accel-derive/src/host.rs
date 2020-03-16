@@ -1,17 +1,37 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
+
+/// Split argument type list from the kernel definition
+///
+/// - Lifetime of any reference will be rewrite into `'arg` to match `Launchable<'arg>`
+///   implementaion
 fn get_input_types(func: &syn::ItemFn) -> Vec<syn::Type> {
     func.sig
         .inputs
         .iter()
         .map(|arg| match arg {
-            &syn::FnArg::Typed(ref val) => &*val.ty,
+            &syn::FnArg::Typed(ref val) => {
+                match val.ty.as_ref() {
+                    // For fundamental types (e.g. i32) and pointer (e.g. *const i32)
+                    t @ syn::Type::Path(_) | t @ syn::Type::Ptr(_) => t.clone(),
+
+                    // For slice types &[T]
+                    syn::Type::Reference(r) => {
+                        let mut r = r.clone();
+                        // overwrite the lifetime of argument to match `Launchable<'arg>`
+                        // implementation
+                        r.lifetime = Some(syn::Lifetime::new("'arg", Span::call_site()));
+                        syn::Type::Reference(r)
+                    }
+                    _ => panic!("Unsupported arugment type"),
+                }
+            }
             _ => panic!("Unsupported kernel input type sigunature"),
         })
-        .cloned()
         .collect()
 }
 
+/// Generate `mod #kernel_name { ... }`
 fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     let ident = &func.sig.ident;
     let input_types = get_input_types(func);
@@ -40,6 +60,7 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
     }
 }
 
+/// Generate `fn #kernel_name(...) {...}`
 fn caller(func: &syn::ItemFn) -> TokenStream {
     let vis = &func.vis;
     let ident = &func.sig.ident;

@@ -63,10 +63,14 @@ test:ignored:
 
 pages:
   stage: deploy
-  image: rust
   script:
+    - rm -rf public
+    - mkdir -p public
     - cargo doc --no-deps
-    - mv target/doc public
+    - mv target/doc public/accel
+    - cd accel-core
+    - cargo doc
+    - mv ./target/nvptx64-nvidia-cuda/doc ../public/accel-core
   artifacts:
     paths:
       - public

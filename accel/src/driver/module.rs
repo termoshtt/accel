@@ -34,13 +34,13 @@ pub trait DeviceSend: Sized {
 
 impl<T> DeviceSend for *mut T {
     fn as_ptr(&self) -> *mut c_void {
-        *self as *mut c_void
+        self as *const *mut T as *mut c_void
     }
 }
 
 impl<T> DeviceSend for *const T {
     fn as_ptr(&self) -> *mut c_void {
-        *self as *mut c_void
+        self as *const *const T as *mut c_void
     }
 }
 

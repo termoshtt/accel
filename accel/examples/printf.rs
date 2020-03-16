@@ -13,6 +13,6 @@ fn main() -> Result<()> {
     let ctx = device.create_context_auto()?;
     let grid = Grid::x(1);
     let block = Block::x(4);
-    print(&ctx, grid, block)?;
+    print(&ctx, grid, block, &())?;
     Ok(())
 }

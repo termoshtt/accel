@@ -31,7 +31,13 @@ fn main() -> Result<()> {
     let ctx = device.create_context_auto()?;
     let grid = Grid::x(1);
     let block = Block::x(n as u32);
-    add(&ctx, grid, block, a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n).expect("Kernel call failed");
+    add(
+        &ctx,
+        grid,
+        block,
+        &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n),
+    )
+    .expect("Kernel call failed");
 
     device::sync()?;
 

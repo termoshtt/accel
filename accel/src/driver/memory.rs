@@ -2,7 +2,11 @@ use super::context::*;
 use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
-use std::{marker::PhantomData, mem::MaybeUninit};
+use std::{
+    marker::PhantomData,
+    mem::MaybeUninit,
+    ops::{Deref, DerefMut},
+};
 
 pub use cuda::CUmemAttach_flags_enum as AttachFlag;
 
@@ -46,6 +50,21 @@ pub struct DeviceMemory<'ctx, T> {
 impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
         ffi_call_unsafe!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
+    }
+}
+
+impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] {
+        self.as_slice()
+            .expect("Cannot deref DeviceMemory into slice")
+    }
+}
+
+impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
+            .expect("Cannot deref DeviceMemory into mutable slice")
     }
 }
 
@@ -132,12 +151,20 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 
     /// Access as a mutable slice. This returns error if not managed
-    pub fn as_mut_slice(&self) -> Result<&mut [T]> {
+    pub fn as_mut_slice(&mut self) -> Result<&mut [T]> {
         ensure!(
             self.is_managed()?,
             "Device memory cannot be accessed from host if not managed"
         );
         Ok(unsafe { std::slice::from_raw_parts_mut(self.ptr as *mut T, self.size) })
+    }
+
+    pub fn as_ptr(&self) -> *const T {
+        self.ptr as *const T
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.ptr as *mut T
     }
 }
 
@@ -161,7 +188,7 @@ mod tests {
     fn managed() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let mem = DeviceMemory::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+        let mut mem = DeviceMemory::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
         assert_eq!(mem.len(), 12);
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
         let sl = mem.as_mut_slice()?;

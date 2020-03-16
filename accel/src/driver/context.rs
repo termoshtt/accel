@@ -78,6 +78,16 @@ impl Context {
         *lock.borrow_mut() = None;
         Ok(())
     }
+
+    /// Block for a context's tasks to complete.
+    pub fn sync(&self) -> Result<()> {
+        ensure!(
+            self.is_current()?,
+            "sync must be called with current context"
+        );
+        ffi_call_unsafe!(cuCtxSynchronize)?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

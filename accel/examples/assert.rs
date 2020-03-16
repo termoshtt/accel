@@ -13,5 +13,6 @@ fn main() -> Result<()> {
     let grid = Grid::x(1);
     let block = Block::x(4);
     assert(&ctx, grid, block, &())?;
+    assert!(ctx.sync().is_err()); // This sync will fail because assertion in kernel code failed
     Ok(())
 }

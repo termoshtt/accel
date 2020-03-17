@@ -7,7 +7,12 @@ use super::{context::*, instruction::*, *};
 use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use anyhow::{ensure, Result};
 use cuda::*;
-use std::{ffi::*, path::Path, ptr::null_mut};
+use std::{
+    ffi::*,
+    io::{Cursor, Write},
+    path::Path,
+    ptr::null_mut,
+};
 
 /// CUDA Kernel function
 #[derive(Debug)]
@@ -25,7 +30,7 @@ pub struct Kernel<'ctx> {
 /// let p = &a as *const i32;
 /// assert_eq!(
 ///     DeviceSend::as_ptr(&p),
-///     &p as *const *const i32 as *mut c_void
+///     &p as *const *const i32 as *const u8
 /// );
 /// assert!(std::ptr::eq(
 ///     unsafe { *(DeviceSend::as_ptr(&p) as *mut *const i32) },
@@ -33,26 +38,33 @@ pub struct Kernel<'ctx> {
 /// ));
 /// ```
 pub trait DeviceSend: Sized {
-    fn as_ptr(&self) -> *mut c_void;
+    fn as_ptr(&self) -> *const u8;
+    fn size(&self) -> usize {
+        std::mem::size_of::<Self>()
+    }
+    fn write(&self, buffer: &mut impl Write) {
+        let sl = unsafe { std::slice::from_raw_parts(self.as_ptr(), self.size()) };
+        buffer.write(sl).unwrap();
+    }
 }
 
 impl<T> DeviceSend for *mut T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *mut T as *mut c_void
+    fn as_ptr(&self) -> *const u8 {
+        self as *const *mut T as *const u8
     }
 }
 
 impl<T> DeviceSend for *const T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *const T as *mut c_void
+    fn as_ptr(&self) -> *const u8 {
+        self as *const *const T as *const u8
     }
 }
 
 macro_rules! impl_device_send {
     ($target:ty) => {
         impl DeviceSend for $target {
-            fn as_ptr(&self) -> *mut c_void {
-                self as *const $target as *mut c_void
+            fn as_ptr(&self) -> *const u8 {
+                self as *const $target as *const u8
             }
         }
     };
@@ -89,13 +101,26 @@ pub trait KernelParameters<'arg> {
     ///
     /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
     fn kernel_params(&self) -> Vec<*mut c_void>;
+
+    /// Create a packed buffer of kernel parameters to be passed into [cuLaunchKernel] as extra
+    ///
+    /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
+    fn as_buffer(&self) -> Vec<u8>;
 }
 
 macro_rules! impl_kernel_parameters {
     ($($name:ident),*; $($num:tt),*) => {
         impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
             fn kernel_params(&self) -> Vec<*mut c_void> {
-                vec![$( self.$num.as_ptr() ),*]
+                vec![$(self.$num.as_ptr() as *mut c_void),*]
+            }
+
+            #[allow(unused_mut)]
+            fn as_buffer(&self) -> Vec<u8> {
+                let size = [$(self.$num.size()),*].iter().sum();
+                let mut cur = Cursor::new(vec![0_u8; size]);
+                $( self.$num.write(&mut cur);)*
+                cur.into_inner()
             }
         }
     }

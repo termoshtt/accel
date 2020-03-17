@@ -33,44 +33,28 @@ pub struct Kernel<'ctx> {
 /// ));
 /// ```
 pub trait DeviceSend: Sized {
-    fn as_ptr(&self) -> *mut c_void;
-}
-
-impl<T> DeviceSend for *mut T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *mut T as *mut c_void
+    /// Get the address of this value
+    fn as_ptr(&self) -> *const u8 {
+        self as *const Self as *const u8
     }
 }
 
-impl<T> DeviceSend for *const T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *const T as *mut c_void
-    }
-}
-
-macro_rules! impl_device_send {
-    ($target:ty) => {
-        impl DeviceSend for $target {
-            fn as_ptr(&self) -> *mut c_void {
-                self as *const $target as *mut c_void
-            }
-        }
-    };
-}
-
-impl_device_send!(bool);
-impl_device_send!(i8);
-impl_device_send!(i16);
-impl_device_send!(i32);
-impl_device_send!(i64);
-impl_device_send!(isize);
-impl_device_send!(u8);
-impl_device_send!(u16);
-impl_device_send!(u32);
-impl_device_send!(u64);
-impl_device_send!(usize);
-impl_device_send!(f32);
-impl_device_send!(f64);
+// Use default impl
+impl<T> DeviceSend for *mut T {}
+impl<T> DeviceSend for *const T {}
+impl DeviceSend for bool {}
+impl DeviceSend for i8 {}
+impl DeviceSend for i16 {}
+impl DeviceSend for i32 {}
+impl DeviceSend for i64 {}
+impl DeviceSend for isize {}
+impl DeviceSend for u8 {}
+impl DeviceSend for u16 {}
+impl DeviceSend for u32 {}
+impl DeviceSend for u64 {}
+impl DeviceSend for usize {}
+impl DeviceSend for f32 {}
+impl DeviceSend for f64 {}
 
 /// Arbitary number of tuple of kernel arguments
 ///
@@ -95,7 +79,7 @@ macro_rules! impl_kernel_parameters {
     ($($name:ident),*; $($num:tt),*) => {
         impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
             fn kernel_params(&self) -> Vec<*mut c_void> {
-                vec![$( self.$num.as_ptr() ),*]
+                vec![$( self.$num.as_ptr() as *mut c_void ),*]
             }
         }
     }

@@ -25,7 +25,7 @@ pub struct Kernel<'ctx> {
 /// let p = &a as *const i32;
 /// assert_eq!(
 ///     DeviceSend::as_ptr(&p),
-///     &p as *const *const i32 as *mut c_void
+///     &p as *const *const i32 as *const u8
 /// );
 /// assert!(std::ptr::eq(
 ///     unsafe { *(DeviceSend::as_ptr(&p) as *mut *const i32) },

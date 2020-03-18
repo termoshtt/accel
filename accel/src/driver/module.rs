@@ -73,22 +73,22 @@ impl DeviceSend for f32 {}
 impl DeviceSend for f64 {}
 
 /// Arbitary number of tuple of kernel arguments
-///
-/// ```
-/// # use accel::driver::module::*;
-/// # use std::ffi::*;
-/// let a: i32 = 10;
-/// let b: f32 = 1.0;
-/// assert_eq!(
-///   KernelParameters::kernel_params(&(&a, &b)),
-///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
-/// );
-/// ```
-pub trait KernelParameters<'arg> {
+pub trait Arguments<'arg> {
     /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
     ///
+    /// ```
+    /// # use accel::driver::module::*;
+    /// # use std::ffi::*;
+    /// let a: i32 = 10;
+    /// let b: f32 = 1.0;
+    /// assert_eq!(
+    ///   Arguments::as_ptrs(&(&a, &b)),
+    ///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
+    /// );
+    /// ```
+    ///
     /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
-    fn kernel_params(&self) -> Vec<*mut c_void>;
+    fn as_ptrs(&self) -> Vec<*mut c_void>;
 
     /// Create a packed buffer of kernel parameters to be passed into [cuLaunchKernel] as extra
     ///
@@ -98,16 +98,16 @@ pub trait KernelParameters<'arg> {
 
 macro_rules! impl_kernel_parameters {
     ($($name:ident),*; $($num:tt),*) => {
-        impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
-            fn kernel_params(&self) -> Vec<*mut c_void> {
+        impl<'arg, $($name : DeviceSend),*> Arguments<'arg> for ($( &'arg $name, )*) {
+            fn as_ptrs(&self) -> Vec<*mut c_void> {
                 vec![$(self.$num.as_ptr() as *mut c_void),*]
             }
 
-            #[allow(unused_mut)]
+            #[allow(unused_mut)] // for empty type list case
             fn as_buffer(&self) -> Vec<u8> {
                 let size = [$(self.$num.size()),*].iter().sum();
                 let mut cur = Cursor::new(vec![0_u8; size]);
-                $( self.$num.write(&mut cur);)*
+                $(self.$num.write(&mut cur);)*
                 cur.into_inner()
             }
         }
@@ -159,7 +159,7 @@ pub trait Launchable<'arg> {
     /// This must be a tuple of [DeviceSend] types.
     ///
     /// [DeviceSend]: trait.DeviceSend.html
-    type Args: KernelParameters<'arg>;
+    type Args: Arguments<'arg>;
 
     fn get_kernel(&self) -> Result<Kernel>;
 
@@ -182,7 +182,7 @@ pub trait Launchable<'arg> {
     /// # Ok::<(), ::anyhow::Error>(())
     /// ```
     fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
-        let mut params = args.kernel_params();
+        let mut params = args.as_ptrs();
         Ok(ffi_call_unsafe!(
             cuLaunchKernel,
             self.get_kernel()?.func,
@@ -196,6 +196,40 @@ pub trait Launchable<'arg> {
             null_mut(), /* use default stream */
             params.as_mut_ptr(),
             null_mut() /* no extra */
+        )?)
+    }
+
+    /// Launch CUDA Kernel
+    fn launch_packed(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
+        /// Indicator that the next value in the extra parameter to cuLaunchKernel will be a pointer to a buffer containing all kernel parameters used for launching kernel f. This buffer needs to honor all alignment/padding requirements of the individual parameters. If CU_LAUNCH_PARAM_BUFFER_SIZE is not also specified in the extra array, then CU_LAUNCH_PARAM_BUFFER_POINTER will have no effect.
+        const CU_LAUNCH_PARAM_BUFFER_POINTER: *mut c_void = &0x01_i32 as *const i32 as _;
+        /// Indicator that the next value in the extra parameter to cuLaunchKernel will be a pointer to a size_t which contains the size of the buffer specified with CU_LAUNCH_PARAM_BUFFER_POINTER. It is required that CU_LAUNCH_PARAM_BUFFER_POINTER also be specified in the extra array if the value associated with CU_LAUNCH_PARAM_BUFFER_SIZE is not zero.
+        const CU_LAUNCH_PARAM_BUFFER_SIZE: *mut c_void = &0x02_i32 as *const i32 as _;
+        /// End of array terminator for the extra parameter to cuLaunchKernel
+        const CU_LAUNCH_PARAM_END: *mut c_void = &0x00_i32 as *const i32 as _;
+
+        let buf = args.as_buffer();
+        let size = buf.len();
+        let mut cfg: [*mut c_void; 5] = [
+            CU_LAUNCH_PARAM_BUFFER_POINTER,
+            buf.as_ptr() as *mut c_void,
+            CU_LAUNCH_PARAM_BUFFER_SIZE,
+            &size as *const usize as *mut c_void,
+            CU_LAUNCH_PARAM_END,
+        ];
+        Ok(ffi_call_unsafe!(
+            cuLaunchKernel,
+            self.get_kernel()?.func,
+            grid.x,
+            grid.y,
+            grid.z,
+            block.x,
+            block.y,
+            block.z,
+            0,          /* FIXME: no shared memory */
+            null_mut(), /* use default stream */
+            null_mut(), /* do not use kernel_params */
+            cfg.as_mut_ptr()
         )?)
     }
 }

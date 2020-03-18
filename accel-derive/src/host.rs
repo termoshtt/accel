@@ -54,7 +54,7 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
         ) -> ::anyhow::Result<()> {
             use ::accel::driver::module::Launchable;
             let module = #ident::Module::new(&ctx)?;
-            module.launch(grid, block, args)?;
+            module.launch_packed(grid, block, args)?;
             Ok(())
         }
     }

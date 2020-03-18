@@ -64,11 +64,11 @@ impl DeviceSend for f64 {}
 /// let a: i32 = 10;
 /// let b: f32 = 1.0;
 /// assert_eq!(
-///   KernelParameters::kernel_params(&(&a, &b)),
+///   Arguments::kernel_params(&(&a, &b)),
 ///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
 /// );
 /// ```
-pub trait KernelParameters<'arg> {
+pub trait Arguments<'arg> {
     /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
     ///
     /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
@@ -77,7 +77,7 @@ pub trait KernelParameters<'arg> {
 
 macro_rules! impl_kernel_parameters {
     ($($name:ident),*; $($num:tt),*) => {
-        impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
+        impl<'arg, $($name : DeviceSend),*> Arguments<'arg> for ($( &'arg $name, )*) {
             fn kernel_params(&self) -> Vec<*mut c_void> {
                 vec![$( self.$num.as_ptr() as *mut c_void ),*]
             }
@@ -130,7 +130,7 @@ pub trait Launchable<'arg> {
     /// This must be a tuple of [DeviceSend] types.
     ///
     /// [DeviceSend]: trait.DeviceSend.html
-    type Args: KernelParameters<'arg>;
+    type Args: Arguments<'arg>;
 
     fn get_kernel(&self) -> Result<Kernel>;
 

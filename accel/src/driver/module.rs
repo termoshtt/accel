@@ -25,7 +25,7 @@ pub struct Kernel<'ctx> {
 /// let p = &a as *const i32;
 /// assert_eq!(
 ///     DeviceSend::as_ptr(&p),
-///     &p as *const *const i32 as *mut c_void
+///     &p as *const *const i32 as *const u8
 /// );
 /// assert!(std::ptr::eq(
 ///     unsafe { *(DeviceSend::as_ptr(&p) as *mut *const i32) },
@@ -33,44 +33,28 @@ pub struct Kernel<'ctx> {
 /// ));
 /// ```
 pub trait DeviceSend: Sized {
-    fn as_ptr(&self) -> *mut c_void;
-}
-
-impl<T> DeviceSend for *mut T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *mut T as *mut c_void
+    /// Get the address of this value
+    fn as_ptr(&self) -> *const u8 {
+        self as *const Self as *const u8
     }
 }
 
-impl<T> DeviceSend for *const T {
-    fn as_ptr(&self) -> *mut c_void {
-        self as *const *const T as *mut c_void
-    }
-}
-
-macro_rules! impl_device_send {
-    ($target:ty) => {
-        impl DeviceSend for $target {
-            fn as_ptr(&self) -> *mut c_void {
-                self as *const $target as *mut c_void
-            }
-        }
-    };
-}
-
-impl_device_send!(bool);
-impl_device_send!(i8);
-impl_device_send!(i16);
-impl_device_send!(i32);
-impl_device_send!(i64);
-impl_device_send!(isize);
-impl_device_send!(u8);
-impl_device_send!(u16);
-impl_device_send!(u32);
-impl_device_send!(u64);
-impl_device_send!(usize);
-impl_device_send!(f32);
-impl_device_send!(f64);
+// Use default impl
+impl<T> DeviceSend for *mut T {}
+impl<T> DeviceSend for *const T {}
+impl DeviceSend for bool {}
+impl DeviceSend for i8 {}
+impl DeviceSend for i16 {}
+impl DeviceSend for i32 {}
+impl DeviceSend for i64 {}
+impl DeviceSend for isize {}
+impl DeviceSend for u8 {}
+impl DeviceSend for u16 {}
+impl DeviceSend for u32 {}
+impl DeviceSend for u64 {}
+impl DeviceSend for usize {}
+impl DeviceSend for f32 {}
+impl DeviceSend for f64 {}
 
 /// Arbitary number of tuple of kernel arguments
 ///
@@ -80,11 +64,11 @@ impl_device_send!(f64);
 /// let a: i32 = 10;
 /// let b: f32 = 1.0;
 /// assert_eq!(
-///   KernelParameters::kernel_params(&(&a, &b)),
+///   Arguments::kernel_params(&(&a, &b)),
 ///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
 /// );
 /// ```
-pub trait KernelParameters<'arg> {
+pub trait Arguments<'arg> {
     /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
     ///
     /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
@@ -93,9 +77,9 @@ pub trait KernelParameters<'arg> {
 
 macro_rules! impl_kernel_parameters {
     ($($name:ident),*; $($num:tt),*) => {
-        impl<'arg, $($name : DeviceSend),*> KernelParameters<'arg> for ($( &'arg $name, )*) {
+        impl<'arg, $($name : DeviceSend),*> Arguments<'arg> for ($( &'arg $name, )*) {
             fn kernel_params(&self) -> Vec<*mut c_void> {
-                vec![$( self.$num.as_ptr() ),*]
+                vec![$( self.$num.as_ptr() as *mut c_void ),*]
             }
         }
     }
@@ -146,7 +130,7 @@ pub trait Launchable<'arg> {
     /// This must be a tuple of [DeviceSend] types.
     ///
     /// [DeviceSend]: trait.DeviceSend.html
-    type Args: KernelParameters<'arg>;
+    type Args: Arguments<'arg>;
 
     fn get_kernel(&self) -> Result<Kernel>;
 

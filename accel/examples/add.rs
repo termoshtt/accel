@@ -15,9 +15,9 @@ fn main() -> Result<()> {
     let ctx = device.create_context_auto()?;
 
     let n = 32;
-    let mut a = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
-    let mut b = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
-    let mut c = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+    let mut a = DeviceSpan::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+    let mut b = DeviceSpan::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+    let mut c = DeviceSpan::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
 
     for i in 0..n {
         a[i] = i as f64;

@@ -21,6 +21,9 @@ pub enum AccelError {
 
     #[error("Current CUDA context does not equal to the context when the object is generated")]
     ContextIsNotCurrent,
+
+    #[error("Context already exists on this thread. Please pop it before push new context.")]
+    ContextDuplicated,
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result

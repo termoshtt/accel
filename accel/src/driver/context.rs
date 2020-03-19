@@ -58,10 +58,9 @@ impl Context {
     /// Push to the context stack of this thread
     pub fn push(&self) -> Result<()> {
         let lock = get_lock();
-        assert!(
-            lock.borrow().is_none(),
-            "Context already exists on this thread. Please pop it before push new context."
-        );
+        if lock.borrow().is_some() {
+            return Err(AccelError::ContextDuplicated);
+        }
         ffi_call_unsafe!(cuCtxPushCurrent_v2, self.ptr)?;
         *lock.borrow_mut() = Some(self.ptr);
         Ok(())

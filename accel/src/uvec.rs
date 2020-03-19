@@ -1,7 +1,6 @@
 use super::{error::*, ffi_call, ffi_call_unsafe};
 use cudart::*;
 
-use anyhow::Result;
 use std::mem::size_of;
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 use std::os::raw::*;

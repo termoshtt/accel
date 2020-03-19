@@ -14,9 +14,9 @@ categories    = []
 
 [dependencies]
 thiserror = "1.0"
-anyhow = "1.0"
 cuda-runtime-sys = "=0.3.0-alpha.1"
 cuda-driver-sys = "=0.3.0-alpha.1"
 
-[dev-dependencies.accel-derive]
-path = "../accel-derive"
+[dev-dependencies]
+accel-derive = { path = "../accel-derive" }
+anyhow = "1.0"

@@ -1,6 +1,5 @@
 use super::context::*;
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::{ensure, Result};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 use std::{
     marker::PhantomData,
@@ -27,7 +26,7 @@ pub struct MemoryInfo {
 
 impl MemoryInfo {
     pub fn get(ctx: &Context) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let mut free = 0;
         let mut total = 0;
         ffi_call_unsafe!(
@@ -74,7 +73,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAlloc]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn non_managed(ctx: &'ctx Context, size: usize) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let ptr = ffi_new_unsafe!(cuMemAlloc_v2, size * std::mem::size_of::<T>())?;
         Ok(DeviceMemory {
             ptr,
@@ -89,7 +88,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn managed(ctx: &'ctx Context, size: usize, flag: AttachFlag) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let ptr = ffi_new_unsafe!(
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
@@ -114,7 +113,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 
     fn get_attr<Attr>(&self, attr: CUpointer_attribute) -> Result<Attr> {
-        ensure!(self.ctx.is_current()?, "Given context must be current");
+        self.ctx.assure_current()?;
         let ty = MaybeUninit::uninit();
         ffi_call_unsafe!(cuPointerGetAttribute, ty.as_ptr() as *mut _, attr, self.ptr)?;
         let ty = unsafe { ty.assume_init() };
@@ -127,8 +126,12 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 
     /// Check if the memory is managed by the unified memory system
-    pub fn is_managed(&self) -> Result<bool> {
-        self.get_attr(CUpointer_attribute::CU_POINTER_ATTRIBUTE_IS_MANAGED)
+    pub fn assure_managed(&self) -> Result<()> {
+        if self.get_attr::<bool>(CUpointer_attribute::CU_POINTER_ATTRIBUTE_IS_MANAGED)? {
+            Ok(())
+        } else {
+            Err(AccelError::DeviceMemoryIsNotManaged)
+        }
     }
 
     pub fn memory_type(&self) -> Result<MemoryType> {
@@ -143,19 +146,13 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
 
     /// Access as a slice. This returns error if not managed
     pub fn as_slice(&self) -> Result<&[T]> {
-        ensure!(
-            self.is_managed()?,
-            "Device memory cannot be accessed from host if not managed"
-        );
+        self.assure_managed()?;
         Ok(unsafe { std::slice::from_raw_parts(self.ptr as *const T, self.size) })
     }
 
     /// Access as a mutable slice. This returns error if not managed
     pub fn as_mut_slice(&mut self) -> Result<&mut [T]> {
-        ensure!(
-            self.is_managed()?,
-            "Device memory cannot be accessed from host if not managed"
-        );
+        self.assure_managed()?;
         Ok(unsafe { std::slice::from_raw_parts_mut(self.ptr as *mut T, self.size) })
     }
 
@@ -216,13 +213,13 @@ mod tests {
         let mem1 = DeviceMemory::<i32>::non_managed(&ctx, 12)?;
         dbg!(mem1.buffer_id()?);
         assert_eq!(mem1.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
-        assert!(!mem1.is_managed()?);
+        assert!(mem1.assure_managed().is_err());
         assert!(mem1.is_mapped()?);
 
         // managed
         let mem2 = DeviceMemory::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
         assert_eq!(mem2.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
-        assert!(mem2.is_managed()?);
+        assert!(mem2.assure_managed().is_ok());
         assert!(mem2.is_mapped()?);
 
         // Buffer id of two different memory must be different

@@ -25,14 +25,14 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
             pub struct Module<'ctx>(module::Module<'ctx>);
 
             impl<'ctx> Module<'ctx> {
-                pub fn new(ctx: &'ctx context::Context) -> ::anyhow::Result<Self> {
+                pub fn new(ctx: &'ctx context::Context) -> ::accel::error::Result<Self> {
                     Ok(Module(module::Module::from_str(ctx, PTX_STR)?))
                 }
             }
 
             impl<'arg, 'ctx> module::Launchable<'arg> for Module<'ctx> {
                 type Args = (#(&'arg #input_types,)*);
-                fn get_kernel(&self) -> ::anyhow::Result<module::Kernel> {
+                fn get_kernel(&self) -> ::accel::error::Result<module::Kernel> {
                     Ok(self.0.get_kernel(#kernel_name)?)
                 }
             }
@@ -51,7 +51,7 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
             grid: ::accel::Grid,
             block: ::accel::Block,
             args: &(#(&'arg #input_types,)*)
-        ) -> ::anyhow::Result<()> {
+        ) -> ::accel::error::Result<()> {
             use ::accel::driver::module::Launchable;
             let module = #ident::Module::new(&ctx)?;
             module.launch(grid, block, args)?;

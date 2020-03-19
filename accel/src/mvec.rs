@@ -1,5 +1,4 @@
 use super::{error::*, ffi_call, ffi_call_unsafe};
-use anyhow::Result;
 use cudart::*;
 use std::mem::size_of;
 use std::os::raw::*;

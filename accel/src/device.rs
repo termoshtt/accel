@@ -1,5 +1,4 @@
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::Result;
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use cudart::*;
 
 pub use cudart::cudaComputeMode as ComputeMode;

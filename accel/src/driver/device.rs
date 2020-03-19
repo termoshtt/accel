@@ -7,8 +7,7 @@
 //! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
 use super::{context::*, cuda_driver_init};
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::Result;
+use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 
 /// Handler for device and its primary context
@@ -48,7 +47,7 @@ impl Device {
             1024,
             self.device
         )?;
-        Ok(String::from_utf8(bytes)?)
+        Ok(String::from_utf8(bytes).expect("GPU name is not UTF8"))
     }
 
     /// Create a new CUDA context on this device.
@@ -74,13 +73,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_count() -> anyhow::Result<()> {
+    fn get_count() -> Result<()> {
         Device::get_count()?;
         Ok(())
     }
 
     #[test]
-    fn get_zeroth() -> anyhow::Result<()> {
+    fn get_zeroth() -> Result<()> {
         Device::nth(0)?;
         Ok(())
     }

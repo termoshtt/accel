@@ -149,7 +149,7 @@ pub trait Launchable<'arg> {
     /// let module = f::Module::new(&ctx)?;
     /// let a = 12;
     /// module.launch(grid, block, &(&a,))?;
-    /// # Ok::<(), ::accel::error::Error>(())
+    /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
     fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
         let mut params = args.kernel_params();

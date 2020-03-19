@@ -24,6 +24,9 @@ pub enum AccelError {
 
     #[error("Context already exists on this thread. Please pop it before push new context.")]
     ContextDuplicated,
+
+    #[error("Given device memory cannot be accessed from CPU because it is not a managed memory")]
+    DeviceMemoryIsNotManaged,
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result

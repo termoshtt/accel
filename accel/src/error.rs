@@ -1,5 +1,6 @@
 pub use cuda::cudaError_enum as DeviceError;
 pub use cudart::cudaError_t as RuntimeError;
+use std::path::PathBuf;
 
 pub type Result<T> = ::std::result::Result<T, AccelError>;
 
@@ -27,6 +28,9 @@ pub enum AccelError {
 
     #[error("Given device memory cannot be accessed from CPU because it is not a managed memory")]
     DeviceMemoryIsNotManaged,
+
+    #[error("File not found: {path:?}")]
+    FileNotFound { path: PathBuf },
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result

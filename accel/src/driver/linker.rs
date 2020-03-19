@@ -195,7 +195,7 @@ impl<'ctx> Drop for Linker<'ctx> {
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
-        assert!(context.is_current()?, "Given context is not current");
+        context.assure_current()?;
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
@@ -217,7 +217,7 @@ impl<'ctx> Linker<'ctx> {
 
     /// Wrapper of cuLinkAddData
     unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
-        assert!(self.context.is_current()?, "Given context is not current");
+        self.context.assure_current()?;
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
         ffi_call!(
@@ -236,7 +236,7 @@ impl<'ctx> Linker<'ctx> {
 
     /// Wrapper of cuLinkAddFile
     unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
-        assert!(self.context.is_current()?, "Given context is not current");
+        self.context.assure_current()?;
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         ffi_call!(
@@ -271,7 +271,7 @@ impl<'ctx> Linker<'ctx> {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Instruction> {
-        assert!(self.context.is_current()?, "Given context is not current");
+        self.context.assure_current()?;
         let mut cb = null_mut();
         unsafe {
             ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;

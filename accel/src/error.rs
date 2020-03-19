@@ -18,6 +18,9 @@ pub enum AccelError {
         api_name: String,
         error: RuntimeError,
     },
+
+    #[error("Current CUDA context does not equal to the context when the object is generated")]
+    ContextIsNotCurrent,
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result

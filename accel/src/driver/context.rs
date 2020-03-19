@@ -40,9 +40,13 @@ impl Context {
     }
 
     /// Check this context is "current" on this thread
-    pub fn is_current(&self) -> Result<bool> {
+    pub fn assure_current(&self) -> Result<()> {
         let current = ffi_new_unsafe!(cuCtxGetCurrent)?;
-        Ok(current == self.ptr)
+        if current != self.ptr {
+            Err(AccelError::ContextIsNotCurrent)
+        } else {
+            Ok(())
+        }
     }
 
     pub fn version(&self) -> Result<u32> {
@@ -80,10 +84,7 @@ impl Context {
 
     /// Block for a context's tasks to complete.
     pub fn sync(&self) -> Result<()> {
-        assert!(
-            self.is_current()?,
-            "sync must be called with current context"
-        );
+        self.assure_current()?;
         ffi_call_unsafe!(cuCtxSynchronize)?;
         Ok(())
     }
@@ -106,7 +107,7 @@ mod tests {
     fn push() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        assert!(ctx.is_current()?);
+        assert!(ctx.assure_current().is_ok());
         assert!(ctx.push().is_err());
         Ok(())
     }
@@ -115,9 +116,9 @@ mod tests {
     fn pop() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        assert!(ctx.is_current()?);
+        assert!(ctx.assure_current().is_ok());
         ctx.pop()?;
-        assert!(!ctx.is_current()?);
+        assert!(ctx.assure_current().is_err());
         Ok(())
     }
 
@@ -125,11 +126,11 @@ mod tests {
     fn push_pop() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        assert!(ctx.is_current()?);
+        assert!(ctx.assure_current().is_ok());
         ctx.pop()?;
-        assert!(!ctx.is_current()?);
+        assert!(ctx.assure_current().is_err());
         ctx.push()?;
-        assert!(ctx.is_current()?);
+        assert!(ctx.assure_current().is_ok());
         Ok(())
     }
 
@@ -137,11 +138,11 @@ mod tests {
     fn thread() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx1 = device.create_context_auto()?;
-        assert!(ctx1.is_current()?); // "current" on this thread
+        assert!(ctx1.assure_current().is_ok()); // "current" on this thread
         let th = std::thread::spawn(move || -> Result<()> {
-            assert!(!ctx1.is_current()?); // ctx1 is NOT current on this thread
+            assert!(ctx1.assure_current().is_err()); // ctx1 is NOT current on this thread
             let ctx2 = device.create_context_auto()?;
-            assert!(ctx2.is_current()?);
+            assert!(ctx2.assure_current().is_ok());
             Ok(())
         });
         th.join().unwrap()?;

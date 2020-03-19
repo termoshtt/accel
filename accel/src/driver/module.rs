@@ -186,7 +186,7 @@ impl<'ctx> Drop for Module<'ctx> {
 impl<'ctx> Module<'ctx> {
     /// integrated loader of Instruction
     pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
-        assert!(context.is_current()?, "Given context is not current");
+        context.assure_current()?;
         match *data {
             Instruction::PTX(ref ptx) => {
                 let module = ffi_new_unsafe!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
@@ -211,7 +211,7 @@ impl<'ctx> Module<'ctx> {
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
-        assert!(self.context.is_current()?, "Given context is not current");
+        self.context.assure_current()?;
         let name = CString::new(name).expect("Invalid Kernel name");
         let func = ffi_new_unsafe!(cuModuleGetFunction, self.module, name.as_ptr())?;
         Ok(Kernel { func, _m: self })

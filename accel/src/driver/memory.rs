@@ -26,7 +26,7 @@ pub struct MemoryInfo {
 
 impl MemoryInfo {
     pub fn get(ctx: &Context) -> Result<Self> {
-        assert!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let mut free = 0;
         let mut total = 0;
         ffi_call_unsafe!(
@@ -73,7 +73,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAlloc]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn non_managed(ctx: &'ctx Context, size: usize) -> Result<Self> {
-        assert!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let ptr = ffi_new_unsafe!(cuMemAlloc_v2, size * std::mem::size_of::<T>())?;
         Ok(DeviceMemory {
             ptr,
@@ -88,7 +88,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn managed(ctx: &'ctx Context, size: usize, flag: AttachFlag) -> Result<Self> {
-        assert!(ctx.is_current()?, "Given context must be current");
+        ctx.assure_current()?;
         let ptr = ffi_new_unsafe!(
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
@@ -113,7 +113,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 
     fn get_attr<Attr>(&self, attr: CUpointer_attribute) -> Result<Attr> {
-        assert!(self.ctx.is_current()?, "Given context must be current");
+        self.ctx.assure_current()?;
         let ty = MaybeUninit::uninit();
         ffi_call_unsafe!(cuPointerGetAttribute, ty.as_ptr() as *mut _, attr, self.ptr)?;
         let ty = unsafe { ty.assume_init() };

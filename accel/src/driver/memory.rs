@@ -1,6 +1,5 @@
 use super::context::*;
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::{ensure, Result};
+use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 use std::{
     marker::PhantomData,
@@ -27,7 +26,7 @@ pub struct MemoryInfo {
 
 impl MemoryInfo {
     pub fn get(ctx: &Context) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        assert!(ctx.is_current()?, "Given context must be current");
         let mut free = 0;
         let mut total = 0;
         ffi_call_unsafe!(
@@ -74,7 +73,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAlloc]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn non_managed(ctx: &'ctx Context, size: usize) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        assert!(ctx.is_current()?, "Given context must be current");
         let ptr = ffi_new_unsafe!(cuMemAlloc_v2, size * std::mem::size_of::<T>())?;
         Ok(DeviceMemory {
             ptr,
@@ -89,7 +88,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     pub fn managed(ctx: &'ctx Context, size: usize, flag: AttachFlag) -> Result<Self> {
-        ensure!(ctx.is_current()?, "Given context must be current");
+        assert!(ctx.is_current()?, "Given context must be current");
         let ptr = ffi_new_unsafe!(
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
@@ -114,7 +113,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 
     fn get_attr<Attr>(&self, attr: CUpointer_attribute) -> Result<Attr> {
-        ensure!(self.ctx.is_current()?, "Given context must be current");
+        assert!(self.ctx.is_current()?, "Given context must be current");
         let ty = MaybeUninit::uninit();
         ffi_call_unsafe!(cuPointerGetAttribute, ty.as_ptr() as *mut _, attr, self.ptr)?;
         let ty = unsafe { ty.assume_init() };
@@ -143,7 +142,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
 
     /// Access as a slice. This returns error if not managed
     pub fn as_slice(&self) -> Result<&[T]> {
-        ensure!(
+        assert!(
             self.is_managed()?,
             "Device memory cannot be accessed from host if not managed"
         );
@@ -152,7 +151,7 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
 
     /// Access as a mutable slice. This returns error if not managed
     pub fn as_mut_slice(&mut self) -> Result<&mut [T]> {
-        ensure!(
+        assert!(
             self.is_managed()?,
             "Device memory cannot be accessed from host if not managed"
         );

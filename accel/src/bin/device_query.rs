@@ -1,6 +1,6 @@
-use accel::device::Device;
+use accel::{device::Device, error::*};
 
-fn device_query() -> anyhow::Result<()> {
+fn device_query() -> Result<()> {
     for dev in Device::usables()? {
         println!("ID         = {:?}", dev);
         println!("name       = {}", dev.name()?);

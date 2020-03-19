@@ -1,4 +1,4 @@
-use anyhow::{ensure, Result};
+use crate::error::Result;
 use cuda::*;
 use std::{ffi::*, path::*};
 
@@ -25,13 +25,13 @@ impl Instruction {
 
     /// Constructor for `Instruction::PTXFile`
     pub fn ptx_file(path: &Path) -> Result<Self> {
-        ensure!(path.exists(), "PTX file does not found: {}", path.display());
+        assert!(path.exists(), "PTX file does not found: {}", path.display());
         Ok(Instruction::PTXFile(path.to_owned()))
     }
 
     /// Constructor for `Instruction::CubinFile`
     pub fn cubin_file(path: &Path) -> Result<Self> {
-        ensure!(
+        assert!(
             path.exists(),
             "cubin file does not found: {}",
             path.display()

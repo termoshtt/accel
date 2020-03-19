@@ -2,8 +2,7 @@
 //!
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
-use anyhow::{bail, ensure, Result};
+use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 use std::{cell::RefCell, rc::Rc};
 
@@ -34,7 +33,7 @@ impl Context {
     pub fn create(device: CUdevice, flag: ContextFlag) -> Result<Self> {
         let ptr = ffi_new_unsafe!(cuCtxCreate_v2, flag as u32, device)?;
         if ptr.is_null() {
-            bail!("Cannot crate a new context");
+            panic!("Cannot crate a new context");
         }
         CONTEXT_STACK_LOCK.with(|rc| *rc.borrow_mut() = Some(ptr));
         Ok(Context { ptr })
@@ -55,7 +54,7 @@ impl Context {
     /// Push to the context stack of this thread
     pub fn push(&self) -> Result<()> {
         let lock = get_lock();
-        ensure!(
+        assert!(
             lock.borrow().is_none(),
             "Context already exists on this thread. Please pop it before push new context."
         );
@@ -68,20 +67,20 @@ impl Context {
     pub fn pop(&self) -> Result<()> {
         let lock = get_lock();
         if lock.borrow().is_none() {
-            bail!("No countext has been set");
+            panic!("No countext has been set");
         }
         let ptr = ffi_new_unsafe!(cuCtxPopCurrent_v2)?;
         if ptr.is_null() {
-            bail!("No current context");
+            panic!("No current context");
         }
-        ensure!(ptr == self.ptr, "Pop must return same pointer");
+        assert!(ptr == self.ptr, "Pop must return same pointer");
         *lock.borrow_mut() = None;
         Ok(())
     }
 
     /// Block for a context's tasks to complete.
     pub fn sync(&self) -> Result<()> {
-        ensure!(
+        assert!(
             self.is_current()?,
             "sync must be called with current context"
         );
@@ -93,9 +92,10 @@ impl Context {
 #[cfg(test)]
 mod tests {
     use super::super::device::*;
+    use crate::error::Result;
 
     #[test]
-    fn create() -> anyhow::Result<()> {
+    fn create() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         dbg!(&ctx);
@@ -103,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn push() -> anyhow::Result<()> {
+    fn push() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
@@ -112,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn pop() -> anyhow::Result<()> {
+    fn pop() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
@@ -122,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn push_pop() -> anyhow::Result<()> {
+    fn push_pop() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
         assert!(ctx.is_current()?);
@@ -134,11 +134,11 @@ mod tests {
     }
 
     #[test]
-    fn thread() -> anyhow::Result<()> {
+    fn thread() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx1 = device.create_context_auto()?;
         assert!(ctx1.is_current()?); // "current" on this thread
-        let th = std::thread::spawn(move || -> anyhow::Result<()> {
+        let th = std::thread::spawn(move || -> Result<()> {
             assert!(!ctx1.is_current()?); // ctx1 is NOT current on this thread
             let ctx2 = device.create_context_auto()?;
             assert!(ctx2.is_current()?);

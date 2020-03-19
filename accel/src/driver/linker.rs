@@ -5,7 +5,6 @@
 
 use super::{context::*, instruction::*, module::*};
 use crate::{error::*, ffi_call, ffi_call_unsafe};
-use anyhow::{ensure, Result};
 use cuda::*;
 use std::{
     collections::HashMap,
@@ -196,7 +195,7 @@ impl<'ctx> Drop for Linker<'ctx> {
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
-        ensure!(context.is_current()?, "Given context is not current");
+        assert!(context.is_current()?, "Given context is not current");
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
@@ -218,7 +217,7 @@ impl<'ctx> Linker<'ctx> {
 
     /// Wrapper of cuLinkAddData
     unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+        assert!(self.context.is_current()?, "Given context is not current");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
         ffi_call!(
@@ -237,7 +236,7 @@ impl<'ctx> Linker<'ctx> {
 
     /// Wrapper of cuLinkAddFile
     unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+        assert!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         ffi_call!(
@@ -272,7 +271,7 @@ impl<'ctx> Linker<'ctx> {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Instruction> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+        assert!(self.context.is_current()?, "Given context is not current");
         let mut cb = null_mut();
         unsafe {
             ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;

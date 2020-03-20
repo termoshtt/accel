@@ -3,11 +3,12 @@ LABEL maintainer "Toshiaki Hishinuma <hishinuma.toshiaki@gmail.com>"
 
 RUN apt update \
 &&  apt install -y make \
-&&  apt install -y gcc-8-offload-nvptx nvptx-tools g++-8 
+&&  apt install -y gcc-8-offload-nvptx nvptx-tools g++-8 gfortran
 
 RUN apt install -y cuda-cublas-dev-10-0 cuda-cudart-dev-10-0 cuda-compiler-10.0 cuda-nvprof-10-1 cuda-cusolver-dev-10-0 cuda-cusparse-dev-10-0 
-
 RUN apt install -y libopenblas-dev
+
+RUN apt install -y python3 python3-yaml python3-numpy
 
 RUN apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* \

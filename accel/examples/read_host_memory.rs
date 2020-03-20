@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let grid = Grid::x(1);
     let block = Block::x(4);
 
-    let mut a = driver::memory::PageLockedSpan::new(4);
+    let mut a = driver::memory::PageLockedMemory::new(4);
     a[0] = 0;
     a[1] = 1;
     a[2] = 2;

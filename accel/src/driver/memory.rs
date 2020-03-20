@@ -39,34 +39,34 @@ impl MemoryInfo {
 }
 
 /// Memory allocated on the device.
-pub struct DeviceSpan<'ctx, T> {
+pub struct DeviceMemory<'ctx, T> {
     ptr: CUdeviceptr,
     size: usize,
     ctx: &'ctx Context,
     phantom: PhantomData<T>,
 }
 
-impl<'ctx, T> Drop for DeviceSpan<'ctx, T> {
+impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
         ffi_call_unsafe!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
     }
 }
 
-impl<'ctx, T> Deref for DeviceSpan<'ctx, T> {
+impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        self.as_slice().expect("Cannot deref DeviceSpan into slice")
+        self.as_slice().expect("Cannot deref DeviceMemory into slice")
     }
 }
 
-impl<'ctx, T> DerefMut for DeviceSpan<'ctx, T> {
+impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
-            .expect("Cannot deref DeviceSpan into mutable slice")
+            .expect("Cannot deref DeviceMemory into mutable slice")
     }
 }
 
-impl<'ctx, T> DeviceSpan<'ctx, T> {
+impl<'ctx, T> DeviceMemory<'ctx, T> {
     /// Allocate a new device memory by [cuMemAlloc].
     /// This memory is not managed by the unified memory system.
     ///
@@ -74,7 +74,7 @@ impl<'ctx, T> DeviceSpan<'ctx, T> {
     pub fn non_managed(ctx: &'ctx Context, size: usize) -> Result<Self> {
         ctx.assure_current()?;
         let ptr = ffi_new_unsafe!(cuMemAlloc_v2, size * std::mem::size_of::<T>())?;
-        Ok(DeviceSpan {
+        Ok(DeviceMemory {
             ptr,
             size,
             ctx,
@@ -93,7 +93,7 @@ impl<'ctx, T> DeviceSpan<'ctx, T> {
             size * std::mem::size_of::<T>(),
             flag as u32
         )?;
-        Ok(DeviceSpan {
+        Ok(DeviceMemory {
             ptr,
             size,
             ctx,
@@ -164,32 +164,32 @@ impl<'ctx, T> DeviceSpan<'ctx, T> {
     }
 }
 
-pub struct PageLockedSpan<T> {
+pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
 }
 
-impl<T> Drop for PageLockedSpan<T> {
+impl<T> Drop for PageLockedMemory<T> {
     fn drop(&mut self) {
         ffi_call_unsafe!(cuMemFreeHost, self.ptr as *mut _)
             .expect("Cannot free page-locked memory");
     }
 }
 
-impl<T> Deref for PageLockedSpan<T> {
+impl<T> Deref for PageLockedMemory<T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl<T> DerefMut for PageLockedSpan<T> {
+impl<T> DerefMut for PageLockedMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
     }
 }
 
-impl<T> PageLockedSpan<T> {
+impl<T> PageLockedMemory<T> {
     pub fn new(size: usize) -> Self {
         let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
@@ -238,7 +238,7 @@ mod tests {
     fn managed() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let mut mem = DeviceSpan::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+        let mut mem = DeviceMemory::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
         assert_eq!(mem.len(), 12);
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
         let sl = mem.as_mut_slice()?;
@@ -250,7 +250,7 @@ mod tests {
     fn non_managed() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let mem = DeviceSpan::<i32>::non_managed(&ctx, 12)?;
+        let mem = DeviceMemory::<i32>::non_managed(&ctx, 12)?;
         assert_eq!(mem.len(), 12);
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
         assert!(mem.as_slice().is_err());
@@ -263,14 +263,14 @@ mod tests {
         let ctx = device.create_context_auto()?;
 
         // non-managed
-        let mem1 = DeviceSpan::<i32>::non_managed(&ctx, 12)?;
+        let mem1 = DeviceMemory::<i32>::non_managed(&ctx, 12)?;
         dbg!(mem1.buffer_id()?);
         assert_eq!(mem1.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
         assert!(mem1.assure_managed().is_err());
         assert!(mem1.is_mapped()?);
 
         // managed
-        let mem2 = DeviceSpan::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+        let mem2 = DeviceMemory::<i32>::managed(&ctx, 12, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
         assert_eq!(mem2.memory_type()?, MemoryType::CU_MEMORYTYPE_DEVICE);
         assert!(mem2.assure_managed().is_ok());
         assert!(mem2.is_mapped()?);

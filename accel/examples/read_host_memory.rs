@@ -3,8 +3,9 @@ use accel_derive::kernel;
 use anyhow::Result;
 
 #[kernel]
-pub fn read_host_memory(ptr: *const i32) {
-    accel_core::println!("Address = {:p}", ptr);
+pub unsafe fn read_host_memory(a: *const i32) {
+    let i = accel_core::index() as isize;
+    accel_core::println!("a[{}] = {}", i, unsafe { *(a.offset(i)) });
 }
 
 fn main() -> Result<()> {
@@ -13,9 +14,11 @@ fn main() -> Result<()> {
     let grid = Grid::x(1);
     let block = Block::x(4);
 
-    let i = 12345_i32;
-    let p = &i as *const i32;
-    println!("&i = {:p}", p);
-    read_host_memory(&ctx, grid, block, &(&p,))?;
+    let mut a = driver::memory::PageLockedSpan::new(4);
+    a[0] = 0;
+    a[1] = 1;
+    a[2] = 2;
+    a[3] = 3;
+    read_host_memory(&ctx, grid, block, &(&a.as_ptr(),))?;
     Ok(())
 }

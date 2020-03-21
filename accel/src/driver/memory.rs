@@ -55,7 +55,8 @@ impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
 impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        self.as_slice().expect("Cannot deref DeviceMemory into slice")
+        self.as_slice()
+            .expect("Cannot deref DeviceMemory into slice")
     }
 }
 
@@ -164,62 +165,8 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     }
 }
 
-pub struct PageLockedMemory<T> {
-    ptr: *mut T,
-    size: usize,
-}
-
-impl<T> Drop for PageLockedMemory<T> {
-    fn drop(&mut self) {
-        ffi_call_unsafe!(cuMemFreeHost, self.ptr as *mut _)
-            .expect("Cannot free page-locked memory");
-    }
-}
-
-impl<T> Deref for PageLockedMemory<T> {
-    type Target = [T];
-    fn deref(&self) -> &[T] {
-        self.as_slice()
-    }
-}
-
-impl<T> DerefMut for PageLockedMemory<T> {
-    fn deref_mut(&mut self) -> &mut [T] {
-        self.as_mut_slice()
-    }
-}
-
-impl<T> PageLockedMemory<T> {
-    pub fn new(size: usize) -> Self {
-        let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
-            .expect("Cannot allocate page-locked memory");
-        Self {
-            ptr: ptr as *mut T,
-            size,
-        }
-    }
-
-    pub fn as_ptr(&self) -> *const T {
-        self.ptr as *const T
-    }
-
-    pub fn as_mut_ptr(&mut self) -> *mut T {
-        self.ptr
-    }
-
-    /// Access as a slice.
-    pub fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.ptr as *const T, self.size) }
-    }
-
-    /// Access as a mutable slice.
-    pub fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.ptr as *mut T, self.size) }
-    }
-}
-
 #[cfg(test)]
-mod tests {
+mod device_memory_tests {
     use super::super::device::*;
     use super::*;
 
@@ -278,5 +225,80 @@ mod tests {
         // Buffer id of two different memory must be different
         assert_ne!(mem1.buffer_id()?, mem2.buffer_id()?);
         Ok(())
+    }
+}
+
+pub struct PageLockedMemory<T> {
+    ptr: *mut T,
+    size: usize,
+}
+
+impl<T> Drop for PageLockedMemory<T> {
+    fn drop(&mut self) {
+        ffi_call_unsafe!(cuMemFreeHost, self.ptr as *mut _)
+            .expect("Cannot free page-locked memory");
+    }
+}
+
+impl<T> Deref for PageLockedMemory<T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] {
+        self.as_slice()
+    }
+}
+
+impl<T> DerefMut for PageLockedMemory<T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
+    }
+}
+
+impl<T> PageLockedMemory<T> {
+    pub fn new(size: usize) -> Self {
+        let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+            .expect("Cannot allocate page-locked memory");
+        Self {
+            ptr: ptr as *mut T,
+            size,
+        }
+    }
+
+    pub fn convert(a: Vec<T>) -> Self {
+        let ptr = a.as_mut_ptr();
+        ffi_call_unsafe!(cuMemHostRegister_v2);
+        Self { ptr, size: a.len() }
+    }
+
+    pub fn as_ptr(&self) -> *const T {
+        self.ptr as *const T
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.ptr
+    }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    /// Access as a slice.
+    pub fn as_slice(&self) -> &[T] {
+        unsafe { std::slice::from_raw_parts(self.ptr as *const T, self.size) }
+    }
+
+    /// Access as a mutable slice.
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { std::slice::from_raw_parts_mut(self.ptr as *mut T, self.size) }
+    }
+}
+
+#[cfg(test)]
+mod page_locaked_memory_tests {
+    use super::*;
+
+    #[should_panic]
+    #[test]
+    fn zero_new() {
+        let _a: PageLockedMemory<i32> = PageLockedMemory::new(0);
     }
 }

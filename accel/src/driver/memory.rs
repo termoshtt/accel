@@ -19,23 +19,42 @@ pub use cuda::CUmemorytype_enum as MemoryType;
 
 /// Total and Free memory size of the device (in bytes)
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct MemoryInfo {
-    pub free: usize,
-    pub total: usize,
+struct MemoryInfo {
+    free: usize,
+    total: usize,
 }
 
 impl MemoryInfo {
-    pub fn get(ctx: &Context) -> Result<Self> {
-        ctx.assure_current()?;
+    fn get(ctx: &Context) -> Self {
+        ctx.assure_current().expect("Non-current context");
         let mut free = 0;
         let mut total = 0;
         ffi_call_unsafe!(
             cuMemGetInfo_v2,
             &mut free as *mut usize,
             &mut total as *mut usize
-        )?;
-        Ok(MemoryInfo { free, total })
+        )
+        .expect("Cannot get memory info");
+        MemoryInfo { free, total }
     }
+}
+
+/// Get total memory size in bytes of the current device
+///
+/// Panic
+/// ------
+/// - when given context is not current
+pub fn total_memory(ctx: &Context) -> usize {
+    MemoryInfo::get(ctx).total
+}
+
+/// Get free memory size in bytes of the current device
+///
+/// Panic
+/// ------
+/// - when given context is not current
+pub fn free_memory(ctx: &Context) -> usize {
+    MemoryInfo::get(ctx).free
 }
 
 /// Trait for CUDA managed memories. It assures
@@ -163,7 +182,13 @@ impl<T> DeviceMemory<T> {
     /// Allocate a new device memory with `size` byte length by [cuMemAllocManaged].
     /// This memory is managed by the unified memory system.
     ///
+    /// Panic
+    /// ------
+    /// - when given context is not current
+    /// - allocation failed including `size == 0` case
+    ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
+    ///
     pub fn new(ctx: &Context, size: usize) -> Self {
         ctx.assure_current()
             .expect("DeviceMemory::new requires valid and current context");
@@ -181,6 +206,7 @@ impl<T> DeviceMemory<T> {
     }
 }
 
+/// Memory allocated as page-locked
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
@@ -233,7 +259,8 @@ impl<T> PageLockedMemory<T> {
     ///
     /// Panic
     /// ------
-    /// - when memory allocation failed
+    /// - when memory allocation failed includeing `size == 0` case
+    ///
     pub fn new(size: usize) -> Self {
         let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
@@ -253,7 +280,7 @@ mod tests {
     fn info() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let mem_info = MemoryInfo::get(&ctx)?;
+        let mem_info = MemoryInfo::get(&ctx);
         dbg!(&mem_info);
         assert!(mem_info.free > 0);
         assert!(mem_info.total > mem_info.free);

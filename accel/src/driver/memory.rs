@@ -40,7 +40,7 @@ impl MemoryInfo {
 
 /// Trait for CUDA managed memories. It assures
 ///
-/// - can be accessed from both host(CPU) and device(GPU) programs
+/// - can be accessed from both host (CPU) and device (GPU) programs
 /// - can be treated as a slice, i.e. a single span of either host or device memory
 ///
 pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
@@ -211,6 +211,19 @@ impl<T> CudaMemory<T> for PageLockedMemory<T> {
 }
 
 impl<T> PageLockedMemory<T> {
+    /// Allocate host memory as page-locked.
+    ///
+    /// Allocating excessive amounts of pinned memory may degrade system performance,
+    /// since it reduces the amount of memory available to the system for paging.
+    /// As a result, this function is best used sparingly to allocate staging areas for data exchange between host and device.
+    ///
+    /// See also [cuMemAllocHost].
+    ///
+    /// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
+    ///
+    /// Panic
+    /// ------
+    /// - when memory allocation failed
     pub fn new(size: usize) -> Self {
         let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");

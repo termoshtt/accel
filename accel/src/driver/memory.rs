@@ -9,6 +9,8 @@ use std::{
 
 use cuda::CUmemAttach_flags_enum as AttachFlag;
 
+pub use cuda::CUarray_format as ArrayFormat;
+
 /// Each variants correspond to the following:
 ///
 /// - Host memory
@@ -267,6 +269,96 @@ impl<T> PageLockedMemory<T> {
         Self {
             ptr: ptr as *mut T,
             size,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Array<T> {
+    array: CUarray,
+    phantom: PhantomData<T>,
+}
+
+pub trait ArrayScalar {
+    fn format() -> ArrayFormat;
+}
+
+macro_rules! impl_array_scalar {
+    ($scalar:ty, $format:ident) => {
+        impl ArrayScalar for $scalar {
+            fn format() -> ArrayFormat {
+                ArrayFormat::$format
+            }
+        }
+    };
+}
+
+impl_array_scalar!(u8, CU_AD_FORMAT_UNSIGNED_INT8);
+impl_array_scalar!(u16, CU_AD_FORMAT_UNSIGNED_INT16);
+impl_array_scalar!(u32, CU_AD_FORMAT_UNSIGNED_INT32);
+impl_array_scalar!(i8, CU_AD_FORMAT_SIGNED_INT8);
+impl_array_scalar!(i16, CU_AD_FORMAT_SIGNED_INT16);
+impl_array_scalar!(i32, CU_AD_FORMAT_SIGNED_INT32);
+// FIXME f16 is not supported yet
+impl_array_scalar!(f32, CU_AD_FORMAT_FLOAT);
+
+bitflags::bitflags! {
+    pub struct ArrayFlag: u32 {
+        /// If set, the CUDA array is a collection of layers, where each layer is either a 1D or a 2D array and the Depth member of CUDA_ARRAY3D_DESCRIPTOR specifies the number of layers, not the depth of a 3D array.
+        const LAYERED = 0x01;
+        /// This flag must be set in order to bind a surface reference to the CUDA array
+        const SURFACE_LDST = 0x02;
+        /// If set, the CUDA array is a collection of six 2D arrays, representing faces of a cube. The width of such a CUDA array must be equal to its height, and Depth must be six. If CUDA_ARRAY3D_LAYERED flag is also set, then the CUDA array is a collection of cubemaps and Depth must be a multiple of six.
+        const CUBEMAP = 0x04;
+        /// This flag must be set in order to perform texture gather operations on a CUDA array.
+        const TEXTURE_GATHER = 0x08;
+        /// This flag if set indicates that the CUDA array is a DEPTH_TEXTURE.
+        const DEPTH_TEXTURE = 0x10;
+        /// This flag indicates that the CUDA array may be bound as a color target in an external graphics API
+        const COLOR_ATTACHMENT = 0x20;
+    }
+}
+
+#[derive(Debug)]
+pub struct ArrayBuilder {
+    width: Option<usize>,
+    hight: Option<usize>,
+    depth: Option<usize>,
+    num_channels: Option<u32>,
+    flag: Option<ArrayFlag>,
+}
+
+macro_rules! impl_builder {
+    ($attr:ident, $type:ty) => {
+        pub fn $attr(mut self, $attr: $type) -> Self {
+            assert!(self.$attr.is_none(), "{} is set twice", stringify!($attr));
+            self.$attr = Some($attr);
+            self
+        }
+    }
+}
+
+impl ArrayBuilder {
+    impl_builder!(width, usize);
+    impl_builder!(hight, usize);
+    impl_builder!(depth, usize);
+    impl_builder!(num_channels, u32);
+    impl_builder!(flag, ArrayFlag);
+
+    pub fn build<T: ArrayScalar>(self) -> Array<T> {
+        let desc = CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width.expect("width is required for any type of Array"),
+            Height: self.hight.unwrap_or(0),
+            Depth: self.depth.unwrap_or(0),
+            NumChannels: self.num_channels.unwrap_or(0),
+            Flags: self.flag.unwrap_or(ArrayFlag::empty()).bits(),
+            Format: T::format(),
+        };
+        let array = ffi_new_unsafe!(cuArray3DCreate_v2, &desc as *const _)
+            .expect("Cannot create a new array");
+        Array {
+            array,
+            phantom: PhantomData,
         }
     }
 }

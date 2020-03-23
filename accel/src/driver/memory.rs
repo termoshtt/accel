@@ -86,6 +86,16 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     }
 
     /// Memory Type
+    ///
+    /// ```
+    /// # use ::accel::driver::{device::*, context::*, memory::*};
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context_auto().unwrap();
+    /// let dev = DeviceMemory::<i32>::new(&ctx, 12);
+    /// assert_eq!(dev.memory_type(), MemoryType::CU_MEMORYTYPE_DEVICE);
+    /// let host = PageLockedMemory::<i32>::new(12);
+    /// assert_eq!(host.memory_type(), MemoryType::CU_MEMORYTYPE_HOST);
+    /// ```
     fn memory_type(&self) -> MemoryType {
         get_attr(
             self.as_ptr(),
@@ -273,20 +283,6 @@ mod tests {
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
-        Ok(())
-    }
-
-    #[test]
-    fn pointer_attributes() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
-
-        let mem1 = DeviceMemory::<i32>::new(&ctx, 12);
-        assert_eq!(mem1.memory_type(), MemoryType::CU_MEMORYTYPE_DEVICE);
-
-        // Buffer id of two different memory must be different
-        let mem2 = DeviceMemory::<i32>::new(&ctx, 12);
-        assert_ne!(mem1.id(), mem2.id());
         Ok(())
     }
 }

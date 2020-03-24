@@ -282,6 +282,12 @@ pub struct Array<T, Dim> {
     phantom: PhantomData<T>,
 }
 
+impl<T, Dim> Drop for Array<T, Dim> {
+    fn drop(&mut self) {
+        ffi_call_unsafe!(cuArrayDestroy, self.array).expect("Failed to cleanup array");
+    }
+}
+
 impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     /// Create a new array on the device.
     ///

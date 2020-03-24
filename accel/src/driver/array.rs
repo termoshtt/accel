@@ -3,7 +3,8 @@ use cuda::*;
 use derive_new::new;
 use std::marker::PhantomData;
 
-pub use cuda::CUarray_format as ArrayFormat;
+pub use cuda::CUarray_format as ArrayFormatTag;
+pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
 #[derive(Debug)]
 pub struct Array<T, Dim> {
@@ -60,19 +61,20 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
 
 pub trait Dimension {
     /// `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR;
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor;
     /// Number of elements
     fn len(&self) -> usize;
 }
 
+/// Spec of 1D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix1 {
     pub width: usize,
 }
 
 impl Dimension for Ix1 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
-        CUDA_ARRAY3D_DESCRIPTOR {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        Descriptor {
             Width: self.width,
             Height: 0,
             Depth: 0,
@@ -86,6 +88,7 @@ impl Dimension for Ix1 {
     }
 }
 
+/// Spec of 2D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix2 {
     pub width: usize,
@@ -93,8 +96,8 @@ pub struct Ix2 {
 }
 
 impl Dimension for Ix2 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
-        CUDA_ARRAY3D_DESCRIPTOR {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: 0,
@@ -108,6 +111,7 @@ impl Dimension for Ix2 {
     }
 }
 
+/// Spec of 3D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix3 {
     pub width: usize,
@@ -116,8 +120,8 @@ pub struct Ix3 {
 }
 
 impl Dimension for Ix3 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
-        CUDA_ARRAY3D_DESCRIPTOR {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: self.depth,
@@ -131,15 +135,18 @@ impl Dimension for Ix3 {
     }
 }
 
+/// Spec of Layered 1D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix1Layered {
+    /// Width of each layer
     pub width: usize,
+    /// Depth of layer
     pub depth: usize,
 }
 
 impl Dimension for Ix1Layered {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
-        CUDA_ARRAY3D_DESCRIPTOR {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        Descriptor {
             Width: self.width,
             Height: 0,
             Depth: self.depth,
@@ -153,16 +160,20 @@ impl Dimension for Ix1Layered {
     }
 }
 
+/// Spec of Layered 2D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix2Layered {
+    /// Width of each layer
     pub width: usize,
+    /// Hight of each layer
     pub hight: usize,
+    /// Depth of layer
     pub depth: usize,
 }
 
 impl Dimension for Ix2Layered {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
-        CUDA_ARRAY3D_DESCRIPTOR {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: self.depth,
@@ -177,14 +188,14 @@ impl Dimension for Ix2Layered {
 }
 
 pub trait Scalar {
-    fn format() -> ArrayFormat;
+    fn format() -> ArrayFormatTag;
 }
 
 macro_rules! impl_array_scalar {
     ($scalar:ty, $format:ident) => {
         impl Scalar for $scalar {
-            fn format() -> ArrayFormat {
-                ArrayFormat::$format
+            fn format() -> ArrayFormatTag {
+                ArrayFormatTag::$format
             }
         }
     };
@@ -200,7 +211,7 @@ impl_array_scalar!(i32, CU_AD_FORMAT_SIGNED_INT32);
 impl_array_scalar!(f32, CU_AD_FORMAT_FLOAT);
 
 bitflags::bitflags! {
-    struct ArrayFlag: u32 {
+    pub struct ArrayFlag: u32 {
         /// If set, the CUDA array is a collection of layers, where each layer is either a 1D or a 2D array and the Depth member of CUDA_ARRAY3D_DESCRIPTOR specifies the number of layers, not the depth of a 3D array.
         const LAYERED = 0x01;
         /// This flag must be set in order to bind a surface reference to the CUDA array

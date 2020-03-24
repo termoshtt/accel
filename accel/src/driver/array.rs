@@ -75,6 +75,18 @@ pub struct Ix1 {
     pub width: usize,
 }
 
+impl From<usize> for Ix1 {
+    fn from(width: usize) -> Ix1 {
+        Ix1 { width }
+    }
+}
+
+impl From<(usize,)> for Ix1 {
+    fn from(width: (usize,)) -> Ix1 {
+        Ix1::new(width.0)
+    }
+}
+
 impl Dimension for Ix1 {
     fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
         assert!(
@@ -102,6 +114,12 @@ pub struct Ix2 {
     pub hight: usize,
 }
 
+impl From<(usize, usize)> for Ix2 {
+    fn from((width, hight): (usize, usize)) -> Ix2 {
+        Ix2 { width, hight }
+    }
+}
+
 impl Dimension for Ix2 {
     fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
         Descriptor {
@@ -124,6 +142,16 @@ pub struct Ix3 {
     pub width: usize,
     pub hight: usize,
     pub depth: usize,
+}
+
+impl From<(usize, usize, usize)> for Ix3 {
+    fn from((width, hight, depth): (usize, usize, usize)) -> Ix3 {
+        Ix3 {
+            width,
+            hight,
+            depth,
+        }
+    }
 }
 
 impl Dimension for Ix3 {
@@ -151,6 +179,12 @@ pub struct Ix1Layered {
     pub depth: usize,
 }
 
+impl From<(usize, usize)> for Ix1Layered {
+    fn from((width, depth): (usize, usize)) -> Ix1Layered {
+        Ix1Layered { width, depth }
+    }
+}
+
 impl Dimension for Ix1Layered {
     fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
         Descriptor {
@@ -176,6 +210,16 @@ pub struct Ix2Layered {
     pub hight: usize,
     /// Depth of layer
     pub depth: usize,
+}
+
+impl From<(usize, usize, usize)> for Ix2Layered {
+    fn from((width, hight, depth): (usize, usize, usize)) -> Ix2Layered {
+        Ix2Layered {
+            width,
+            hight,
+            depth,
+        }
+    }
 }
 
 impl Dimension for Ix2Layered {
@@ -244,7 +288,8 @@ mod tests {
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _array: Array<f32, Ix1> = Array::new(&ctx, Ix1::new(10), 1);
+        let _array1: Array<f32, Ix1> = Array::new(&ctx, 10, 1);
+        let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,), 1);
         Ok(())
     }
 
@@ -252,7 +297,7 @@ mod tests {
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _array: Array<f32, Ix2> = Array::new(&ctx, Ix2::new(10, 12), 1);
+        let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12), 1);
         Ok(())
     }
 
@@ -260,7 +305,7 @@ mod tests {
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _array: Array<f32, Ix3> = Array::new(&ctx, Ix3::new(10, 12, 8), 1);
+        let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8), 1);
         Ok(())
     }
 
@@ -268,7 +313,7 @@ mod tests {
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, Ix1Layered::new(10, 12), 1);
+        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12), 1);
         Ok(())
     }
 
@@ -276,7 +321,7 @@ mod tests {
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context_auto()?;
-        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, Ix2Layered::new(10, 12, 8), 1);
+        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8), 1);
         Ok(())
     }
 }

@@ -1,3 +1,4 @@
+use super::context::*;
 use crate::{ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 use derive_new::new;
@@ -30,7 +31,9 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     /// -----
     /// - when allocation failed
     ///
-    pub fn new(dim: impl Into<Dim>, num_channels: u32) -> Self {
+    pub fn new(ctx: &Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
+        ctx.assure_current()
+            .expect("Array::new requires valid and current context");
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
         let array = ffi_new_unsafe!(cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
@@ -228,5 +231,52 @@ bitflags::bitflags! {
         const DEPTH_TEXTURE = 0x10;
         /// This flag indicates that the CUDA array may be bound as a color target in an external graphics API
         const COLOR_ATTACHMENT = 0x20;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::device::*;
+    use super::*;
+    use crate::error::*;
+
+    #[test]
+    fn new_1d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _array: Array<f32, Ix1> = Array::new(&ctx, Ix1::new(10), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn new_2d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _array: Array<f32, Ix2> = Array::new(&ctx, Ix2::new(10, 12), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn new_3d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _array: Array<f32, Ix3> = Array::new(&ctx, Ix3::new(10, 12, 8), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn new_1d_layered() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, Ix1Layered::new(10, 12), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn new_2d_layered() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context_auto()?;
+        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, Ix2Layered::new(10, 12, 8), 1);
+        Ok(())
     }
 }

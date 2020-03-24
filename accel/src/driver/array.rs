@@ -74,6 +74,10 @@ pub struct Ix1 {
 
 impl Dimension for Ix1 {
     fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+        assert!(
+            (num_channels == 1) || (num_channels == 2) || (num_channels == 4),
+            "num_channels must be one of 1,2,4"
+        );
         Descriptor {
             Width: self.width,
             Height: 0,

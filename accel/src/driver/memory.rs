@@ -308,6 +308,14 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
         &self.dim
     }
 
+    pub fn element_size(&self) -> usize {
+        std::mem::size_of::<T>() * self.num_channels as usize
+    }
+
+    pub fn len(&self) -> usize {
+        self.dim.len()
+    }
+
     pub fn num_channels(&self) -> u32 {
         self.num_channels
     }
@@ -347,11 +355,43 @@ pub struct Ix2 {
     pub hight: usize,
 }
 
+impl Dimension for Ix2 {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
+        CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width,
+            Height: self.hight,
+            Depth: 0,
+            NumChannels: num_channels,
+            Flags: ArrayFlag::empty().bits(),
+            Format: T::format(),
+        }
+    }
+    fn len(&self) -> usize {
+        self.width * self.hight
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix3 {
     pub width: usize,
     pub hight: usize,
     pub depth: usize,
+}
+
+impl Dimension for Ix3 {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
+        CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width,
+            Height: self.hight,
+            Depth: self.depth,
+            NumChannels: num_channels,
+            Flags: ArrayFlag::empty().bits(),
+            Format: T::format(),
+        }
+    }
+    fn len(&self) -> usize {
+        self.width * self.hight * self.depth
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, new)]
@@ -360,11 +400,43 @@ pub struct Ix1Layered {
     pub depth: usize,
 }
 
+impl Dimension for Ix1Layered {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
+        CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width,
+            Height: 0,
+            Depth: self.depth,
+            NumChannels: num_channels,
+            Flags: ArrayFlag::LAYERED.bits(),
+            Format: T::format(),
+        }
+    }
+    fn len(&self) -> usize {
+        self.width * self.depth
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix2Layered {
     pub width: usize,
     pub hight: usize,
     pub depth: usize,
+}
+
+impl Dimension for Ix2Layered {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
+        CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width,
+            Height: self.hight,
+            Depth: self.depth,
+            NumChannels: num_channels,
+            Flags: ArrayFlag::LAYERED.bits(),
+            Format: T::format(),
+        }
+    }
+    fn len(&self) -> usize {
+        self.width * self.hight * self.depth
+    }
 }
 
 pub trait Scalar {

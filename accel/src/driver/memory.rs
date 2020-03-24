@@ -1,6 +1,7 @@
 use super::context::*;
 use crate::{error::*, ffi_call, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
+use derive_new::new;
 use std::{
     marker::PhantomData,
     mem::MaybeUninit,
@@ -274,18 +275,105 @@ impl<T> PageLockedMemory<T> {
 }
 
 #[derive(Debug)]
-pub struct Array<T> {
+pub struct Array<T, Dim> {
     array: CUarray,
+    dim: Dim,
+    num_channels: u32,
     phantom: PhantomData<T>,
 }
 
-pub trait ArrayScalar {
+impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
+    /// Create a new array on the device.
+    ///
+    /// - `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
+    ///   - e.g. `T=f32` and `num_channels == 2`, then the size of an element is 64bit as packed two 32bit float values
+    ///
+    /// Panic
+    /// -----
+    /// - when allocation failed
+    ///
+    pub fn new(dim: impl Into<Dim>, num_channels: u32) -> Self {
+        let dim = dim.into();
+        let desc = dim.as_descriptor::<T>(num_channels);
+        let array = ffi_new_unsafe!(cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+        Array {
+            array,
+            dim,
+            num_channels,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn dim(&self) -> &Dim {
+        &self.dim
+    }
+
+    pub fn num_channels(&self) -> u32 {
+        self.num_channels
+    }
+}
+
+pub trait Dimension {
+    /// `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR;
+    /// Number of elements
+    fn len(&self) -> usize;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, new)]
+pub struct Ix1 {
+    pub width: usize,
+}
+
+impl Dimension for Ix1 {
+    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> CUDA_ARRAY3D_DESCRIPTOR {
+        CUDA_ARRAY3D_DESCRIPTOR {
+            Width: self.width,
+            Height: 0,
+            Depth: 0,
+            NumChannels: num_channels,
+            Flags: ArrayFlag::empty().bits(),
+            Format: T::format(),
+        }
+    }
+    fn len(&self) -> usize {
+        self.width
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, new)]
+pub struct Ix2 {
+    pub width: usize,
+    pub hight: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, new)]
+pub struct Ix3 {
+    pub width: usize,
+    pub hight: usize,
+    pub depth: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, new)]
+pub struct Ix1Layered {
+    pub width: usize,
+    pub depth: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, new)]
+pub struct Ix2Layered {
+    pub width: usize,
+    pub hight: usize,
+    pub depth: usize,
+}
+
+pub trait Scalar {
     fn format() -> ArrayFormat;
 }
 
 macro_rules! impl_array_scalar {
     ($scalar:ty, $format:ident) => {
-        impl ArrayScalar for $scalar {
+        impl Scalar for $scalar {
             fn format() -> ArrayFormat {
                 ArrayFormat::$format
             }
@@ -303,7 +391,7 @@ impl_array_scalar!(i32, CU_AD_FORMAT_SIGNED_INT32);
 impl_array_scalar!(f32, CU_AD_FORMAT_FLOAT);
 
 bitflags::bitflags! {
-    pub struct ArrayFlag: u32 {
+    struct ArrayFlag: u32 {
         /// If set, the CUDA array is a collection of layers, where each layer is either a 1D or a 2D array and the Depth member of CUDA_ARRAY3D_DESCRIPTOR specifies the number of layers, not the depth of a 3D array.
         const LAYERED = 0x01;
         /// This flag must be set in order to bind a surface reference to the CUDA array
@@ -316,50 +404,6 @@ bitflags::bitflags! {
         const DEPTH_TEXTURE = 0x10;
         /// This flag indicates that the CUDA array may be bound as a color target in an external graphics API
         const COLOR_ATTACHMENT = 0x20;
-    }
-}
-
-#[derive(Debug)]
-pub struct ArrayBuilder {
-    width: Option<usize>,
-    hight: Option<usize>,
-    depth: Option<usize>,
-    num_channels: Option<u32>,
-    flag: Option<ArrayFlag>,
-}
-
-macro_rules! impl_builder {
-    ($attr:ident, $type:ty) => {
-        pub fn $attr(mut self, $attr: $type) -> Self {
-            assert!(self.$attr.is_none(), "{} is set twice", stringify!($attr));
-            self.$attr = Some($attr);
-            self
-        }
-    }
-}
-
-impl ArrayBuilder {
-    impl_builder!(width, usize);
-    impl_builder!(hight, usize);
-    impl_builder!(depth, usize);
-    impl_builder!(num_channels, u32);
-    impl_builder!(flag, ArrayFlag);
-
-    pub fn build<T: ArrayScalar>(self) -> Array<T> {
-        let desc = CUDA_ARRAY3D_DESCRIPTOR {
-            Width: self.width.expect("width is required for any type of Array"),
-            Height: self.hight.unwrap_or(0),
-            Depth: self.depth.unwrap_or(0),
-            NumChannels: self.num_channels.unwrap_or(0),
-            Flags: self.flag.unwrap_or(ArrayFlag::empty()).bits(),
-            Format: T::format(),
-        };
-        let array = ffi_new_unsafe!(cuArray3DCreate_v2, &desc as *const _)
-            .expect("Cannot create a new array");
-        Array {
-            array,
-            phantom: PhantomData,
-        }
     }
 }
 

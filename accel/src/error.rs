@@ -12,6 +12,10 @@ pub enum AccelError {
         error: DeviceError,
     },
 
+    // This is not an error potentially, but it should be a bug if not captured by accel
+    #[error("Async operations issues previously have not completed yet")]
+    AsyncOperationNotReady,
+
     #[error("Current CUDA context does not equal to the context when the object is generated")]
     ContextIsNotCurrent,
 
@@ -32,13 +36,13 @@ pub(crate) trait Check {
 
 impl Check for DeviceError {
     fn check(self, api_name: &str) -> Result<()> {
-        if self == DeviceError::CUDA_SUCCESS {
-            Ok(())
-        } else {
-            Err(AccelError::Device {
+        match self {
+            DeviceError::CUDA_SUCCESS => Ok(()),
+            DeviceError::CUDA_ERROR_NOT_READY => Err(AccelError::AsyncOperationNotReady),
+            _ => Err(AccelError::Device {
                 api_name: api_name.into(),
                 error: self,
-            })
+            }),
         }
     }
 }

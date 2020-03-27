@@ -10,6 +10,7 @@ pub mod instruction;
 pub mod linker;
 pub mod memory;
 pub mod module;
+pub mod stream;
 
 use std::sync::Once;
 

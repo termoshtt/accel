@@ -8,7 +8,7 @@ pub fn assert() {
 }
 
 fn main() -> Result<()> {
-    let device = driver::Device::nth(0)?;
+    let device = Device::nth(0)?;
     let ctx = device.create_context_auto()?;
     let grid = Grid::x(1);
     let block = Block::x(4);

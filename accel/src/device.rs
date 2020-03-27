@@ -1,148 +1,86 @@
-use crate::{error::*, ffi_call_unsafe, ffi_new_unsafe};
-use cudart::*;
+//! Low-level API for [device] and [primary context]
+//!
+//! - The [primary context] is unique per device and shared with the CUDA runtime API.
+//!   These functions allow integration with other libraries using CUDA
+//!
+//! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
+//! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
 
-pub use cudart::cudaComputeMode as ComputeMode;
-pub use cudart::cudaDeviceProp as DeviceProp;
+use super::{context::*, cuda_driver_init};
+use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
+use cuda::*;
 
-pub fn sync() -> Result<()> {
-    Ok(ffi_call_unsafe!(cudaDeviceSynchronize)?)
+/// Handler for device and its primary context
+#[derive(Debug, PartialEq, PartialOrd)]
+pub struct Device {
+    device: CUdevice,
 }
-
-/// Compute Capability of GPU
-///
-/// ```
-/// use accel::device::ComputeCapability;
-/// let cc40 = ComputeCapability::new(4, 0);
-/// let cc35 = ComputeCapability::new(3, 5);
-/// let cc30 = ComputeCapability::new(3, 0);
-/// assert!(cc30 < cc35);
-/// assert!(cc40 > cc35);
-/// assert_eq!(cc40, cc40);
-/// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct ComputeCapability {
-    pub major: i32,
-    pub minor: i32,
-}
-
-impl ComputeCapability {
-    pub fn new(major: i32, minor: i32) -> Self {
-        ComputeCapability { major, minor }
-    }
-}
-
-pub fn num_devices() -> Result<usize> {
-    let mut count = 0;
-    ffi_call_unsafe!(cudaGetDeviceCount, &mut count as *mut _)?;
-    Ok(count as usize)
-}
-
-#[derive(PartialEq, Eq, Debug)]
-pub struct Device(::std::os::raw::c_int);
 
 impl Device {
-    pub fn current() -> Result<Self> {
-        let mut id = 0;
-        ffi_call_unsafe!(cudaGetDevice, &mut id as *mut _)?;
-        Ok(Device(id))
+    /// Get number of available GPUs
+    pub fn get_count() -> Result<usize> {
+        cuda_driver_init();
+        let mut count: i32 = 0;
+        ffi_call_unsafe!(cuDeviceGetCount, &mut count as *mut i32)?;
+        Ok(count as usize)
     }
 
-    /// List usbale GPUs
-    pub fn usables() -> Result<Vec<Self>> {
-        let n = num_devices()? as i32;
-        let mut devs = Vec::new();
-        for i in 0..n {
-            let dev = Device::set(i)?;
-            if dev.compute_mode()? != ComputeMode::cudaComputeModeProhibited as i32 {
-                devs.push(dev)
-            }
-        }
-        Ok(devs)
+    pub fn nth(id: i32) -> Result<Self> {
+        cuda_driver_init();
+        let device = ffi_new_unsafe!(cuDeviceGet, id)?;
+        Ok(Device { device })
     }
 
-    /// Get fastest GPU
-    pub fn get_fastest() -> Result<Self> {
-        let mut fastest = None;
-        let mut max_flops = 0.0;
-        for dev in Self::usables()? {
-            let flops = dev.flops()?;
-            if flops > max_flops {
-                max_flops = flops;
-                fastest = Some(dev);
-            }
-        }
-        Ok(fastest.expect("No usable GPU"))
+    /// Get total memory of GPU
+    pub fn total_memory(&self) -> Result<usize> {
+        let mut mem = 0;
+        ffi_call_unsafe!(cuDeviceTotalMem_v2, &mut mem as *mut _, self.device)?;
+        Ok(mem)
     }
 
-    pub fn set(id: i32) -> Result<Self> {
-        ffi_call_unsafe!(cudaSetDevice, id)?;
-        Ok(Device(id))
+    /// Get name of GPU
+    pub fn get_name(&self) -> Result<String> {
+        let mut bytes: Vec<u8> = vec![0_u8; 1024];
+        ffi_call_unsafe!(
+            cuDeviceGetName,
+            bytes.as_mut_ptr() as *mut i8,
+            1024,
+            self.device
+        )?;
+        Ok(String::from_utf8(bytes).expect("GPU name is not UTF8"))
     }
 
-    pub fn compute_capability(&self) -> Result<ComputeCapability> {
-        let prop = self.get_property()?;
-        Ok(ComputeCapability::new(prop.major, prop.minor))
+    /// Create a new CUDA context on this device.
+    /// Be sure that returned context is not "current".
+    ///
+    /// ```
+    /// # use accel::device::*;
+    /// let device = Device::nth(0).unwrap();
+    /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
+    /// ```
+    pub fn create_context(&self, flag: ContextFlag) -> Result<Context> {
+        Ok(Context::create(self.device, flag)?)
     }
 
-    pub fn name(&self) -> Result<String> {
-        let prop = self.get_property()?;
-        let name: Vec<u8> = prop
-            .name
-            .iter()
-            .filter_map(|&c| {
-                let c = c as u8;
-                if c == b'\0' {
-                    None
-                } else {
-                    Some(c)
-                }
-            })
-            .collect();
-        Ok(String::from_utf8(name)
-            .expect("Invalid GPU name")
-            .trim()
-            .to_string())
+    /// Create a new CUDA context on this device with default flag
+    pub fn create_context_auto(&self) -> Result<Context> {
+        self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_count() -> Result<()> {
+        Device::get_count()?;
+        Ok(())
     }
 
-    pub fn cores(&self) -> Result<u32> {
-        let cc = self.compute_capability()?;
-        Ok(match (cc.major, cc.minor) {
-            (3, 0) => 192, // Kepler Generation (SM 3.0) GK10x class
-            (3, 2) => 192, // Kepler Generation (SM 3.2) GK10x class
-            (3, 5) => 192, // Kepler Generation (SM 3.5) GK11x class
-            (3, 7) => 192, // Kepler Generation (SM 3.7) GK21x class
-            (5, 0) => 128, // Maxwell Generation (SM 5.0) GM10x class
-            (5, 2) => 128, // Maxwell Generation (SM 5.2) GM20x class
-            (5, 3) => 128, // Maxwell Generation (SM 5.3) GM20x class
-            (6, 0) => 64,  // Pascal Generation (SM 6.0) GP100 class
-            (6, 1) => 128, // Pascal Generation (SM 6.1) GP10x class
-            (6, 2) => 128, // Pascal Generation (SM 6.2) GP10x class
-            (7, 0) => 64,  // Volta Generation (SM 7.0) GV100 class
-            _ => unreachable!("Unsupported Core"),
-        })
-    }
-
-    pub fn flops(&self) -> Result<f64> {
-        let prop = self.get_property()?;
-        let cores = self.cores()? as f64;
-        let mpc = prop.multiProcessorCount as f64;
-        let rate = prop.clockRate as f64 * 1024.0; // clockRate is [kHz]
-        Ok(mpc * rate * cores)
-    }
-
-    pub fn compute_mode(&self) -> Result<i32> {
-        let prop = self.get_property()?;
-        Ok(prop.computeMode)
-    }
-
-    pub fn get_property(&self) -> Result<DeviceProp> {
-        let prop = ffi_new_unsafe!(cudaGetDeviceProperties, self.0)?;
-        Ok(prop)
-    }
-
-    pub fn get_attr(&self, attr: cudaDeviceAttr) -> Result<i32> {
-        let mut value = 0;
-        ffi_call_unsafe!(cudaDeviceGetAttribute, &mut value as *mut _, attr, self.0)?;
-        Ok(value)
+    #[test]
+    fn get_zeroth() -> Result<()> {
+        Device::nth(0)?;
+        Ok(())
     }
 }

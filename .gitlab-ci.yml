@@ -48,7 +48,6 @@ test:examples:
   script:
     - cd accel
     - cargo run --example add
-    - cargo run --example add_managed
     - cargo run --example printf
     - cargo run --example assert
     - cargo run --example ptx_str

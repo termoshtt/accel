@@ -10,7 +10,7 @@ pub fn launch(i: i32) {
 }
 
 fn test() -> Result<()> {
-    let device = driver::Device::nth(0)?;
+    let device = Device::nth(0)?;
     let ctx = device.create_context_auto()?;
     let i = 12;
     let grid = Grid::x(1);

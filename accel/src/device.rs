@@ -54,7 +54,7 @@ impl Device {
     /// Be sure that returned context is not "current".
     ///
     /// ```
-    /// # use accel::driver::device::*;
+    /// # use accel::device::*;
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
     /// ```

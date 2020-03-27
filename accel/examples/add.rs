@@ -1,4 +1,4 @@
-use accel::driver::{device::*, memory::*, *};
+use accel::{device::*, memory::*, *};
 use accel_derive::kernel;
 use anyhow::Result;
 

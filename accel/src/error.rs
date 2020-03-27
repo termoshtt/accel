@@ -1,5 +1,4 @@
 pub use cuda::cudaError_enum as DeviceError;
-pub use cudart::cudaError_t as RuntimeError;
 use std::path::PathBuf;
 
 pub type Result<T> = ::std::result::Result<T, AccelError>;
@@ -11,13 +10,6 @@ pub enum AccelError {
     Device {
         api_name: String,
         error: DeviceError,
-    },
-
-    /// Raw errors originates from CUDA Device APIs
-    #[error("CUDA Runtime API Error: {api_name}, {error:?}")]
-    Runtime {
-        api_name: String,
-        error: RuntimeError,
     },
 
     #[error("Current CUDA context does not equal to the context when the object is generated")]
@@ -44,19 +36,6 @@ impl Check for DeviceError {
             Ok(())
         } else {
             Err(AccelError::Device {
-                api_name: api_name.into(),
-                error: self,
-            })
-        }
-    }
-}
-
-impl Check for RuntimeError {
-    fn check(self, api_name: &str) -> Result<()> {
-        if self == RuntimeError::cudaSuccess {
-            Ok(())
-        } else {
-            Err(AccelError::Runtime {
                 api_name: api_name.into(),
                 error: self,
             })

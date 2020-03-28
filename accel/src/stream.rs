@@ -1,35 +1,33 @@
 use crate::{context::*, error::AccelError, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 
-pub struct Stream {
+/// Hanlder for non-blocking CUDA Stream
+pub struct Stream<'ctx> {
+    _ctx: &'ctx Context,
     stream: CUstream,
 }
 
-impl Drop for Stream {
+impl<'ctx> Drop for Stream<'ctx> {
     fn drop(&mut self) {
         ffi_call_unsafe!(cuStreamDestroy_v2, self.stream).expect("Failed to delete CUDA stream");
     }
 }
 
-impl Stream {
-    fn init(ctx: &Context, flag: CUstream_flags) -> Self {
+impl<'ctx> Stream<'ctx> {
+    /// Create a new non-blocking CUDA stream on the current context
+    pub fn new(ctx: &'ctx Context) -> Self {
         ctx.assure_current()
             .expect("Creating a new CUDA stream requires valid and current context");
-        let stream =
-            ffi_new_unsafe!(cuStreamCreate, flag as u32).expect("Failed to create CUDA stream");
-        Stream { stream }
+        let stream = ffi_new_unsafe!(
+            cuStreamCreate,
+            CUstream_flags::CU_STREAM_NON_BLOCKING as u32
+        )
+        .expect("Failed to create CUDA stream");
+        Stream { _ctx: ctx, stream }
     }
 
-    pub fn new(ctx: &Context) -> Self {
-        Self::init(ctx, CUstream_flags::CU_STREAM_DEFAULT)
-    }
-
-    /// Stream does not synchronize with stream 0 (the NULL stream)
-    pub fn non_blocking(ctx: &Context) -> Self {
-        Self::init(ctx, CUstream_flags::CU_STREAM_NON_BLOCKING)
-    }
-
-    pub fn is_completed(&self) -> bool {
+    /// Check all tasks in this stream have been completed
+    pub fn query(&self) -> bool {
         match ffi_call_unsafe!(cuStreamQuery, self.stream) {
             Ok(_) => true,
             Err(AccelError::AsyncOperationNotReady) => false,
@@ -37,8 +35,48 @@ impl Stream {
         }
     }
 
+    /// Wait until all tasks in this stream have been completed
     pub fn sync(&self) {
         ffi_call_unsafe!(cuStreamSynchronize, self.stream).expect("Failed to sync CUDA stream");
+    }
+
+    /// Create a new CUDA event to record all operations in current stream
+    pub fn create_event(&self) -> Event {
+        todo!()
+    }
+
+    /// Wait event to sync another stream
+    pub fn wait_event(&self, _event: &Event) {
+        todo!()
+    }
+}
+
+pub struct Event<'stream> {
+    stream: &'stream Stream<'stream>,
+    event: CUevent,
+}
+
+impl<'stream> Drop for Event<'stream> {
+    fn drop(&mut self) {
+        ffi_call_unsafe!(cuEventDestroy_v2, self.event).expect("Failed to delete CUDA event");
+    }
+}
+
+impl<'stream> Event<'stream> {
+    fn new(_stream: &'stream Stream) -> Self {
+        todo!()
+    }
+
+    fn record(&self, _stream: &Stream) {
+        todo!()
+    }
+
+    pub fn query(&self) {
+        todo!()
+    }
+
+    pub fn sync(&self) {
+        todo!()
     }
 }
 

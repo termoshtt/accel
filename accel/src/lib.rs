@@ -3,7 +3,6 @@
 extern crate cuda_driver_sys as cuda;
 
 pub mod array;
-pub mod context;
 pub mod device;
 pub mod error;
 pub mod instruction;

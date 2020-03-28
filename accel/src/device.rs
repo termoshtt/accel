@@ -1,12 +1,9 @@
-//! Low-level API for [device] and [primary context]
+//! Handler for CUDA [device] and [context]
 //!
-//! - The [primary context] is unique per device and shared with the CUDA runtime API.
-//!   These functions allow integration with other libraries using CUDA
-//!
-//! [device]:          https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
-//! [primary context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__PRIMARY__CTX.html
+//! [device]:  https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
+//! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use super::{context::*, cuda_driver_init};
+use super::cuda_driver_init;
 use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
 use cuda::*;
 
@@ -56,15 +53,115 @@ impl Device {
     /// ```
     /// # use accel::device::*;
     /// let device = Device::nth(0).unwrap();
-    /// let ctx = device.create_context_auto().unwrap(); // context is created, but not be "current"
+    /// let ctx = device.create_context(); // context is created, but not be "current"
     /// ```
-    pub fn create_context(&self, flag: ContextFlag) -> Result<Context> {
-        Ok(Context::create(self.device, flag)?)
+    pub fn create_context(&self) -> Context {
+        Context::create(self.device)
+    }
+}
+
+/// RAII handler for using CUDA context
+///
+/// As described in [CUDA Programming Guide], library using CUDA should push context before using
+/// it, and then pop it.
+///
+/// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
+pub(crate) struct ContextGuard<'lock> {
+    ctx: &'lock Context,
+}
+
+impl<'lock> ContextGuard<'lock> {
+    /// Make context as current on this thread
+    pub fn guard_context(ctx: &'lock Context) -> Self {
+        ctx.push();
+        Self { ctx }
+    }
+}
+
+impl<'lock> Drop for ContextGuard<'lock> {
+    fn drop(&mut self) {
+        self.ctx.pop();
+    }
+}
+
+/// Object tied up to a CUDA context
+pub(crate) trait Contexted {
+    fn get_context(&self) -> &Context;
+
+    /// RAII utility for push/pop onto the thread-local context stack
+    fn guard_context<'lock>(&'lock self) -> ContextGuard<'lock> {
+        let ctx = self.get_context();
+        ContextGuard::guard_context(ctx)
+    }
+}
+
+/// CUDA context handler
+#[derive(Debug, PartialEq)]
+pub struct Context {
+    context_ptr: CUcontext,
+}
+
+impl Drop for Context {
+    fn drop(&mut self) {
+        ffi_call_unsafe!(cuCtxDestroy_v2, self.context_ptr).expect("Context remove failed");
+    }
+}
+
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
+
+impl Context {
+    /// Push to the context stack of this thread
+    fn push(&self) {
+        ffi_call_unsafe!(cuCtxPushCurrent_v2, self.context_ptr).expect("Failed to push context");
     }
 
-    /// Create a new CUDA context on this device with default flag
-    pub fn create_context_auto(&self) -> Result<Context> {
-        self.create_context(ContextFlag::CU_CTX_SCHED_AUTO)
+    /// Pop from the context stack of this thread
+    fn pop(&self) {
+        let context_ptr =
+            ffi_new_unsafe!(cuCtxPopCurrent_v2).expect("Failed to pop current context");
+        if context_ptr.is_null() {
+            panic!("No current context");
+        }
+        assert!(
+            context_ptr == self.context_ptr,
+            "Pop must return same pointer"
+        );
+    }
+
+    /// Create on the top of context stack
+    fn create(device: CUdevice) -> Self {
+        let context_ptr = ffi_new_unsafe!(
+            cuCtxCreate_v2,
+            CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
+            device
+        )
+        .expect("Failed to create a new context");
+        if context_ptr.is_null() {
+            panic!("Cannot crate a new context");
+        }
+        let ctx = Context { context_ptr };
+        ctx.pop();
+        ctx
+    }
+
+    pub fn version(&self) -> u32 {
+        let mut version: u32 = 0;
+        ffi_call_unsafe!(cuCtxGetApiVersion, self.context_ptr, &mut version as *mut _)
+            .expect("Failed to get Driver API version");
+        version
+    }
+
+    /// Block until all tasks to complete.
+    pub fn sync(&self) {
+        let _g = self.guard_context();
+        ffi_call_unsafe!(cuCtxSynchronize).expect("Failed to sync CUDA context");
+    }
+}
+
+impl Contexted for Context {
+    fn get_context(&self) -> &Context {
+        self
     }
 }
 
@@ -81,6 +178,14 @@ mod tests {
     #[test]
     fn get_zeroth() -> Result<()> {
         Device::nth(0)?;
+        Ok(())
+    }
+
+    #[test]
+    fn create() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        dbg!(&ctx);
         Ok(())
     }
 }

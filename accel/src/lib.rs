@@ -18,7 +18,7 @@ pub use device::Device;
 static DRIVER_API_INIT: Once = Once::new();
 fn cuda_driver_init() {
     DRIVER_API_INIT.call_once(|| {
-        ffi_call_unsafe!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
+        ffi_call!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
     })
 }
 

@@ -26,65 +26,32 @@ pub enum AccelError {
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result
-pub(crate) trait Check {
-    fn check(self, api_name: &str) -> Result<()>;
-}
-
-impl Check for DeviceError {
-    fn check(self, api_name: &str) -> Result<()> {
-        if self == DeviceError::CUDA_SUCCESS {
-            Ok(())
-        } else {
-            Err(AccelError::Device {
-                api_name: api_name.into(),
-                error: self,
-            })
-        }
+pub(crate) fn check(error: DeviceError, api_name: &str) -> Result<()> {
+    if error == DeviceError::CUDA_SUCCESS {
+        Ok(())
+    } else {
+        Err(AccelError::Device {
+            api_name: api_name.into(),
+            error,
+        })
     }
 }
 
 #[macro_export]
 macro_rules! ffi_call {
-    ($ffi:path, $($args:expr),*) => {
-        $ffi($($args),*).check(stringify!($ffi))
-    };
-    ($ffi:path) => {
-        $ffi().check(stringify!($ffi))
-    };
-}
-
-#[macro_export]
-macro_rules! ffi_call_unsafe {
-    ($ffi:path, $($args:expr),*) => {
-        unsafe { $crate::error::Check::check($ffi($($args),*), stringify!($ffi)) }
-    };
-    ($ffi:path) => {
-        unsafe { $crate::error::Check::check($ffi(), stringify!($ffi)) }
+    ($ffi:path $(,$args:expr)*) => {
+        unsafe {
+            $crate::error::check($ffi($($args),*), stringify!($ffi))
+        }
     };
 }
 
 #[macro_export]
 macro_rules! ffi_new {
-    ($ffi:path, $($args:expr),*) => {
-        {
+    ($ffi:path $(,$args:expr)*) => {
+        unsafe {
             let mut value = ::std::mem::MaybeUninit::uninit();
-            $crate::error::Check::check($ffi(value.as_mut_ptr(), $($args),*), stringify!($ffi)).map(|_| value.assume_init())
+            $crate::error::check($ffi(value.as_mut_ptr(), $($args),*), stringify!($ffi)).map(|_| value.assume_init())
         }
-    };
-    ($ffi:path) => {
-        {
-            let mut value = ::std::mem::MaybeUninit::uninit();
-            $crate::error::Check::check($ffi(value.as_mut_ptr()), stringify!($ffi)).map(|_| value.assume_init())
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! ffi_new_unsafe {
-    ($ffi:path, $($args:expr),*) => {
-        unsafe { $crate::ffi_new!($ffi, $($args),*) }
-    };
-    ($ffi:path) => {
-        unsafe { $crate::ffi_new!($ffi) }
     };
 }

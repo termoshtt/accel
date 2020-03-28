@@ -1,5 +1,5 @@
-use super::context::*;
-use crate::{error::*, ffi_call, ffi_call_unsafe, ffi_new_unsafe};
+use super::device::*;
+use crate::{ffi_call, ffi_new};
 use cuda::*;
 use std::{
     marker::PhantomData,
@@ -26,10 +26,10 @@ struct MemoryInfo {
 
 impl MemoryInfo {
     fn get(ctx: &Context) -> Self {
-        ctx.assure_current().expect("Non-current context");
+        let _gurad = ctx.guard_context();
         let mut free = 0;
         let mut total = 0;
-        ffi_call_unsafe!(
+        ffi_call!(
             cuMemGetInfo_v2,
             &mut free as *mut usize,
             &mut total as *mut usize
@@ -90,9 +90,9 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     /// Unique identifier of the memory
     ///
     /// ```
-    /// # use ::accel::{device::*, context::*, memory::*};
+    /// # use ::accel::{device::*, memory::*};
     /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context_auto().unwrap();
+    /// # let ctx = device.create_context();
     /// let mem1 = DeviceMemory::<i32>::new(&ctx, 12);
     /// let mem2 = DeviceMemory::<i32>::new(&ctx, 12);
     /// assert_ne!(mem1.id(), mem2.id());
@@ -107,9 +107,9 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     /// Memory Type
     ///
     /// ```
-    /// # use ::accel::{device::*, context::*, memory::*};
+    /// # use ::accel::{device::*, memory::*};
     /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context_auto().unwrap();
+    /// # let ctx = device.create_context();
     /// let dev = DeviceMemory::<i32>::new(&ctx, 12);
     /// assert_eq!(dev.memory_type(), MemoryType::CU_MEMORYTYPE_DEVICE);
     /// let host = PageLockedMemory::<i32>::new(12);
@@ -126,16 +126,14 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
 // Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Attr {
     let data = MaybeUninit::uninit();
-    unsafe {
-        ffi_call!(
-            cuPointerGetAttribute,
-            data.as_ptr() as *mut _,
-            attr,
-            ptr as CUdeviceptr
-        )
-        .expect("Cannot get pointer attributes");
-        data.assume_init()
-    }
+    ffi_call!(
+        cuPointerGetAttribute,
+        data.as_ptr() as *mut _,
+        attr,
+        ptr as CUdeviceptr
+    )
+    .expect("Cannot get pointer attributes");
+    unsafe { data.assume_init() }
 }
 
 /// Memory allocated on the device.
@@ -147,7 +145,7 @@ pub struct DeviceMemory<T> {
 
 impl<T> Drop for DeviceMemory<T> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
+        ffi_call!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
     }
 }
 
@@ -190,9 +188,8 @@ impl<T> DeviceMemory<T> {
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     ///
     pub fn new(ctx: &Context, size: usize) -> Self {
-        ctx.assure_current()
-            .expect("DeviceMemory::new requires valid and current context");
-        let ptr = ffi_new_unsafe!(
+        let _gurad = ctx.guard_context();
+        let ptr = ffi_new!(
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
             AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
@@ -214,8 +211,7 @@ pub struct PageLockedMemory<T> {
 
 impl<T> Drop for PageLockedMemory<T> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuMemFreeHost, self.ptr as *mut _)
-            .expect("Cannot free page-locked memory");
+        ffi_call!(cuMemFreeHost, self.ptr as *mut _).expect("Cannot free page-locked memory");
     }
 }
 
@@ -262,7 +258,7 @@ impl<T> PageLockedMemory<T> {
     /// - when memory allocation failed includeing `size == 0` case
     ///
     pub fn new(size: usize) -> Self {
-        let ptr = ffi_new_unsafe!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+        let ptr = ffi_new!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
@@ -273,13 +269,13 @@ impl<T> PageLockedMemory<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::device::*;
+    use super::super::error::*;
     use super::*;
 
     #[test]
     fn info() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let mem_info = MemoryInfo::get(&ctx);
         dbg!(&mem_info);
         assert!(mem_info.free > 0);
@@ -297,14 +293,14 @@ mod tests {
     #[test]
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
-        let ctx = device.create_context_auto().unwrap();
+        let ctx = device.create_context();
         let _a = DeviceMemory::<i32>::new(&ctx, 0);
     }
 
     #[test]
     fn device() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
         assert_eq!(mem.len(), 12);
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);

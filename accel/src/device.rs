@@ -4,7 +4,7 @@
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use super::cuda_driver_init;
-use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
+use crate::{error::Result, ffi_call, ffi_new};
 use cuda::*;
 
 /// Handler for device and its primary context
@@ -18,27 +18,27 @@ impl Device {
     pub fn get_count() -> Result<usize> {
         cuda_driver_init();
         let mut count: i32 = 0;
-        ffi_call_unsafe!(cuDeviceGetCount, &mut count as *mut i32)?;
+        ffi_call!(cuDeviceGetCount, &mut count as *mut i32)?;
         Ok(count as usize)
     }
 
     pub fn nth(id: i32) -> Result<Self> {
         cuda_driver_init();
-        let device = ffi_new_unsafe!(cuDeviceGet, id)?;
+        let device = ffi_new!(cuDeviceGet, id)?;
         Ok(Device { device })
     }
 
     /// Get total memory of GPU
     pub fn total_memory(&self) -> Result<usize> {
         let mut mem = 0;
-        ffi_call_unsafe!(cuDeviceTotalMem_v2, &mut mem as *mut _, self.device)?;
+        ffi_call!(cuDeviceTotalMem_v2, &mut mem as *mut _, self.device)?;
         Ok(mem)
     }
 
     /// Get name of GPU
     pub fn get_name(&self) -> Result<String> {
         let mut bytes: Vec<u8> = vec![0_u8; 1024];
-        ffi_call_unsafe!(
+        ffi_call!(
             cuDeviceGetName,
             bytes.as_mut_ptr() as *mut i8,
             1024,
@@ -103,7 +103,7 @@ pub struct Context {
 
 impl Drop for Context {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuCtxDestroy_v2, self.context_ptr).expect("Context remove failed");
+        ffi_call!(cuCtxDestroy_v2, self.context_ptr).expect("Context remove failed");
     }
 }
 
@@ -113,13 +113,12 @@ unsafe impl Sync for Context {}
 impl Context {
     /// Push to the context stack of this thread
     fn push(&self) {
-        ffi_call_unsafe!(cuCtxPushCurrent_v2, self.context_ptr).expect("Failed to push context");
+        ffi_call!(cuCtxPushCurrent_v2, self.context_ptr).expect("Failed to push context");
     }
 
     /// Pop from the context stack of this thread
     fn pop(&self) {
-        let context_ptr =
-            ffi_new_unsafe!(cuCtxPopCurrent_v2).expect("Failed to pop current context");
+        let context_ptr = ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context");
         if context_ptr.is_null() {
             panic!("No current context");
         }
@@ -131,7 +130,7 @@ impl Context {
 
     /// Create on the top of context stack
     fn create(device: CUdevice) -> Self {
-        let context_ptr = ffi_new_unsafe!(
+        let context_ptr = ffi_new!(
             cuCtxCreate_v2,
             CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
             device
@@ -147,7 +146,7 @@ impl Context {
 
     pub fn version(&self) -> u32 {
         let mut version: u32 = 0;
-        ffi_call_unsafe!(cuCtxGetApiVersion, self.context_ptr, &mut version as *mut _)
+        ffi_call!(cuCtxGetApiVersion, self.context_ptr, &mut version as *mut _)
             .expect("Failed to get Driver API version");
         version
     }
@@ -155,7 +154,7 @@ impl Context {
     /// Block until all tasks to complete.
     pub fn sync(&self) {
         let _g = self.guard_context();
-        ffi_call_unsafe!(cuCtxSynchronize).expect("Failed to sync CUDA context");
+        ffi_call!(cuCtxSynchronize).expect("Failed to sync CUDA context");
     }
 }
 

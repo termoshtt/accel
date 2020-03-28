@@ -3,8 +3,8 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{context::*, instruction::*, *};
-use crate::{error::Result, ffi_call_unsafe, ffi_new_unsafe};
+use super::{device::*, instruction::*, *};
+use crate::{error::Result, ffi_call, ffi_new};
 use cuda::*;
 use std::{ffi::*, path::Path, ptr::null_mut};
 
@@ -142,7 +142,7 @@ pub trait Launchable<'arg> {
     /// fn f(a: i32) {}
     ///
     /// let device = Device::nth(0)?;
-    /// let ctx = device.create_context_auto()?;
+    /// let ctx = device.create_context();
     /// let grid = Grid::x(1);
     /// let block = Block::x(4);
     ///
@@ -153,7 +153,7 @@ pub trait Launchable<'arg> {
     /// ```
     fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
         let mut params = args.kernel_params();
-        Ok(ffi_call_unsafe!(
+        Ok(ffi_call!(
             cuLaunchKernel,
             self.get_kernel()?.func,
             grid.x,
@@ -179,26 +179,32 @@ pub struct Module<'ctx> {
 
 impl<'ctx> Drop for Module<'ctx> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuModuleUnload, self.module).expect("Failed to unload module");
+        ffi_call!(cuModuleUnload, self.module).expect("Failed to unload module");
+    }
+}
+
+impl<'ctx> Contexted for Module<'ctx> {
+    fn get_context(&self) -> &Context {
+        self.context
     }
 }
 
 impl<'ctx> Module<'ctx> {
     /// integrated loader of Instruction
     pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
-        context.assure_current()?;
+        let _gurad = context.guard_context();
         match *data {
             Instruction::PTX(ref ptx) => {
-                let module = ffi_new_unsafe!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
+                let module = ffi_new!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
                 Ok(Module { module, context })
             }
             Instruction::Cubin(ref bin) => {
-                let module = ffi_new_unsafe!(cuModuleLoadData, bin.as_ptr() as *const _)?;
+                let module = ffi_new!(cuModuleLoadData, bin.as_ptr() as *const _)?;
                 Ok(Module { module, context })
             }
             Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
-                let module = ffi_new_unsafe!(cuModuleLoad, filename.as_ptr())?;
+                let module = ffi_new!(cuModuleLoad, filename.as_ptr())?;
                 Ok(Module { module, context })
             }
         }
@@ -211,9 +217,9 @@ impl<'ctx> Module<'ctx> {
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
-        self.context.assure_current()?;
+        let _gurad = self.guard_context();
         let name = CString::new(name).expect("Invalid Kernel name");
-        let func = ffi_new_unsafe!(cuModuleGetFunction, self.module, name.as_ptr())?;
+        let func = ffi_new!(cuModuleGetFunction, self.module, name.as_ptr())?;
         Ok(Kernel { func, _m: self })
     }
 }
@@ -224,7 +230,6 @@ fn path_to_cstring(path: &Path) -> CString {
 
 #[cfg(test)]
 mod tests {
-    use super::super::device::*;
     use super::*;
 
     #[test]
@@ -240,7 +245,7 @@ mod tests {
         }
         "#;
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _mod = Module::from_str(&ctx, ptx)?;
         Ok(())
     }

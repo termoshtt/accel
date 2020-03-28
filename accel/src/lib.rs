@@ -12,7 +12,7 @@ pub mod module;
 
 use std::sync::Once;
 
-pub use device::Device;
+pub use device::{Context, Device};
 
 /// Initializer for CUDA Driver API
 static DRIVER_API_INIT: Once = Once::new();

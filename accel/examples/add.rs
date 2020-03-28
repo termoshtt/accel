@@ -1,4 +1,4 @@
-use accel::{device::*, memory::*, *};
+use accel::{memory::*, *};
 use accel_derive::kernel;
 use anyhow::Result;
 
@@ -12,7 +12,7 @@ pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
 
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
-    let ctx = device.create_context_auto()?;
+    let ctx = device.create_context();
 
     let n = 32;
     let mut a = DeviceMemory::<f64>::new(&ctx, n);

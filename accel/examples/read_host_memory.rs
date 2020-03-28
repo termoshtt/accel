@@ -10,7 +10,7 @@ pub unsafe fn read_host_memory(a: *const i32) {
 
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
-    let ctx = device.create_context_auto()?;
+    let ctx = device.create_context();
     let grid = Grid::x(1);
     let block = Block::x(4);
 

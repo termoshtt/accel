@@ -112,7 +112,7 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     /// # let ctx = device.create_context();
     /// let dev = DeviceMemory::<i32>::new(&ctx, 12);
     /// assert_eq!(dev.memory_type(), MemoryType::CU_MEMORYTYPE_DEVICE);
-    /// let host = PageLockedMemory::<i32>::new(12);
+    /// let host = PageLockedMemory::<i32>::new(&ctx, 12);
     /// assert_eq!(host.memory_type(), MemoryType::CU_MEMORYTYPE_HOST);
     /// ```
     fn memory_type(&self) -> MemoryType {
@@ -137,32 +137,33 @@ fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Attr {
 }
 
 /// Memory allocated on the device.
-pub struct DeviceMemory<T> {
+pub struct DeviceMemory<'ctx, T> {
     ptr: CUdeviceptr,
     size: usize,
+    context: &'ctx Context,
     phantom: PhantomData<T>,
 }
 
-impl<T> Drop for DeviceMemory<T> {
+impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
         ffi_call!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
     }
 }
 
-impl<T> Deref for DeviceMemory<T> {
+impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl<T> DerefMut for DeviceMemory<T> {
+impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
     }
 }
 
-impl<T> CudaMemory<T> for DeviceMemory<T> {
+impl<'ctx, T> CudaMemory<T> for DeviceMemory<'ctx, T> {
     fn len(&self) -> usize {
         self.size
     }
@@ -176,7 +177,13 @@ impl<T> CudaMemory<T> for DeviceMemory<T> {
     }
 }
 
-impl<T> DeviceMemory<T> {
+impl<'ctx, T> Contexted for DeviceMemory<'ctx, T> {
+    fn get_context(&self) -> &Context {
+        &self.context
+    }
+}
+
+impl<'ctx, T> DeviceMemory<'ctx, T> {
     /// Allocate a new device memory with `size` byte length by [cuMemAllocManaged].
     /// This memory is managed by the unified memory system.
     ///
@@ -187,8 +194,9 @@ impl<T> DeviceMemory<T> {
     ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     ///
-    pub fn new(ctx: &Context, size: usize) -> Self {
-        let _gurad = ctx.guard_context();
+    pub fn new(context: &'ctx Context, size: usize) -> Self {
+        assert!(size > 0, "Zero-sized malloc is forbidden");
+        let _gurad = context.guard_context();
         let ptr = ffi_new!(
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
@@ -198,37 +206,45 @@ impl<T> DeviceMemory<T> {
         DeviceMemory {
             ptr,
             size,
+            context,
             phantom: PhantomData,
         }
     }
 }
 
 /// Memory allocated as page-locked
-pub struct PageLockedMemory<T> {
+pub struct PageLockedMemory<'ctx, T> {
     ptr: *mut T,
     size: usize,
+    context: &'ctx Context,
 }
 
-impl<T> Drop for PageLockedMemory<T> {
+impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
     fn drop(&mut self) {
         ffi_call!(cuMemFreeHost, self.ptr as *mut _).expect("Cannot free page-locked memory");
     }
 }
 
-impl<T> Deref for PageLockedMemory<T> {
+impl<'ctx, T> Deref for PageLockedMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl<T> DerefMut for PageLockedMemory<T> {
+impl<'ctx, T> DerefMut for PageLockedMemory<'ctx, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
     }
 }
 
-impl<T> CudaMemory<T> for PageLockedMemory<T> {
+impl<'ctx, T> Contexted for PageLockedMemory<'ctx, T> {
+    fn get_context(&self) -> &Context {
+        &self.context
+    }
+}
+
+impl<'ctx, T> CudaMemory<T> for PageLockedMemory<'ctx, T> {
     fn as_ptr(&self) -> *const T {
         self.ptr as *const T
     }
@@ -242,7 +258,7 @@ impl<T> CudaMemory<T> for PageLockedMemory<T> {
     }
 }
 
-impl<T> PageLockedMemory<T> {
+impl<'ctx, T> PageLockedMemory<'ctx, T> {
     /// Allocate host memory as page-locked.
     ///
     /// Allocating excessive amounts of pinned memory may degrade system performance,
@@ -257,12 +273,15 @@ impl<T> PageLockedMemory<T> {
     /// ------
     /// - when memory allocation failed includeing `size == 0` case
     ///
-    pub fn new(size: usize) -> Self {
+    pub fn new(context: &'ctx Context, size: usize) -> Self {
+        assert!(size > 0, "Zero-sized malloc is forbidden");
+        let _g = context.guard_context();
         let ptr = ffi_new!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,
+            context,
         }
     }
 }
@@ -283,18 +302,24 @@ mod tests {
         Ok(())
     }
 
-    #[should_panic(expected = "Cannot allocate")]
     #[test]
-    fn page_locked_new_zero() {
-        let _a = PageLockedMemory::<i32>::new(0);
+    fn page_locked() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
+        assert_eq!(mem.len(), 12);
+        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        let sl = mem.as_mut_slice();
+        sl[0] = 3;
+        Ok(())
     }
 
-    #[should_panic(expected = "Cannot allocate")]
+    #[should_panic(expected = "Zero-sized malloc is forbidden")]
     #[test]
-    fn device_new_zero() {
+    fn page_locked_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::new(&ctx, 0);
+        let _a = PageLockedMemory::<i32>::new(&ctx, 0);
     }
 
     #[test]
@@ -307,5 +332,13 @@ mod tests {
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())
+    }
+
+    #[should_panic(expected = "Zero-sized malloc is forbidden")]
+    #[test]
+    fn device_new_zero() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let _a = DeviceMemory::<i32>::new(&ctx, 0);
     }
 }

@@ -12,7 +12,13 @@ use std::{ffi::*, path::Path, ptr::null_mut};
 #[derive(Debug)]
 pub struct Kernel<'ctx> {
     func: CUfunction,
-    _m: &'ctx Module<'ctx>,
+    module: &'ctx Module<'ctx>,
+}
+
+impl<'ctx> Contexted for Kernel<'ctx> {
+    fn get_context(&self) -> &Context {
+        self.module.get_context()
+    }
 }
 
 /// Type which can be sent to the device as kernel argument
@@ -152,10 +158,12 @@ pub trait Launchable<'arg> {
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
     fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
+        let kernel = self.get_kernel()?;
+        let _g = kernel.guard_context();
         let mut params = args.kernel_params();
         Ok(ffi_call!(
             cuLaunchKernel,
-            self.get_kernel()?.func,
+            kernel.func,
             grid.x,
             grid.y,
             grid.z,
@@ -220,7 +228,7 @@ impl<'ctx> Module<'ctx> {
         let _gurad = self.guard_context();
         let name = CString::new(name).expect("Invalid Kernel name");
         let func = ffi_new!(cuModuleGetFunction, self.module, name.as_ptr())?;
-        Ok(Kernel { func, _m: self })
+        Ok(Kernel { func, module: self })
     }
 }
 

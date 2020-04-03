@@ -152,9 +152,10 @@ impl Context {
     }
 
     /// Block until all tasks to complete.
-    pub fn sync(&self) {
+    pub fn sync(&self) -> Result<()> {
         let _g = self.guard_context();
-        ffi_call!(cuCtxSynchronize).expect("Failed to sync CUDA context");
+        ffi_call!(cuCtxSynchronize)?;
+        Ok(())
     }
 }
 

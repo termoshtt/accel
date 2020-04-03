@@ -7,19 +7,13 @@ pub type Result<T> = ::std::result::Result<T, AccelError>;
 pub enum AccelError {
     /// Raw errors originates from CUDA Device APIs
     #[error("CUDA Device API Error: {api_name}, {error:?}")]
-    Device {
+    CUDAError {
         api_name: String,
         error: DeviceError,
     },
 
-    #[error("Current CUDA context does not equal to the context when the object is generated")]
-    ContextIsNotCurrent,
-
-    #[error("Context already exists on this thread. Please pop it before push new context.")]
-    ContextDuplicated,
-
-    #[error("Given device memory cannot be accessed from CPU because it is not a managed memory")]
-    DeviceMemoryIsNotManaged,
+    #[error("Assertion in device code has failed")]
+    DeviceAssertionFailed,
 
     #[error("File not found: {path:?}")]
     FileNotFound { path: PathBuf },
@@ -27,13 +21,13 @@ pub enum AccelError {
 
 /// Convert return code of CUDA Driver/Runtime API into Result
 pub(crate) fn check(error: DeviceError, api_name: &str) -> Result<()> {
-    if error == DeviceError::CUDA_SUCCESS {
-        Ok(())
-    } else {
-        Err(AccelError::Device {
+    match error {
+        DeviceError::CUDA_SUCCESS => Ok(()),
+        DeviceError::CUDA_ERROR_ASSERT => Err(AccelError::DeviceAssertionFailed),
+        _ => Err(AccelError::CUDAError {
             api_name: api_name.into(),
             error,
-        })
+        }),
     }
 }
 

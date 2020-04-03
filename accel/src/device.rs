@@ -3,9 +3,9 @@
 //! [device]:  https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use super::cuda_driver_init;
-use crate::{error::Result, ffi_call, ffi_new};
+use crate::{error::*, ffi_call, ffi_new};
 use cuda::*;
+use std::sync::Once;
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -14,17 +14,28 @@ pub struct Device {
 }
 
 impl Device {
+    /// Initializer for CUDA Driver API
+    fn init() {
+        static DRIVER_API_INIT: Once = Once::new();
+        DRIVER_API_INIT.call_once(|| {
+            ffi_call!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
+        });
+    }
+
     /// Get number of available GPUs
     pub fn get_count() -> Result<usize> {
-        cuda_driver_init();
+        Self::init();
         let mut count: i32 = 0;
         ffi_call!(cuDeviceGetCount, &mut count as *mut i32)?;
         Ok(count as usize)
     }
 
-    pub fn nth(id: i32) -> Result<Self> {
-        cuda_driver_init();
-        let device = ffi_new!(cuDeviceGet, id)?;
+    pub fn nth(id: usize) -> Result<Self> {
+        let count = Self::get_count()?;
+        if id >= count {
+            return Err(AccelError::DeviceNotFound { id, count });
+        }
+        let device = ffi_new!(cuDeviceGet, id as i32)?;
         Ok(Device { device })
     }
 
@@ -48,12 +59,11 @@ impl Device {
     }
 
     /// Create a new CUDA context on this device.
-    /// Be sure that returned context is not "current".
     ///
     /// ```
     /// # use accel::device::*;
     /// let device = Device::nth(0).unwrap();
-    /// let ctx = device.create_context(); // context is created, but not be "current"
+    /// let ctx = device.create_context();
     /// ```
     pub fn create_context(&self) -> Context {
         Context::create(self.device)
@@ -178,6 +188,12 @@ mod tests {
     #[test]
     fn get_zeroth() -> Result<()> {
         Device::nth(0)?;
+        Ok(())
+    }
+
+    #[test]
+    fn out_of_range() -> Result<()> {
+        assert!(Device::nth(129).is_err());
         Ok(())
     }
 

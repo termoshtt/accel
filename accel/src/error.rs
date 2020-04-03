@@ -1,4 +1,4 @@
-pub use cuda::cudaError_enum as DeviceError;
+use cuda::cudaError_enum as DeviceError;
 use std::path::PathBuf;
 
 pub type Result<T> = ::std::result::Result<T, AccelError>;
@@ -12,8 +12,12 @@ pub enum AccelError {
         error: DeviceError,
     },
 
+    /// Error for user device code assertion
     #[error("Assertion in device code has failed")]
     DeviceAssertionFailed,
+
+    #[error("No device found for given ID")]
+    DeviceNotFound { id: usize, count: usize },
 
     #[error("File not found: {path:?}")]
     FileNotFound { path: PathBuf },

@@ -10,17 +10,7 @@ pub mod linker;
 pub mod memory;
 pub mod module;
 
-use std::sync::Once;
-
 pub use device::{Context, Device};
-
-/// Initializer for CUDA Driver API
-static DRIVER_API_INIT: Once = Once::new();
-fn cuda_driver_init() {
-    DRIVER_API_INIT.call_once(|| {
-        ffi_call!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
-    })
-}
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]

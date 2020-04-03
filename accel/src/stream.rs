@@ -1,7 +1,7 @@
 use crate::{device::*, error::AccelError, ffi_call, ffi_new};
 use cuda::*;
 
-/// Hanlder for non-blocking CUDA Stream
+/// Handler for non-blocking CUDA Stream
 pub struct Stream<'ctx> {
     ctx: &'ctx Context,
     stream: CUstream,
@@ -47,13 +47,6 @@ impl<'ctx> Stream<'ctx> {
         ffi_call!(cuStreamSynchronize, self.stream).expect("Failed to sync CUDA stream");
     }
 
-    /// Create a new CUDA event to record all operations in current stream
-    pub fn create_event(&mut self) -> Event {
-        let e = Event::new(self.get_context());
-        e.record(self);
-        e
-    }
-
     /// Wait event to sync another stream
     pub fn wait_event(&mut self, event: &Event) {
         let _g = self.guard_context();
@@ -80,7 +73,7 @@ impl<'ctx> Contexted for Event<'ctx> {
 }
 
 impl<'ctx> Event<'ctx> {
-    fn new(ctx: &'ctx Context) -> Self {
+    pub fn new(ctx: &'ctx Context) -> Self {
         let _gurad = ctx.guard_context();
         let event = ffi_new!(
             cuEventCreate,
@@ -90,14 +83,12 @@ impl<'ctx> Event<'ctx> {
         Event { ctx, event }
     }
 
-    /// Do not capture the lifetime of stream.
-    /// i.e. The stream may be dropped while event lives.
-    fn record(&self, stream: &Stream) {
+    pub fn record(&mut self, stream: &mut Stream) {
         let _g = self.guard_context();
         ffi_call!(cuEventRecord, self.event, stream.stream).expect("Failed to set event record");
     }
 
-    /// Query if the event has occured, returns true if already occurs
+    /// Query if the event has occur, returns true if already occurs
     pub fn query(&self) -> bool {
         let _g = self.guard_context();
         match ffi_call!(cuEventQuery, self.event) {
@@ -110,7 +101,7 @@ impl<'ctx> Event<'ctx> {
     /// Wait until the event occurs with blocking
     pub fn sync(&self) {
         let _g = self.guard_context();
-        ffi_call!(cuEventQuery, self.event).expect("Failed to sync CUDA event");
+        ffi_call!(cuEventSynchronize, self.event).expect("Failed to sync CUDA event");
     }
 }
 
@@ -124,6 +115,19 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let _st = Stream::new(&ctx);
+        Ok(())
+    }
+
+    #[test]
+    fn trivial_sync() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mut stream = Stream::new(&ctx);
+        let mut event = Event::new(&ctx);
+        event.record(&mut stream);
+        // nothing to be waited
+        event.sync();
+        stream.sync();
         Ok(())
     }
 }

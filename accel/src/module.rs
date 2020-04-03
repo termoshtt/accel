@@ -236,6 +236,48 @@ fn path_to_cstring(path: &Path) -> CString {
     CString::new(path.to_str().unwrap()).expect("Invalid Path")
 }
 
+const NANOSLEEP_PTX: &'static str = r#"
+.version 6.3
+.target sm_70
+.address_size 64
+
+.visible .entry nanosleep(.param .b32 N) {
+  .reg .u32 %n;
+  ld.param.u32 %n, [N];
+  nanosleep.u32 %n;
+  ret;
+}
+"#;
+
+/// Module for [nanosleep]
+///
+/// [nanosleep]: https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#miscellaneous-instructions-nanosleep
+pub struct NanoSleep<'ctx> {
+    module: Module<'ctx>,
+}
+
+impl<'arg, 'ctx> Launchable<'arg> for NanoSleep<'ctx> {
+    type Args = (&'arg u32,);
+    fn get_kernel(&self) -> Result<Kernel> {
+        self.module.get_kernel("nanosleep")
+    }
+}
+
+impl<'ctx> NanoSleep<'ctx> {
+    pub fn new(ctx: &'ctx Context) -> Self {
+        NanoSleep {
+            module: Module::from_str(&ctx, NANOSLEEP_PTX).unwrap(),
+        }
+    }
+
+    pub fn nanosleep(&self, n: u32) -> Result<()> {
+        let grid = Grid::x(1);
+        let block = Block::x(1);
+        self.launch(grid, block, &(&n,))?;
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -255,6 +297,16 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let _mod = Module::from_str(&ctx, ptx)?;
+        Ok(())
+    }
+
+    #[test]
+    fn nanosleep() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let kernel = NanoSleep::new(&ctx);
+        kernel.nanosleep(1_000_000_000)?;
+        ctx.sync()?;
         Ok(())
     }
 }

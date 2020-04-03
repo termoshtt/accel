@@ -3,13 +3,19 @@ use cuda::*;
 
 /// Hanlder for non-blocking CUDA Stream
 pub struct Stream<'ctx> {
-    _ctx: &'ctx Context,
+    ctx: &'ctx Context,
     stream: CUstream,
 }
 
 impl<'ctx> Drop for Stream<'ctx> {
     fn drop(&mut self) {
         ffi_call!(cuStreamDestroy_v2, self.stream).expect("Failed to delete CUDA stream");
+    }
+}
+
+impl<'ctx> Contexted for Stream<'ctx> {
+    fn get_context(&self) -> &Context {
+        &self.ctx
     }
 }
 
@@ -22,7 +28,7 @@ impl<'ctx> Stream<'ctx> {
             CUstream_flags::CU_STREAM_NON_BLOCKING as u32
         )
         .expect("Failed to create CUDA stream");
-        Stream { _ctx: ctx, stream }
+        Stream { ctx, stream }
     }
 
     /// Check all tasks in this stream have been completed
@@ -58,6 +64,12 @@ pub struct Event<'stream> {
 impl<'stream> Drop for Event<'stream> {
     fn drop(&mut self) {
         ffi_call!(cuEventDestroy_v2, self.event).expect("Failed to delete CUDA event");
+    }
+}
+
+impl<'ctx> Contexted for Event<'ctx> {
+    fn get_context(&self) -> &Context {
+        self.stream.get_context()
     }
 }
 

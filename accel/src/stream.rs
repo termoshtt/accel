@@ -48,22 +48,26 @@ impl<'ctx> Stream<'ctx> {
     }
 
     /// Create a new CUDA event to record all operations in current stream
-    pub fn create_event(&self) -> Event {
-        todo!()
+    pub fn create_event(&mut self) -> Event {
+        let e = Event::new(self.get_context());
+        e.record(self);
+        e
     }
 
     /// Wait event to sync another stream
-    pub fn wait_event(&self, _event: &Event) {
-        todo!()
+    pub fn wait_event(&mut self, event: &Event) {
+        let _g = self.guard_context();
+        ffi_call!(cuStreamWaitEvent, self.stream, event.event, 0)
+            .expect("Failed to register an CUDA event waiting on CUDA stream");
     }
 }
 
-pub struct Event<'stream> {
-    stream: &'stream Stream<'stream>,
+pub struct Event<'ctx> {
+    ctx: &'ctx Context,
     event: CUevent,
 }
 
-impl<'stream> Drop for Event<'stream> {
+impl<'ctx> Drop for Event<'ctx> {
     fn drop(&mut self) {
         ffi_call!(cuEventDestroy_v2, self.event).expect("Failed to delete CUDA event");
     }
@@ -71,25 +75,42 @@ impl<'stream> Drop for Event<'stream> {
 
 impl<'ctx> Contexted for Event<'ctx> {
     fn get_context(&self) -> &Context {
-        self.stream.get_context()
+        &self.ctx
     }
 }
 
-impl<'stream> Event<'stream> {
-    fn new(_stream: &'stream Stream) -> Self {
-        todo!()
+impl<'ctx> Event<'ctx> {
+    fn new(ctx: &'ctx Context) -> Self {
+        let _gurad = ctx.guard_context();
+        let event = ffi_new!(
+            cuEventCreate,
+            CUevent_flags_enum::CU_EVENT_BLOCKING_SYNC as u32
+        )
+        .expect("Failed to create CUDA event");
+        Event { ctx, event }
     }
 
-    fn record(&self, _stream: &Stream) {
-        todo!()
+    /// Do not capture the lifetime of stream.
+    /// i.e. The stream may be dropped while event lives.
+    fn record(&self, stream: &Stream) {
+        let _g = self.guard_context();
+        ffi_call!(cuEventRecord, self.event, stream.stream).expect("Failed to set event record");
     }
 
-    pub fn query(&self) {
-        todo!()
+    /// Query if the event has occured, returns true if already occurs
+    pub fn query(&self) -> bool {
+        let _g = self.guard_context();
+        match ffi_call!(cuEventQuery, self.event) {
+            Ok(_) => true,
+            Err(AccelError::AsyncOperationNotReady) => false,
+            Err(e) => panic!("Unknown error occurs while cuEventQuery: {:?}", e),
+        }
     }
 
+    /// Wait until the event occurs with blocking
     pub fn sync(&self) {
-        todo!()
+        let _g = self.guard_context();
+        ffi_call!(cuEventQuery, self.event).expect("Failed to sync CUDA event");
     }
 }
 

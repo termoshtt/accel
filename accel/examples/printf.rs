@@ -10,7 +10,7 @@ pub fn print() {
 
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
-    let ctx = device.create_context_auto()?;
+    let ctx = device.create_context();
     let grid = Grid::x(1);
     let block = Block::x(4);
     print(&ctx, grid, block, &())?;

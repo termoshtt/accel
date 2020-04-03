@@ -1,5 +1,4 @@
-use super::context::*;
-use crate::{ffi_call_unsafe, ffi_new_unsafe};
+use crate::{device::Contexted, ffi_call, ffi_new, *};
 use cuda::*;
 use derive_new::new;
 use std::marker::PhantomData;
@@ -17,7 +16,7 @@ pub struct Array<T, Dim> {
 
 impl<T, Dim> Drop for Array<T, Dim> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuArrayDestroy, self.array).expect("Failed to cleanup array");
+        ffi_call!(cuArrayDestroy, self.array).expect("Failed to cleanup array");
     }
 }
 
@@ -32,11 +31,10 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     /// - when allocation failed
     ///
     pub fn new(ctx: &Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
-        ctx.assure_current()
-            .expect("Array::new requires valid and current context");
+        let _gurad = ctx.guard_context();
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
-        let array = ffi_new_unsafe!(cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+        let array = ffi_new!(cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
         Array {
             array,
             dim,
@@ -287,7 +285,7 @@ mod tests {
     #[test]
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _array1: Array<f32, Ix1> = Array::new(&ctx, 10, 1);
         let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,), 1);
         Ok(())
@@ -296,7 +294,7 @@ mod tests {
     #[test]
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12), 1);
         Ok(())
     }
@@ -304,7 +302,7 @@ mod tests {
     #[test]
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8), 1);
         Ok(())
     }
@@ -312,7 +310,7 @@ mod tests {
     #[test]
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12), 1);
         Ok(())
     }
@@ -320,7 +318,7 @@ mod tests {
     #[test]
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8), 1);
         Ok(())
     }

@@ -3,7 +3,6 @@
 extern crate cuda_driver_sys as cuda;
 
 pub mod array;
-pub mod context;
 pub mod device;
 pub mod error;
 pub mod instruction;
@@ -12,17 +11,7 @@ pub mod memory;
 pub mod module;
 pub mod stream;
 
-use std::sync::Once;
-
-pub use device::Device;
-
-/// Initializer for CUDA Driver API
-static DRIVER_API_INIT: Once = Once::new();
-fn cuda_driver_init() {
-    DRIVER_API_INIT.call_once(|| {
-        ffi_call_unsafe!(cuda::cuInit, 0).expect("Initialization of CUDA Driver API failed");
-    })
-}
+pub use device::{Context, Device};
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]

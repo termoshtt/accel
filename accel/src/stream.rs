@@ -33,6 +33,7 @@ impl<'ctx> Stream<'ctx> {
 
     /// Check all tasks in this stream have been completed
     pub fn query(&self) -> bool {
+        let _g = self.guard_context();
         match ffi_call!(cuStreamQuery, self.stream) {
             Ok(_) => true,
             Err(AccelError::AsyncOperationNotReady) => false,
@@ -42,6 +43,7 @@ impl<'ctx> Stream<'ctx> {
 
     /// Wait until all tasks in this stream have been completed
     pub fn sync(&self) {
+        let _g = self.guard_context();
         ffi_call!(cuStreamSynchronize, self.stream).expect("Failed to sync CUDA stream");
     }
 

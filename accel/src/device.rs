@@ -113,7 +113,9 @@ pub struct Context {
 
 impl Drop for Context {
     fn drop(&mut self) {
-        ffi_call!(cuCtxDestroy_v2, self.context_ptr).expect("Context remove failed");
+        if let Err(e) = ffi_call!(cuCtxDestroy_v2, self.context_ptr) {
+            log::error!("Context remove failed: {:?}", e);
+        }
     }
 }
 

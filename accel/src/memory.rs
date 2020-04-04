@@ -146,7 +146,9 @@ pub struct DeviceMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
-        ffi_call!(cuMemFree_v2, self.ptr).expect("Failed to free device memory");
+        if let Err(e) = ffi_call!(cuMemFree_v2, self.ptr) {
+            log::error!("Failed to free device memory: {:?}", e);
+        }
     }
 }
 
@@ -221,7 +223,9 @@ pub struct PageLockedMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
     fn drop(&mut self) {
-        ffi_call!(cuMemFreeHost, self.ptr as *mut _).expect("Cannot free page-locked memory");
+        if let Err(e) = ffi_call!(cuMemFreeHost, self.ptr as *mut _) {
+            log::error!("Cannot free page-locked memory: {:?}", e);
+        }
     }
 }
 

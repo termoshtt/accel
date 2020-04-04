@@ -12,7 +12,8 @@ fn main() -> Result<()> {
     let ctx = device.create_context();
     let grid = Grid::x(1);
     let block = Block::x(4);
-    assert(&ctx, grid, block, &())?;
-    assert!(ctx.sync().is_err()); // This sync will fail because assertion in kernel code failed
+
+    let result = assert(&ctx, grid, block, &());
+    assert!(result.is_err()); // assertion failed
     Ok(())
 }

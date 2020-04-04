@@ -11,6 +11,7 @@ pub mod memory;
 pub mod module;
 
 pub use device::{Context, Device};
+use num_traits::ToPrimitive;
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -21,19 +22,61 @@ pub struct Block {
 }
 
 impl Block {
-    /// one-dimensional
-    pub fn x(x: u32) -> Self {
-        Block { x: x, y: 1, z: 1 }
+    /// 1D Block
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn x<I: ToPrimitive>(x: I) -> Self {
+        Block {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: 1,
+            z: 1,
+        }
     }
 
-    /// two-dimensional
-    pub fn xy(x: u32, y: u32) -> Self {
-        Block { x: x, y: y, z: 1 }
+    /// 2D Block
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn xy<I1: ToPrimitive, I2: ToPrimitive>(x: I1, y: I2) -> Self {
+        Block {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: y.to_u32().expect("Cannot convert to u32"),
+            z: 1,
+        }
     }
 
-    /// three-dimensional
-    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
-        Block { x: x, y: y, z: z }
+    /// 3D Block
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn xyz<I1: ToPrimitive, I2: ToPrimitive, I3: ToPrimitive>(x: I1, y: I2, z: I3) -> Self {
+        Block {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: y.to_u32().expect("Cannot convert to u32"),
+            z: z.to_u32().expect("Cannot convert to u32"),
+        }
+    }
+}
+
+impl<I: ToPrimitive> Into<Block> for (I,) {
+    fn into(self) -> Block {
+        Block::x(self.0)
+    }
+}
+
+impl<I1: ToPrimitive, I2: ToPrimitive> Into<Block> for (I1, I2) {
+    fn into(self) -> Block {
+        Block::xy(self.0, self.1)
+    }
+}
+
+impl<I1: ToPrimitive, I2: ToPrimitive, I3: ToPrimitive> Into<Block> for (I1, I2, I3) {
+    fn into(self) -> Block {
+        Block::xyz(self.0, self.1, self.2)
     }
 }
 
@@ -46,18 +89,60 @@ pub struct Grid {
 }
 
 impl Grid {
-    /// one-dimensional
-    pub fn x(x: u32) -> Self {
-        Grid { x: x, y: 1, z: 1 }
+    /// 1D Grid
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn x<I: ToPrimitive>(x: I) -> Self {
+        Grid {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: 1,
+            z: 1,
+        }
     }
 
-    /// two-dimensional
-    pub fn xy(x: u32, y: u32) -> Self {
-        Grid { x: x, y: y, z: 1 }
+    /// 2D Grid
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn xy<I1: ToPrimitive, I2: ToPrimitive>(x: I1, y: I2) -> Self {
+        Grid {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: y.to_u32().expect("Cannot convert to u32"),
+            z: 1,
+        }
     }
 
-    /// three-dimensional
-    pub fn xyz(x: u32, y: u32, z: u32) -> Self {
-        Grid { x: x, y: y, z: z }
+    /// 3D Grid
+    ///
+    /// Panic
+    /// -----
+    /// - If input values cannot convert to u32
+    pub fn xyz<I1: ToPrimitive, I2: ToPrimitive, I3: ToPrimitive>(x: I1, y: I2, z: I3) -> Self {
+        Grid {
+            x: x.to_u32().expect("Cannot convert to u32"),
+            y: y.to_u32().expect("Cannot convert to u32"),
+            z: z.to_u32().expect("Cannot convert to u32"),
+        }
+    }
+}
+
+impl<I: ToPrimitive> Into<Grid> for (I,) {
+    fn into(self) -> Grid {
+        Grid::x(self.0)
+    }
+}
+
+impl<I1: ToPrimitive, I2: ToPrimitive> Into<Grid> for (I1, I2) {
+    fn into(self) -> Grid {
+        Grid::xy(self.0, self.1)
+    }
+}
+
+impl<I1: ToPrimitive, I2: ToPrimitive, I3: ToPrimitive> Into<Grid> for (I1, I2, I3) {
+    fn into(self) -> Grid {
+        Grid::xyz(self.0, self.1, self.2)
     }
 }

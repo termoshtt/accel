@@ -1,6 +1,6 @@
 //! CUDA Module (i.e. loaded PTX or cubin)
 
-use crate::{device::*, error::*, ffi_call, ffi_new, *};
+use crate::{device::*, error::*, ffi_call, ffi_new, stream::*, *};
 use cuda::*;
 use std::{ffi::*, path::*, ptr::null_mut};
 

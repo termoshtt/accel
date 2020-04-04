@@ -9,7 +9,9 @@ pub struct Stream<'ctx> {
 
 impl<'ctx> Drop for Stream<'ctx> {
     fn drop(&mut self) {
-        ffi_call!(cuStreamDestroy_v2, self.stream).expect("Failed to delete CUDA stream");
+        if let Err(e) = ffi_call!(cuStreamDestroy_v2, self.stream) {
+            log::error!("Failed to delete CUDA stream: {:?}", e);
+        }
     }
 }
 
@@ -63,7 +65,9 @@ pub struct Event<'ctx> {
 
 impl<'ctx> Drop for Event<'ctx> {
     fn drop(&mut self) {
-        ffi_call!(cuEventDestroy_v2, self.event).expect("Failed to delete CUDA event");
+        if let Err(e) = ffi_call!(cuEventDestroy_v2, self.event) {
+            log::error!("Failed to delete CUDA event: {:?}", e);
+        }
     }
 }
 

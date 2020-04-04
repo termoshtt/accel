@@ -13,6 +13,7 @@ readme        = "../README.md"
 categories    = []
 
 [dependencies]
+log = "0.4"
 thiserror = "1.0"
 cuda-driver-sys = "=0.3.0-alpha.1"
 bitflags = "1.2"

@@ -3,7 +3,7 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{device::*, instruction::*, module::*};
+use super::{device::*, module::*};
 use crate::{error::*, ffi_call};
 use cuda::*;
 use std::{

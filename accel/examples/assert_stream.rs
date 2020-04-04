@@ -1,4 +1,4 @@
-use accel::*;
+use accel::{module::*, stream::*, *};
 use accel_derive::kernel;
 use anyhow::Result;
 
@@ -10,10 +10,13 @@ pub fn assert() {
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
+    let stream = Stream::new(&ctx);
+
     let grid = Grid::x(1);
     let block = Block::x(4);
 
-    let result = assert(&ctx, grid, block, &());
-    assert!(result.is_err()); // assertion failed
+    let module = assert::Module::new(&ctx)?;
+    module.stream_launch(&stream, grid, block, &())?; // lanch will succeed
+    assert!(stream.sync().is_err()); // assertion failed is detected in next sync
     Ok(())
 }

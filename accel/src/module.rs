@@ -3,7 +3,7 @@
 //! This module includes a wrapper of `cuLink*` and `cuModule*`
 //! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
 
-use super::{device::*, instruction::*, *};
+use super::{device::*, instruction::*, stream::*, *};
 use crate::{error::Result, ffi_call, ffi_new};
 use cuda::*;
 use std::{ffi::*, path::Path, ptr::null_mut};
@@ -139,7 +139,7 @@ pub trait Launchable<'arg> {
 
     fn get_kernel(&self) -> Result<Kernel>;
 
-    /// Launch CUDA Kernel
+    /// Launch CUDA Kernel synchronously
     ///
     /// ```
     /// use accel::{module::Launchable, device::*, memory::*, *};
@@ -154,14 +154,14 @@ pub trait Launchable<'arg> {
     ///
     /// let module = f::Module::new(&ctx)?;
     /// let a = 12;
-    /// module.launch(grid, block, &(&a,))?;
+    /// module.launch(grid, block, &(&a,))?; // wait until kernel execution ends
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
     fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
         let kernel = self.get_kernel()?;
         let _g = kernel.guard_context();
         let mut params = args.kernel_params();
-        Ok(ffi_call!(
+        ffi_call!(
             cuLaunchKernel,
             kernel.func,
             grid.x,
@@ -174,7 +174,57 @@ pub trait Launchable<'arg> {
             null_mut(), /* use default stream */
             params.as_mut_ptr(),
             null_mut() /* no extra */
-        )?)
+        )?;
+        kernel.sync_context()?;
+        Ok(())
+    }
+
+    /// Launch CUDA Kernel asynchronously
+    ///
+    /// ```
+    /// use accel::{module::Launchable, stream::*, device::*, memory::*, *};
+    ///
+    /// #[accel_derive::kernel]
+    /// fn f(a: i32) {}
+    ///
+    /// let device = Device::nth(0)?;
+    /// let ctx = device.create_context();
+    /// let stream = Stream::new(&ctx);
+    ///
+    /// let grid = Grid::x(1);
+    /// let block = Block::x(4);
+    /// let module = f::Module::new(&ctx)?;
+    ///
+    /// let a = 12;
+    /// module.stream_launch(&stream, grid, block, &(&a,))?;
+    /// stream.sync()?;
+    /// # Ok::<(), ::accel::error::AccelError>(())
+    /// ```
+    fn stream_launch(
+        &self,
+        stream: &Stream,
+        grid: Grid,
+        block: Block,
+        args: &Self::Args,
+    ) -> Result<()> {
+        let kernel = self.get_kernel()?;
+        let _g = kernel.guard_context();
+        let mut params = args.kernel_params();
+        ffi_call!(
+            cuLaunchKernel,
+            kernel.func,
+            grid.x,
+            grid.y,
+            grid.z,
+            block.x,
+            block.y,
+            block.z,
+            0, /* FIXME: no shared memory */
+            stream.stream,
+            params.as_mut_ptr(),
+            null_mut() /* no extra */
+        )?;
+        Ok(())
     }
 }
 

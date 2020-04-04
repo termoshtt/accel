@@ -1,7 +1,4 @@
-//! Resource of CUDA middle-IR (PTX/cubin)
-//!
-//! This module includes a wrapper of `cuLink*` and `cuModule*`
-//! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
+//! CUDA Module (i.e. loaded PTX or cubin)
 
 use crate::{device::*, error::*, ffi_call, ffi_new, *};
 use cuda::*;

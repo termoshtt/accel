@@ -1,3 +1,5 @@
+//! Device and Host memory handlers
+
 use super::device::*;
 use crate::{ffi_call, ffi_new};
 use cuda::*;

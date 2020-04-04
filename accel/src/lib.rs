@@ -1,4 +1,6 @@
-//! GPGPU framework for Rust
+//! GPGPU framework for Rust based on [CUDA Driver API]
+//!
+//! [CUDA Driver API]: https://docs.nvidia.com/cuda/cuda-driver-api/
 
 extern crate cuda_driver_sys as cuda;
 

@@ -1,10 +1,10 @@
-use crate::{device::*, error::AccelError, ffi_call, ffi_new};
+use crate::{device::*, error::*, ffi_call, ffi_new};
 use cuda::*;
 
 /// Handler for non-blocking CUDA Stream
 pub struct Stream<'ctx> {
     ctx: &'ctx Context,
-    stream: CUstream,
+    pub(crate) stream: CUstream,
 }
 
 impl<'ctx> Drop for Stream<'ctx> {
@@ -42,9 +42,10 @@ impl<'ctx> Stream<'ctx> {
     }
 
     /// Wait until all tasks in this stream have been completed
-    pub fn sync(&self) {
+    pub fn sync(&self) -> Result<()> {
         let _g = self.guard_context();
-        ffi_call!(cuStreamSynchronize, self.stream).expect("Failed to sync CUDA stream");
+        ffi_call!(cuStreamSynchronize, self.stream)?;
+        Ok(())
     }
 
     /// Wait event to sync another stream
@@ -99,16 +100,16 @@ impl<'ctx> Event<'ctx> {
     }
 
     /// Wait until the event occurs with blocking
-    pub fn sync(&self) {
+    pub fn sync(&self) -> Result<()> {
         let _g = self.guard_context();
-        ffi_call!(cuEventSynchronize, self.event).expect("Failed to sync CUDA event");
+        ffi_call!(cuEventSynchronize, self.event)?;
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::*;
 
     #[test]
     fn new() -> Result<()> {
@@ -126,8 +127,8 @@ mod tests {
         let mut event = Event::new(&ctx);
         event.record(&mut stream);
         // nothing to be waited
-        event.sync();
-        stream.sync();
+        event.sync()?;
+        stream.sync()?;
         Ok(())
     }
 }

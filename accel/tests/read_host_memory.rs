@@ -8,6 +8,7 @@ pub unsafe fn read_host_memory(a: *const i32) {
     accel_core::println!("a[{}] = {}", i, unsafe { *(a.offset(i)) });
 }
 
+#[test]
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();

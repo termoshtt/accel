@@ -42,17 +42,6 @@ test:accel:
     - cd accel
     - cargo test
 
-test:examples:
-  extends: .with_gpu
-  stage: test
-  script:
-    - cd accel
-    - cargo run --example add
-    - cargo run --example printf
-    - cargo run --example assert
-    - cargo run --example ptx_str
-    - cargo run --example read_host_memory
-
 test:ignored:
   extends: .with_gpu
   stage: test

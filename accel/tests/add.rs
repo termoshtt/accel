@@ -10,6 +10,7 @@ pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
     }
 }
 
+#[test]
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();

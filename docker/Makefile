@@ -9,14 +9,14 @@ CI_COMMIT_REF_SLUG ?= manual
 define ubuntu
 ubuntu$(1)-cuda$(2):
 	sed -e "s/CUDA_VERSION/$(2)/" -e "s/UBUNTU_VERSION/$(1)/" < ubuntu.Dockerfile > $$@.Dockerfile
-	docker build -q -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
+	docker build -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
 	docker push $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG)
 endef
 
 define centos
 centos$(1)-cuda$(2):
 	sed -e "s/CUDA_VERSION/$(2)/" -e "s/CENTOS_VERSION/$(1)/" < centos.Dockerfile > $$@.Dockerfile
-	docker build -q -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
+	docker build -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
 	docker push $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG)
 endef
 

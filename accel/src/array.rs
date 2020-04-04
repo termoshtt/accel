@@ -16,7 +16,9 @@ pub struct Array<T, Dim> {
 
 impl<T, Dim> Drop for Array<T, Dim> {
     fn drop(&mut self) {
-        ffi_call!(cuArrayDestroy, self.array).expect("Failed to cleanup array");
+        if let Err(e) = ffi_call!(cuArrayDestroy, self.array) {
+            log::error!("Failed to cleanup array: {:?}", e);
+        }
     }
 }
 

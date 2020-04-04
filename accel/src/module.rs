@@ -237,7 +237,9 @@ pub struct Module<'ctx> {
 
 impl<'ctx> Drop for Module<'ctx> {
     fn drop(&mut self) {
-        ffi_call!(cuModuleUnload, self.module).expect("Failed to unload module");
+        if let Err(e) = ffi_call!(cuModuleUnload, self.module) {
+            log::error!("Failed to unload module: {:?}", e);
+        }
     }
 }
 

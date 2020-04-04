@@ -188,7 +188,9 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        ffi_call!(cuLinkDestroy, self.state).expect("Failed to release Linker");
+        if let Err(e) = ffi_call!(cuLinkDestroy, self.state) {
+            log::error!("Failed to release Linker: {:?}", e)
+        }
     }
 }
 

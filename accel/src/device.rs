@@ -103,6 +103,13 @@ pub(crate) trait Contexted {
         let ctx = self.get_context();
         ContextGuard::guard_context(ctx)
     }
+
+    /// Blocking until all tasks in current context end
+    fn sync_context(&self) -> Result<()> {
+        let ctx = self.get_context();
+        ctx.sync()?;
+        Ok(())
+    }
 }
 
 /// CUDA context handler

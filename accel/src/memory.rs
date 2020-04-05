@@ -92,7 +92,7 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     /// Unique identifier of the memory
     ///
     /// ```
-    /// # use ::accel::{device::*, memory::*};
+    /// # use ::accel::*;
     /// # let device = Device::nth(0).unwrap();
     /// # let ctx = device.create_context();
     /// let mem1 = DeviceMemory::<i32>::new(&ctx, 12);
@@ -109,7 +109,7 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
     /// Memory Type
     ///
     /// ```
-    /// # use ::accel::{device::*, memory::*};
+    /// # use ::accel::*;
     /// # let device = Device::nth(0).unwrap();
     /// # let ctx = device.create_context();
     /// let dev = DeviceMemory::<i32>::new(&ctx, 12);

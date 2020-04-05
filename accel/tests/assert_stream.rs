@@ -1,4 +1,4 @@
-use accel::{module::*, stream::*, *};
+use accel::*;
 use accel_derive::kernel;
 use anyhow::Result;
 

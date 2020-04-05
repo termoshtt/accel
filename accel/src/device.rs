@@ -61,7 +61,7 @@ impl Device {
     /// Create a new CUDA context on this device.
     ///
     /// ```
-    /// # use accel::device::*;
+    /// # use accel::*;
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context();
     /// ```

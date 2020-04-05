@@ -1,7 +1,7 @@
-//! Handler for CUDA [device] and [context]
+//! CUDA [Device] and [Context]
 //!
-//! [device]:  https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
-//! [context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
+//! [Device]:  https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
+//! [Context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
 use crate::{error::*, ffi_call, ffi_new};
 use cuda::*;
@@ -61,7 +61,7 @@ impl Device {
     /// Create a new CUDA context on this device.
     ///
     /// ```
-    /// # use accel::device::*;
+    /// # use accel::*;
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context();
     /// ```

@@ -1,3 +1,9 @@
+//! CUDA [Array] and [Texture], [Surface] Objects
+//!
+//! [Array]:   https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#cuda-arrays
+//! [Texture]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TEXOBJECT.html#group__CUDA__TEXOBJECT
+//! [Surface]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__SURFOBJECT.html#group__CUDA__SURFOBJECT
+
 use crate::{device::Contexted, ffi_call, ffi_new, *};
 use cuda::*;
 use derive_new::new;

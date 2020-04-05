@@ -15,6 +15,7 @@ fn sync() -> error::Result<()> {
     Ok(())
 }
 
+#[ignore] // See https://gitlab.com/termoshtt/accel/-/issues/31
 #[test]
 fn stream() -> error::Result<()> {
     let device = Device::nth(0)?;

@@ -1,7 +1,5 @@
 #![recursion_limit = "128"]
 
-extern crate proc_macro;
-
 mod builder;
 mod host;
 mod parser;

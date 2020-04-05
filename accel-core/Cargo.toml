@@ -8,6 +8,6 @@ description   = "Support crate for writing GPGPU kernels using accel"
 documentation = "https://docs.rs/accel-core/"
 repository    = "https://github.com/termoshtt/accel"
 keywords      = ["GPGPU", "CUDA", "platform-intrinsic"]
-license       = "MIT"
+license       = "MIT/Apache-2.0"
 readme        = "README.md"
 categories    = []

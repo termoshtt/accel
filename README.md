@@ -26,17 +26,18 @@ curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh
 
 Or, you can use [docekr container](./docker)
 
-Examples
---------
-See [example](accel/examples) directory.
-
 Contribution
 ------------
 This project is developed on [GitLab](https://gitlab.com/termoshtt/accel) and mirrored to [GitHub](https://github.com/rust-accel/accel).
 
 Licence
 --------
-MIT-License
+Dual-licensed to be compatible with the Rust project.
+
+- Apache License, Version 2.0 http://www.apache.org/licenses/LICENSE-2.0
+- the MIT license http://opensource.org/licenses/MIT
+
+In addition, you must refer [End User License Agreement](https://docs.nvidia.com/cuda/eula/index.html) for using CUDA.
 
 Sponsors
 --------

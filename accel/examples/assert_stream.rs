@@ -12,11 +12,8 @@ fn main() -> Result<()> {
     let ctx = device.create_context();
     let stream = Stream::new(&ctx);
 
-    let grid = Grid::x(1);
-    let block = Block::x(4);
-
     let module = assert::Module::new(&ctx)?;
-    module.stream_launch(&stream, grid, block, &())?; // lanch will succeed
+    module.stream_launch(&stream, 1, 4, &())?; // lanch will succeed
     assert!(stream.sync().is_err()); // assertion failed is detected in next sync
     Ok(())
 }

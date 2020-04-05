@@ -26,15 +26,7 @@ fn main() -> Result<()> {
     println!("a = {:?}", a.as_slice());
     println!("b = {:?}", b.as_slice());
 
-    let grid = Grid::x(1);
-    let block = Block::x(n as u32);
-    add(
-        &ctx,
-        grid,
-        block,
-        &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n),
-    )
-    .expect("Kernel call failed");
+    add(&ctx, 1, n, &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)).expect("Kernel call failed");
 
     println!("c = {:?}", c.as_slice());
     Ok(())

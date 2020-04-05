@@ -199,15 +199,19 @@ pub trait Launchable<'arg> {
     ///
     /// let device = Device::nth(0)?;
     /// let ctx = device.create_context();
-    /// let grid = Grid::x(1);
-    /// let block = Block::x(4);
-    ///
     /// let module = f::Module::new(&ctx)?;
     /// let a = 12;
-    /// module.launch(grid, block, &(&a,))?; // wait until kernel execution ends
+    /// module.launch((1,) /* grid */, (4,) /* block */, &(&a,))?; // wait until kernel execution ends
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
-    fn launch(&self, grid: Grid, block: Block, args: &Self::Args) -> Result<()> {
+    fn launch<G: Into<Grid>, B: Into<Block>>(
+        &self,
+        grid: G,
+        block: B,
+        args: &Self::Args,
+    ) -> Result<()> {
+        let grid = grid.into();
+        let block = block.into();
         let kernel = self.get_kernel()?;
         let _g = kernel.guard_context();
         let mut params = args.kernel_params();
@@ -241,22 +245,22 @@ pub trait Launchable<'arg> {
     /// let ctx = device.create_context();
     /// let stream = Stream::new(&ctx);
     ///
-    /// let grid = Grid::x(1);
-    /// let block = Block::x(4);
     /// let module = f::Module::new(&ctx)?;
     ///
     /// let a = 12;
-    /// module.stream_launch(&stream, grid, block, &(&a,))?;
+    /// module.stream_launch(&stream, (1,) /* grid */, (4,) /* block */, &(&a,))?;
     /// stream.sync()?;
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
-    fn stream_launch(
+    fn stream_launch<G: Into<Grid>, B: Into<Block>>(
         &self,
         stream: &Stream,
-        grid: Grid,
-        block: Block,
+        grid: G,
+        block: B,
         args: &Self::Args,
     ) -> Result<()> {
+        let grid = grid.into();
+        let block = block.into();
         let kernel = self.get_kernel()?;
         let _g = kernel.guard_context();
         let mut params = args.kernel_params();

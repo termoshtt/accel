@@ -11,10 +11,7 @@ pub fn assert() {
 fn main() -> Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
-    let grid = Grid::x(1);
-    let block = Block::x(4);
-
-    let result = assert(&ctx, grid, block, &());
+    let result = assert(&ctx, 1, 4, &());
     assert!(result.is_err()); // assertion failed
     Ok(())
 }

@@ -9,7 +9,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
 ENV PATH /root/.cargo/bin:$PATH
 
 RUN cargo install ptx-linker

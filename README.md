@@ -11,7 +11,9 @@ Accel: GPGPU Framework for Rust
 
 Requirements
 ------------
+![minimum supported rust version](https://img.shields.io/badge/rustc-1.42+-red.svg)
 
+- Minimum Supported Rust Version (MSRV) is 1.42.0
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
   - accel depends on CUDA Runtime and Device APIs through [rust-cuda/cuda-sys](https://github.com/rust-cuda/cuda-sys)
 - Setup NVPTX target of Rust

@@ -55,7 +55,7 @@ pages:
   script:
     - rm -rf public
     - mkdir -p public
-    - cargo doc --no-deps
+    - cargo doc --no-deps --document-private-items
     - mv target/doc public/accel
     - cd accel-core
     - cargo doc
@@ -63,8 +63,8 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - master
+  # only:
+  #   - master
 
 .build:
   image: docker:stable

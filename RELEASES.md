@@ -5,7 +5,7 @@ Version 0.3.0-alpha.2 (2020-04-06)
 
 Without CUDA Runtime API
 -------------------------
-- Rewrite using [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html)
+- Rewrite using [CUDA Driver API](https://docs.nvidia.com/cuda/cuda-driver-api/index.html) https://gitlab.com/termoshtt/accel/-/issues/19
 - Explicit RAII handling of CUDA Context https://gitlab.com/termoshtt/accel/-/merge_requests/51
 - CUDA Managed memories
   - Device memory https://gitlab.com/termoshtt/accel/-/merge_requests/40

@@ -26,10 +26,6 @@ curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh
 
 Or, you can use [docekr container](./docker)
 
-Examples
---------
-See [example](accel/examples) directory.
-
 Contribution
 ------------
 This project is developed on [GitLab](https://gitlab.com/termoshtt/accel) and mirrored to [GitHub](https://github.com/rust-accel/accel).

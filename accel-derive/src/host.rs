@@ -46,10 +46,10 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
     let fn_token = &func.sig.fn_token;
     let input_types = get_input_types(func);
     quote! {
-        #vis #fn_token #ident<'arg>(
+        #vis #fn_token #ident<'arg, G: Into<::accel::Grid>, B: Into<::accel::Block>>(
             ctx: & ::accel::Context,
-            grid: ::accel::Grid,
-            block: ::accel::Block,
+            grid: G,
+            block: B,
             args: &(#(&'arg #input_types,)*)
         ) -> ::accel::error::Result<()> {
             use ::accel::module::Launchable;

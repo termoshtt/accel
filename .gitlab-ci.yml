@@ -5,13 +5,6 @@ stages:
   - test
   - deploy
 
-cache:
-  paths:
-    - target/
-    - cargo/
-variables:
-  CARGO_HOME: $CI_PROJECT_DIR/cargo
-
 test:cargo-check:
   stage: test
   script:
@@ -63,8 +56,8 @@ pages:
   artifacts:
     paths:
       - public
-  # only:
-  #   - master
+  only:
+    - master
 
 .build:
   image: docker:stable

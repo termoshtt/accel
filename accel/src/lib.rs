@@ -81,6 +81,29 @@ impl<I1: ToPrimitive, I2: ToPrimitive, I3: ToPrimitive> Into<Block> for (I1, I2,
     }
 }
 
+macro_rules! impl_into_block {
+    ($integer:ty) => {
+        impl Into<Block> for $integer {
+            fn into(self) -> Block {
+                Block::x(self)
+            }
+        }
+    };
+}
+
+impl_into_block!(u8);
+impl_into_block!(u16);
+impl_into_block!(u32);
+impl_into_block!(u64);
+impl_into_block!(u128);
+impl_into_block!(usize);
+impl_into_block!(i8);
+impl_into_block!(i16);
+impl_into_block!(i32);
+impl_into_block!(i64);
+impl_into_block!(i128);
+impl_into_block!(isize);
+
 /// Size of Grid (grid of blocks) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Grid {

@@ -15,6 +15,59 @@ pub use device::{Context, Device};
 use num_traits::ToPrimitive;
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
+///
+/// Every input integer and float convert into `u32` using [ToPrimitive].
+/// If the conversion is impossible, e.g. negative or too large integers, the conversion will panics.
+///
+/// [ToPrimitive]: https://docs.rs/num-traits/0.2.11/num_traits/cast/trait.ToPrimitive.html
+///
+/// Examples
+/// --------
+///
+/// - Explicit creation
+///
+/// ```
+/// # use accel::*;
+/// let block1d = Block::x(64);
+/// assert_eq!(block1d.x, 64);
+///
+/// let block2d = Block::xy(64, 128);
+/// assert_eq!(block2d.x, 64);
+/// assert_eq!(block2d.y, 128);
+///
+/// let block3d = Block::xyz(64, 128, 256);
+/// assert_eq!(block3d.x, 64);
+/// assert_eq!(block3d.y, 128);
+/// assert_eq!(block3d.z, 256);
+/// ```
+///
+/// - From single integer (unsigned and signed)
+///
+/// ```
+/// # use accel::*;
+/// let block1d: Block = 64_usize.into();
+/// assert_eq!(block1d.x, 64);
+///
+/// let block1d: Block = 64_i32.into();
+/// assert_eq!(block1d.x, 64);
+/// ```
+///
+/// - From tuple
+///
+/// ```
+/// # use accel::*;
+/// let block1d: Block = (64,).into();
+/// assert_eq!(block1d.x, 64);
+///
+/// let block2d: Block = (64, 128).into();
+/// assert_eq!(block2d.x, 64);
+/// assert_eq!(block2d.y, 128);
+///
+/// let block3d: Block = (64, 128, 256).into();
+/// assert_eq!(block3d.x, 64);
+/// assert_eq!(block3d.y, 128);
+/// assert_eq!(block3d.z, 256);
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Block {
     pub x: u32,

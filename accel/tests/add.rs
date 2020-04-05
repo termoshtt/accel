@@ -1,6 +1,5 @@
 use accel::*;
 use accel_derive::kernel;
-use anyhow::Result;
 
 #[kernel]
 pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
@@ -11,7 +10,7 @@ pub unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
 }
 
 #[test]
-fn main() -> Result<()> {
+fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
 

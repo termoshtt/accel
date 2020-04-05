@@ -1,6 +1,5 @@
 use accel::*;
 use accel_derive::kernel;
-use anyhow::Result;
 
 #[kernel]
 pub fn print() {
@@ -9,7 +8,7 @@ pub fn print() {
 }
 
 #[test]
-fn main() -> Result<()> {
+fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
     print(&ctx, 1, 4, &())?;

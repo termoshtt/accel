@@ -22,4 +22,3 @@ derive-new = "0.5"
 
 [dev-dependencies]
 accel-derive = { path = "../accel-derive" }
-anyhow = "1.0"

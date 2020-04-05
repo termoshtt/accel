@@ -8,7 +8,7 @@ description   = "Procedual macro for writing GPGPU kernel"
 documentation = "https://docs.rs/accel-derive/"
 repository    = "https://github.com/termoshtt/accel"
 keywords      = ["GPGPU", "CUDA", "proc-macro"]
-license       = "MIT"
+license       = "MIT/Apache-2.0"
 readme        = "README.md"
 categories    = []
 

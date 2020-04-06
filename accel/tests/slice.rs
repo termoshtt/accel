@@ -1,23 +1,23 @@
-use accel::driver::{device::*, memory::*, *};
+use accel::*;
 use accel_derive::kernel;
-use anyhow::Result;
 
 #[kernel]
-pub fn add_slice(a: &[f64], b: &[f64], c: &mut [f64]) {
+fn add_slice(a: &[f64], b: &[f64], c: &mut [f64]) {
     let i = accel_core::index() as usize;
     if (i as usize) < c.len() {
         c[i] = a[i] + b[i];
     }
 }
 
-fn main() -> Result<()> {
+#[test]
+fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context_auto()?;
 
     let n = 32;
-    let mut a = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
-    let mut b = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
-    let mut c = DeviceMemory::<f64>::managed(&ctx, n, AttachFlag::CU_MEM_ATTACH_GLOBAL)?;
+    let mut a = DeviceMemory::<f64>::managed(&ctx, n)?;
+    let mut b = DeviceMemory::<f64>::managed(&ctx, n)?;
+    let mut c = DeviceMemory::<f64>::managed(&ctx, n)?;
 
     for i in 0..n {
         a[i] = i as f64;

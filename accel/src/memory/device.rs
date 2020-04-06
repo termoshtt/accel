@@ -1,7 +1,6 @@
 //! Device and Host memory handlers
 
-use super::device::*;
-use crate::{ffi_call, ffi_new};
+use crate::{device::*, ffi_call, ffi_new};
 use cuda::*;
 use std::{
     marker::PhantomData,
@@ -294,8 +293,8 @@ impl<'ctx, T> PageLockedMemory<'ctx, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::error::*;
     use super::*;
+    use crate::error::*;
 
     #[test]
     fn info() -> Result<()> {

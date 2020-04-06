@@ -286,9 +286,8 @@ bitflags::bitflags! {
 
 #[cfg(test)]
 mod tests {
-    use super::super::device::*;
     use super::*;
-    use crate::error::*;
+    use crate::{device::*, error::*};
 
     #[test]
     fn new_1d() -> Result<()> {

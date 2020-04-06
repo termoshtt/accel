@@ -18,8 +18,8 @@ Accel: GPGPU Framework for Rust
 [docs/accel-derive]: https://docs.rs/accel-derive/0.3.0-alpha.2
 
 [dev/accel]:        https://termoshtt.gitlab.io/accel/accel/accel
-[dev/accel-core]:   https://termoshtt.gitlab.io/accel/accel/accel-core
-[dev/accel-derive]: https://termoshtt.gitlab.io/accel/accel/accel-derive
+[dev/accel-core]:   https://termoshtt.gitlab.io/accel/accel/accel_core
+[dev/accel-derive]: https://termoshtt.gitlab.io/accel/accel/accel_derive
 
 Requirements
 ------------

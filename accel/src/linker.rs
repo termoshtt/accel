@@ -1,11 +1,7 @@
-//! Resource of CUDA middle-IR (PTX/cubin)
-//!
-//! This module includes a wrapper of `cuLink*` and `cuModule*`
-//! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
+//! CUDA JIT compiler and Linkers
 
-use super::{context::*, instruction::*, module::*};
-use crate::{error::*, ffi_call, ffi_call_unsafe};
-use anyhow::{ensure, Result};
+use super::{device::*, module::*};
+use crate::{error::*, ffi_call};
 use cuda::*;
 use std::{
     collections::HashMap,
@@ -189,15 +185,24 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuLinkDestroy, self.state).expect("Failed to release Linker");
+        if let Err(e) = ffi_call!(cuLinkDestroy, self.state) {
+            log::error!("Failed to release Linker: {:?}", e)
+        }
+    }
+}
+
+impl<'ctx> Contexted for Linker<'ctx> {
+    fn get_context(&self) -> &Context {
+        self.context
     }
 }
 
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
-        ensure!(context.is_current()?, "Given context is not current");
+        let _g = context.guard_context();
         let (n, mut opt, mut opts) = cfg.pack();
+        #[allow(unused_unsafe)]
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
             ffi_call!(
@@ -217,38 +222,44 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddData
+    #[allow(unused_unsafe)]
     unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
-        ffi_call!(
-            cuLinkAddData_v2,
-            self.state,
-            input_type,
-            data.as_ptr() as *mut _,
-            data.len(),
-            name.as_ptr(),
-            nopts,
-            opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr()
-        )?;
+        {
+            let _g = self.guard_context();
+            ffi_call!(
+                cuLinkAddData_v2,
+                self.state,
+                input_type,
+                data.as_ptr() as *mut _,
+                data.len(),
+                name.as_ptr(),
+                nopts,
+                opts.as_mut_ptr(),
+                opt_vals.as_mut_ptr()
+            )?;
+        }
         Ok(self)
     }
 
     /// Wrapper of cuLinkAddFile
+    #[allow(unused_unsafe)]
     unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
-        ffi_call!(
-            cuLinkAddFile_v2,
-            self.state,
-            input_type,
-            filename.as_ptr(),
-            nopts,
-            opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr()
-        )?;
+        {
+            let _g = self.guard_context();
+            ffi_call!(
+                cuLinkAddFile_v2,
+                self.state,
+                input_type,
+                filename.as_ptr(),
+                nopts,
+                opts.as_mut_ptr(),
+                opt_vals.as_mut_ptr()
+            )?;
+        }
         Ok(self)
     }
 
@@ -272,8 +283,9 @@ impl<'ctx> Linker<'ctx> {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Instruction> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+        let _g = self.guard_context();
         let mut cb = null_mut();
+        #[allow(unused_unsafe)]
         unsafe {
             ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;
             Ok(Instruction::cubin(CStr::from_ptr(cb as _).to_bytes()))
@@ -297,32 +309,20 @@ pub fn link<'ctx>(
 
 #[cfg(test)]
 mod tests {
-    use super::super::device::*;
     use super::*;
 
     #[test]
     fn create() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _linker = Linker::create(&ctx, JITConfig::default())?;
-        Ok(())
-    }
-
-    #[test]
-    fn non_current_context() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        assert!(Linker::create(&ctx1, JITConfig::default()).is_err());
-        let _linker = Linker::create(&ctx2, JITConfig::default())?;
         Ok(())
     }
 
     #[test]
     fn ptx_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
@@ -332,7 +332,7 @@ mod tests {
     #[test]
     fn linking() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
 
         let data_add = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         let data_sub = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
@@ -343,54 +343,11 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn switch_context_while_linking() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        // ctx2 is current
-        let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let linker = linker.add(&data)?;
-
-        // ctx2 -> ctx1
-        ctx2.pop()?;
-        ctx1.push()?;
-        let data = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        assert!(linker.add(&data).is_err());
-
-        Ok(())
-    }
-
-    #[test]
-    fn restart_linking() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        // ctx2 is current
-        let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let linker = linker.add(&data)?;
-
-        // ctx2 -> ctx1
-        ctx2.pop()?;
-        ctx1.push()?;
-
-        // ctx1 -> ctx2
-        ctx1.pop()?;
-        ctx2.push()?;
-        let data = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        let _linker = linker.add(&data)?;
-        Ok(())
-    }
-
     #[ignore] // FIXME Causes CUDA_ERROR_NO_BINARY_FOR_GPU
     #[test]
     fn cubin_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Instruction::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;

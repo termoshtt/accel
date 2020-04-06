@@ -1,48 +1,60 @@
-pub use cuda::cudaError_enum as DeviceError;
-pub use cudart::cudaError_t as RuntimeError;
+use cuda::cudaError_enum as DeviceError;
+use std::path::PathBuf;
+
+pub type Result<T> = ::std::result::Result<T, AccelError>;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AccelError {
+    /// Raw errors originates from CUDA Device APIs
     #[error("CUDA Device API Error: {api_name}, {error:?}")]
-    Device {
+    CUDAError {
         api_name: String,
         error: DeviceError,
     },
 
-    #[error("CUDA Runtime API Error: {api_name}, {error:?}")]
-    Runtime {
-        api_name: String,
-        error: RuntimeError,
-    },
+    // This is not an error potentially, but it should be a bug if not captured by accel
+    #[error("Async operations issues previously have not completed yet")]
+    AsyncOperationNotReady,
+
+    /// Error for user device code assertion
+    #[error("Assertion in device code has failed")]
+    DeviceAssertionFailed,
+
+    #[error("No device found for given ID")]
+    DeviceNotFound { id: usize, count: usize },
+
+    #[error("File not found: {path:?}")]
+    FileNotFound { path: PathBuf },
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result
-pub(crate) trait Check {
-    fn check(self, api_name: &str) -> Result<(), AccelError>;
-}
-
-impl Check for DeviceError {
-    fn check(self, api_name: &str) -> Result<(), AccelError> {
-        if self == DeviceError::CUDA_SUCCESS {
-            Ok(())
-        } else {
-            Err(AccelError::Device {
-                api_name: api_name.into(),
-                error: self,
-            })
-        }
+pub(crate) fn check(error: DeviceError, api_name: &str) -> Result<()> {
+    match error {
+        DeviceError::CUDA_SUCCESS => Ok(()),
+        DeviceError::CUDA_ERROR_ASSERT => Err(AccelError::DeviceAssertionFailed),
+        DeviceError::CUDA_ERROR_NOT_READY => Err(AccelError::AsyncOperationNotReady),
+        _ => Err(AccelError::CUDAError {
+            api_name: api_name.into(),
+            error,
+        }),
     }
 }
 
-impl Check for RuntimeError {
-    fn check(self, api_name: &str) -> Result<(), AccelError> {
-        if self == RuntimeError::cudaSuccess {
-            Ok(())
-        } else {
-            Err(AccelError::Runtime {
-                api_name: api_name.into(),
-                error: self,
-            })
+#[macro_export]
+macro_rules! ffi_call {
+    ($ffi:path $(,$args:expr)*) => {
+        unsafe {
+            $crate::error::check($ffi($($args),*), stringify!($ffi))
         }
-    }
+    };
+}
+
+#[macro_export]
+macro_rules! ffi_new {
+    ($ffi:path $(,$args:expr)*) => {
+        unsafe {
+            let mut value = ::std::mem::MaybeUninit::uninit();
+            $crate::error::check($ffi(value.as_mut_ptr(), $($args),*), stringify!($ffi)).map(|_| value.assume_init())
+        }
+    };
 }

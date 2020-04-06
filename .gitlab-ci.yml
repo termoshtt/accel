@@ -3,13 +3,7 @@ image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
 stages:
   - docker
   - test
-
-cache:
-  paths:
-    - target/
-    - cargo/
-variables:
-  CARGO_HOME: $CI_PROJECT_DIR/cargo
+  - deploy
 
 test:cargo-check:
   stage: test
@@ -41,16 +35,6 @@ test:accel:
     - cd accel
     - cargo test
 
-test:examples:
-  extends: .with_gpu
-  stage: test
-  script:
-    - cd accel
-    - cargo run --example add
-    - cargo run --example add_managed
-    - cargo run --example printf
-    - cargo run --example assert
-
 test:ignored:
   extends: .with_gpu
   stage: test
@@ -58,6 +42,22 @@ test:ignored:
     - cd accel
     - cargo test -- --ignored
   allow_failure: true
+
+pages:
+  stage: deploy
+  script:
+    - rm -rf public
+    - mkdir -p public
+    - cargo doc --no-deps --document-private-items
+    - mv target/doc public/accel
+    - cd accel-core
+    - cargo doc
+    - mv ./target/nvptx64-nvidia-cuda/doc ../public/accel-core
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
 
 .build:
   image: docker:stable

@@ -1,18 +1,10 @@
-//! Resource of CUDA middle-IR (PTX/cubin)
-//!
-//! This module includes a wrapper of `cuLink*` and `cuModule*`
-//! in [CUDA Driver APIs](http://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MODULE.html).
+//! CUDA JIT compiler and Linkers
 
-use super::{context::*, module::*};
-use crate::{error::*, ffi_call, ffi_call_unsafe};
-use anyhow::{ensure, Result};
+use super::{device::*, module::*};
+use crate::{error::*, ffi_call};
 use cuda::*;
 use std::{
-    collections::HashMap,
-    ffi::CString,
-    mem::MaybeUninit,
-    os::raw::c_void,
-    path::{Path, PathBuf},
+    collections::HashMap, ffi::CString, mem::MaybeUninit, os::raw::c_void, path::Path,
     ptr::null_mut,
 };
 
@@ -39,7 +31,8 @@ impl LogBuffer {
     }
 
     pub fn as_str(&self) -> Result<&str> {
-        let msg = std::str::from_utf8(&self.buffer[..self.length as usize])?;
+        let msg = std::str::from_utf8(&self.buffer[..self.length as usize])
+            .expect("JIT output contains non-UTF8 string");
         Ok(msg)
     }
 
@@ -252,53 +245,6 @@ mod jit_config_tests {
     }
 }
 
-/// Represent the resource of CUDA middle-IR (PTX/cubin)
-#[derive(Debug)]
-pub enum Data {
-    PTX(String),
-    PTXFile(PathBuf),
-    Cubin(Vec<u8>),
-    CubinFile(PathBuf),
-}
-
-impl Data {
-    /// Constructor for `Data::PTX`
-    pub fn ptx(s: &str) -> Data {
-        Data::PTX(s.to_owned())
-    }
-
-    /// Constructor for `Data::Cubin`
-    pub fn cubin(sl: &[u8]) -> Data {
-        Data::Cubin(sl.to_vec())
-    }
-
-    /// Constructor for `Data::PTXFile`
-    pub fn ptx_file(path: &Path) -> Result<Self> {
-        ensure!(path.exists(), "PTX file does not found: {}", path.display());
-        Ok(Data::PTXFile(path.to_owned()))
-    }
-
-    /// Constructor for `Data::CubinFile`
-    pub fn cubin_file(path: &Path) -> Result<Self> {
-        ensure!(
-            path.exists(),
-            "cubin file does not found: {}",
-            path.display()
-        );
-        Ok(Data::CubinFile(path.to_owned()))
-    }
-}
-
-impl Data {
-    /// Get type of PTX/cubin
-    fn input_type(&self) -> CUjitInputType {
-        match *self {
-            Data::PTX(_) | Data::PTXFile(_) => CUjitInputType_enum::CU_JIT_INPUT_PTX,
-            Data::Cubin(_) | Data::CubinFile(_) => CUjitInputType_enum::CU_JIT_INPUT_CUBIN,
-        }
-    }
-}
-
 /// Consuming builder for cubin from PTX and cubins
 pub struct Linker<'ctx> {
     state: CUlinkState,
@@ -308,14 +254,23 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        ffi_call_unsafe!(cuLinkDestroy, self.state).expect("Failed to release Linker");
+        if let Err(e) = ffi_call!(cuLinkDestroy, self.state) {
+            log::error!("Failed to release Linker: {:?}", e)
+        }
     }
 }
 
+impl<'ctx> Contexted for Linker<'ctx> {
+    fn get_context(&self) -> &Context {
+        self.context
+    }
+}
+
+#[allow(unused_unsafe)]
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
-        ensure!(context.is_current()?, "Given context is not current");
+        let _g = context.guard_context();
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
@@ -336,49 +291,54 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddData
-    unsafe fn add_data(self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+    unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
         let name = CString::new("").unwrap();
-        ffi_call!(
-            cuLinkAddData_v2,
-            self.state,
-            input_type,
-            data.as_ptr() as *mut _,
-            data.len(),
-            name.as_ptr(),
-            nopts,
-            opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr()
-        )?;
+        let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
+        {
+            let _g = self.guard_context();
+            ffi_call!(
+                cuLinkAddData_v2,
+                self.state,
+                input_type,
+                data.as_ptr() as *mut _,
+                data.len(),
+                name.as_ptr(),
+                nopts,
+                opts.as_mut_ptr(),
+                opt_vals.as_mut_ptr()
+            )?;
+        }
         Ok(self)
     }
 
     /// Wrapper of cuLinkAddFile
-    unsafe fn add_file(self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+    unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
-        ffi_call!(
-            cuLinkAddFile_v2,
-            self.state,
-            input_type,
-            filename.as_ptr(),
-            nopts,
-            opts.as_mut_ptr(),
-            opt_vals.as_mut_ptr()
-        )?;
+        {
+            let _g = self.guard_context();
+            ffi_call!(
+                cuLinkAddFile_v2,
+                self.state,
+                input_type,
+                filename.as_ptr(),
+                nopts,
+                opts.as_mut_ptr(),
+                opt_vals.as_mut_ptr()
+            )?;
+        }
         Ok(self)
     }
 
     /// Add a resouce into the linker stack.
-    pub fn add(self, data: &Data) -> Result<Self> {
+    pub fn add(self, data: &Instruction) -> Result<Self> {
         Ok(match *data {
-            Data::PTX(ref ptx) => unsafe {
+            Instruction::PTX(ref ptx) => unsafe {
                 let cstr = CString::new(ptx.as_bytes()).expect("Invalid PTX String");
                 self.add_data(data.input_type(), cstr.as_bytes_with_nul())?
             },
-            Data::Cubin(ref bin) => unsafe { self.add_data(data.input_type(), &bin)? },
-            Data::PTXFile(ref path) | Data::CubinFile(ref path) => unsafe {
+            Instruction::Cubin(ref bin) => unsafe { self.add_data(data.input_type(), &bin)? },
+            Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => unsafe {
                 self.add_file(data.input_type(), path)?
             },
         })
@@ -389,9 +349,9 @@ impl<'ctx> Linker<'ctx> {
     /// LinkComplete returns a reference to cubin,
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
-    pub fn complete(mut self) -> Result<(Data, Option<LogBuffer>, Option<LogBuffer>)> {
-        ensure!(self.context.is_current()?, "Given context is not current");
+    pub fn complete(mut self) -> Result<(Instruction, Option<LogBuffer>, Option<LogBuffer>)> {
         let cubin = unsafe {
+            let _g = self.guard_context();
             let mut data: *mut c_void = null_mut();
             let mut size = 0;
             ffi_call!(
@@ -400,7 +360,7 @@ impl<'ctx> Linker<'ctx> {
                 &mut data as *mut *mut c_void,
                 &mut size as *mut usize
             )?;
-            Data::cubin(std::slice::from_raw_parts(data as *const u8, size))
+            Instruction::cubin(std::slice::from_raw_parts(data as *const u8, size))
         };
         let info = std::mem::replace(&mut self.cfg.info_log_buffer, None);
         let err = std::mem::replace(&mut self.cfg.error_log_buffer, None);
@@ -409,45 +369,37 @@ impl<'ctx> Linker<'ctx> {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: &Context, data: &[Data], opt: JITConfig) -> Result<Module> {
+pub fn link<'ctx>(
+    ctx: &'ctx Context,
+    data: &[Instruction],
+    opt: JITConfig,
+) -> Result<Module<'ctx>> {
     let mut l = Linker::create(ctx, opt)?;
     for d in data {
         l = l.add(d)?;
     }
     let (cubin, _, _) = l.complete()?;
-    Module::load(&cubin)
+    Module::load(ctx, &cubin)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::super::device::*;
     use super::*;
 
     #[test]
     fn create() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let _linker = Linker::create(&ctx, JITConfig::default())?;
-        Ok(())
-    }
-
-    #[test]
-    fn non_current_context() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        assert!(Linker::create(&ctx1, JITConfig::default()).is_err());
-        let _linker = Linker::create(&ctx2, JITConfig::default())?;
         Ok(())
     }
 
     #[test]
     fn ptx_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
         Ok(())
     }
@@ -455,10 +407,10 @@ mod tests {
     #[test]
     fn linking() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
 
-        let data_add = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let data_sub = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let data_add = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data_sub = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
         let _module = Linker::create(&ctx, JITConfig::default())?
             .add(&data_add)?
             .add(&data_sub)?
@@ -469,9 +421,9 @@ mod tests {
     #[test]
     fn log_buffer() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
 
-        let data = Data::ptx_file(Path::new("tests/data/link_error.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/data/link_error.ptx"))?;
         let mut cfg = JITConfig::default();
         cfg.info_log_buffer = Some(LogBuffer::new(16));
         cfg.error_log_buffer = Some(LogBuffer::new(16));
@@ -482,56 +434,13 @@ mod tests {
         panic!()
     }
 
-    #[test]
-    fn switch_context_while_linking() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        // ctx2 is current
-        let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let linker = linker.add(&data)?;
-
-        // ctx2 -> ctx1
-        ctx2.pop()?;
-        ctx1.push()?;
-        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        assert!(linker.add(&data).is_err());
-
-        Ok(())
-    }
-
-    #[test]
-    fn restart_linking() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx1 = device.create_context_auto()?;
-        let ctx2 = device.create_context_auto()?;
-
-        // ctx2 is current
-        let linker = Linker::create(&ctx2, JITConfig::default())?;
-        let data = Data::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let linker = linker.add(&data)?;
-
-        // ctx2 -> ctx1
-        ctx2.pop()?;
-        ctx1.push()?;
-
-        // ctx1 -> ctx2
-        ctx1.pop()?;
-        ctx2.push()?;
-        let data = Data::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        let _linker = linker.add(&data)?;
-        Ok(())
-    }
-
     #[ignore] // FIXME Causes CUDA_ERROR_NO_BINARY_FOR_GPU
     #[test]
     fn cubin_file() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context_auto()?;
+        let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Data::cubin_file(Path::new("tests/data/add.cubin"))?;
+        let data = Instruction::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())
     }

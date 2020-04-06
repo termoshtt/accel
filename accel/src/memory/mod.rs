@@ -19,9 +19,11 @@
 
 pub mod array;
 pub mod device;
+pub mod host;
 
 pub use array::*;
 pub use device::*;
+pub use host::*;
 
 use crate::{device::*, ffi_call};
 use cuda::*;
@@ -70,22 +72,13 @@ pub fn free_memory(ctx: &Context) -> usize {
     MemoryInfo::get(ctx).free
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::error::*;
-
-    #[test]
-    fn info() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mem_info = MemoryInfo::get(&ctx);
-        dbg!(&mem_info);
-        assert!(mem_info.free > 0);
-        assert!(mem_info.total > mem_info.free);
-        Ok(())
-    }
-}
+/// Each variants correspond to the following:
+///
+/// - Host memory
+/// - Device memory
+/// - Array memory
+/// - Unified device or host memory
+pub use cuda::CUmemorytype_enum as MemoryType;
 
 /// Trait for CUDA managed memories. It assures
 ///
@@ -164,4 +157,21 @@ fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Attr {
     )
     .expect("Cannot get pointer attributes");
     unsafe { data.assume_init() }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::*;
+
+    #[test]
+    fn info() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mem_info = MemoryInfo::get(&ctx);
+        dbg!(&mem_info);
+        assert!(mem_info.free > 0);
+        assert!(mem_info.total > mem_info.free);
+        Ok(())
+    }
 }

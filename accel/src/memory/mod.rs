@@ -37,14 +37,7 @@ use crate::{error::*, ffi_call};
 use cuda::*;
 use std::mem::MaybeUninit;
 
-/// Each variants correspond to the following:
-///
-/// - Host memory
-/// - Device memory
-/// - Array memory
-/// - Unified device or host memory
-pub use cuda::CUmemorytype_enum;
-
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
     Host,
     Registered,
@@ -53,18 +46,7 @@ pub enum MemoryType {
     Array,
 }
 
-impl Into<MemoryType> for CUmemorytype_enum {
-    fn into(self) -> MemoryType {
-        match self {
-            CUmemorytype_enum::CU_MEMORYTYPE_HOST => MemoryType::PageLocked,
-            CUmemorytype_enum::CU_MEMORYTYPE_DEVICE => MemoryType::Device,
-            CUmemorytype_enum::CU_MEMORYTYPE_ARRAY => MemoryType::Array,
-            CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED => MemoryType::Registered,
-        }
-    }
-}
-
-// Typed wrapper of cuPointerGetAttribute
+/// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Result<Attr> {
     let data = MaybeUninit::uninit();
     ffi_call!(
@@ -92,9 +74,13 @@ fn buffer_id<T>(ptr: *const T) -> Result<u64> {
 
 /// Has unique head address and allocated size.
 pub trait Memory {
+    /// Scalar type of each element
     type Elem;
+    /// Get head address of the memory
     fn head_addr(&self) -> *const Self::Elem;
+    /// Get byte size of allocated memory
     fn byte_size(&self) -> usize;
+    /// Get memory type
     fn memory_type(&self) -> MemoryType {
         memory_type(self.head_addr())
     }

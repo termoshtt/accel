@@ -4,17 +4,23 @@
 //! ---------------
 //!
 //! - All memories are mapped into a single 64bit memory space
+//! - We can get where the pointed memory exists from its value.
 //!
 //! Memory Types
 //! ------------
 //!
-//! |name                     | where exists | From Host | From Device | Description                                                               |
-//! |:------------------------|:------------:|:---------:|:-----------:|:--------------------------------------------------------------------------|
-//! | (usual) Host memory     | Host         | ✓         |  -          | allocated by usual manner, e.g. `vec![0; n]`                              |
-//! | registered Host memory  | Host         | ✓         |  ✓          | allocated by usual manner, and registered into CUDA unified memory system |
-//! | Page-locked Host memory | Host         | ✓         |  ✓          | OS memory paging feature is disabled for accelarating memory transfer     |
-//! | Device memory           | Device       | ✓         |  ✓          | allocated on device as a single span                                      |
-//! | Array                   | Device       | ✓         |  ✓          | properly aligned memory on device for using Texture and Surface memory    |
+//! |name                      | where exists | From Host | From Device | As slice | Description                                                            |
+//! |:-------------------------|:------------:|:---------:|:-----------:|:--------:|:-----------------------------------------------------------------------|
+//! | (usual) Host memory      | Host         | ✓         |  -          |  ✓       | allocated by usual manner, e.g. `vec![0; n]`                           |
+//! | [Registered Host memory] | Host         | ✓         |  ✓          |  ✓       | A host memory registered into CUDA memory management system            |
+//! | [Page-locked Host memory]| Host         | ✓         |  ✓          |  ✓       | OS memory paging is disabled for accelerating memory transfer          |
+//! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
+//! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
+//!
+//! [Registered Host memory]:  ./host/struct.RegisterdMemory.html
+//! [Page-locked Host memory]: ./host/struct.PageLockedMemory.html
+//! [Device memory]:           ./device/struct.DeviceMemory.html
+//! [Array]:                   ./array/struct.Array.html
 //!
 
 pub mod array;
@@ -41,6 +47,27 @@ use std::{
 /// - Array memory
 /// - Unified device or host memory
 pub use cuda::CUmemorytype_enum as MemoryType;
+
+/// Has unique head address and allocated size.
+pub trait Memory {
+    type Elem;
+    fn as_ptr(&self) -> *const Self::Elem;
+    fn as_mut_ptr(&self) -> *const Self::Elem;
+    fn byte_size(&self) -> usize;
+    fn memory_type(&self) -> MemoryType;
+}
+
+/// Has 1D index in addition to [Memory] trait.
+pub trait Continuous: Memory + Deref<Target = <Self as Memory>::Elem> + DerefMut {
+    fn len(&self) -> usize;
+    fn as_slice(&self) -> &[Self::Elem];
+    fn as_mut_slice(&self) -> &[Self::Elem];
+}
+
+/// Is managed under the CUDA unified memory management systems in addition to [Memory] trait.
+pub trait Managed: Memory {
+    fn buffer_id(&self) -> u64;
+}
 
 /// Trait for CUDA managed memories. It assures
 ///

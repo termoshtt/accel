@@ -17,15 +17,15 @@
 //! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
 //! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
 //!
-//! [Registered Host memory]:  ./host/struct.RegisterdMemory.html
-//! [Page-locked Host memory]: ./host/struct.PageLockedMemory.html
-//! [Device memory]:           ./device/struct.DeviceMemory.html
-//! [Array]:                   ./array/struct.Array.html
+//! [Registered Host memory]:  ./struct.RegisterdMemory.html
+//! [Page-locked Host memory]: ./struct.PageLockedMemory.html
+//! [Device memory]:           ./struct.DeviceMemory.html
+//! [Array]:                   ./struct.Array.html
 //!
 
-pub mod array;
-pub mod device;
-pub mod host;
+mod array;
+mod device;
+mod host;
 mod info;
 
 pub use array::*;
@@ -35,10 +35,7 @@ pub use info::*;
 
 use crate::{error::*, ffi_call};
 use cuda::*;
-use std::{
-    mem::MaybeUninit,
-    ops::{Deref, DerefMut},
-};
+use std::mem::MaybeUninit;
 
 /// Each variants correspond to the following:
 ///
@@ -173,74 +170,6 @@ impl<'a, T> ContinuousMut for &'a mut [T] {
 pub trait Managed: Memory {
     fn buffer_id(&self) -> u64 {
         buffer_id(self.head_addr()).expect("Not managed by CUDA")
-    }
-}
-
-/// Trait for CUDA managed memories. It assures
-///
-/// - can be accessed from both host (CPU) and device (GPU) programs
-/// - can be treated as a slice, i.e. a single span of either host or device memory
-///
-pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
-    /// Length of device memory
-    fn len(&self) -> usize;
-
-    /// Size of device memory in bytes
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
-    }
-
-    /// Get the unified address of the memory as an immutable pointer
-    fn as_ptr(&self) -> *const T;
-
-    /// Get the unified address of the memory as a mutable pointer
-    fn as_mut_ptr(&mut self) -> *mut T;
-
-    /// Access as a slice.
-    fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.as_ptr(), self.len()) }
-    }
-
-    /// Access as a mutable slice.
-    fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.as_mut_ptr(), self.len()) }
-    }
-
-    /// Unique identifier of the memory
-    ///
-    /// ```
-    /// # use ::accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mem1 = DeviceMemory::<i32>::new(&ctx, 12);
-    /// let mem2 = DeviceMemory::<i32>::new(&ctx, 12);
-    /// assert_ne!(mem1.id(), mem2.id());
-    /// ```
-    fn id(&self) -> u64 {
-        get_attr(
-            self.as_ptr(),
-            CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID,
-        )
-        .unwrap()
-    }
-
-    /// Memory Type
-    ///
-    /// ```
-    /// # use ::accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let dev = DeviceMemory::<i32>::new(&ctx, 12);
-    /// assert_eq!(dev.memory_type(), MemoryType::CU_MEMORYTYPE_DEVICE);
-    /// let host = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// assert_eq!(host.memory_type(), MemoryType::CU_MEMORYTYPE_HOST);
-    /// ```
-    fn memory_type(&self) -> MemoryType {
-        get_attr(
-            self.as_ptr(),
-            CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE,
-        )
-        .unwrap()
     }
 }
 

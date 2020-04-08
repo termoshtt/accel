@@ -1,6 +1,6 @@
 //! Device and Host memory handlers
 
-use super::CudaMemory;
+use super::*;
 use crate::{device::*, ffi_call, ffi_new};
 use cuda::*;
 use std::ops::{Deref, DerefMut};
@@ -39,19 +39,38 @@ impl<'ctx, T> Contexted for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> CudaMemory<T> for PageLockedMemory<'ctx, T> {
-    fn as_ptr(&self) -> *const T {
-        self.ptr as *const T
+impl<'ctx, T> Memory for PageLockedMemory<'ctx, T> {
+    type Elem = T;
+    fn head_addr(&self) -> *const T {
+        self.ptr as _
     }
-
-    fn as_mut_ptr(&mut self) -> *mut T {
-        self.ptr
-    }
-
-    fn len(&self) -> usize {
-        self.size
+    fn byte_size(&self) -> usize {
+        self.size * std::mem::size_of::<T>()
     }
 }
+
+impl<'ctx, T> MemoryMut for PageLockedMemory<'ctx, T> {
+    fn head_addr_mut(&mut self) -> *mut T {
+        self.ptr as _
+    }
+}
+
+impl<'ctx, T> Continuous for PageLockedMemory<'ctx, T> {
+    fn length(&self) -> usize {
+        self.size
+    }
+    fn as_slice(&self) -> &[T] {
+        unsafe { std::slice::from_raw_parts(self.head_addr(), self.size) }
+    }
+}
+
+impl<'ctx, T> ContinuousMut for PageLockedMemory<'ctx, T> {
+    fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { std::slice::from_raw_parts_mut(self.head_addr_mut(), self.size) }
+    }
+}
+
+impl<'ctx, T> Managed for PageLockedMemory<'ctx, T> {}
 
 impl<'ctx, T> PageLockedMemory<'ctx, T> {
     /// Allocate host memory as page-locked.
@@ -104,5 +123,25 @@ mod tests {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
         let _a = PageLockedMemory::<i32>::new(&ctx, 0);
+    }
+
+    #[test]
+    fn device() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+        assert_eq!(mem.len(), 12);
+        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        let sl = mem.as_mut_slice();
+        sl[0] = 3;
+        Ok(())
+    }
+
+    #[should_panic(expected = "Zero-sized malloc is forbidden")]
+    #[test]
+    fn device_new_zero() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let _a = DeviceMemory::<i32>::new(&ctx, 0);
     }
 }

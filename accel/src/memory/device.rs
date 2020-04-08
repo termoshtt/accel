@@ -1,6 +1,6 @@
 //! Device and Host memory handlers
 
-use super::CudaMemory;
+use super::*;
 use crate::{device::*, ffi_call, ffi_new};
 use cuda::*;
 use std::{
@@ -39,19 +39,38 @@ impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> CudaMemory<T> for DeviceMemory<'ctx, T> {
-    fn len(&self) -> usize {
-        self.size
-    }
-
-    fn as_ptr(&self) -> *const T {
+impl<'ctx, T> Memory for DeviceMemory<'ctx, T> {
+    type Elem = T;
+    fn head_addr(&self) -> *const T {
         self.ptr as _
     }
+    fn byte_size(&self) -> usize {
+        self.size * std::mem::size_of::<T>()
+    }
+}
 
-    fn as_mut_ptr(&mut self) -> *mut T {
+impl<'ctx, T> MemoryMut for DeviceMemory<'ctx, T> {
+    fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
     }
 }
+
+impl<'ctx, T> Continuous for DeviceMemory<'ctx, T> {
+    fn length(&self) -> usize {
+        self.size
+    }
+    fn as_slice(&self) -> &[T] {
+        unsafe { std::slice::from_raw_parts(self.head_addr(), self.size) }
+    }
+}
+
+impl<'ctx, T> ContinuousMut for DeviceMemory<'ctx, T> {
+    fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { std::slice::from_raw_parts_mut(self.head_addr_mut(), self.size) }
+    }
+}
+
+impl<'ctx, T> Managed for DeviceMemory<'ctx, T> {}
 
 impl<'ctx, T> Contexted for DeviceMemory<'ctx, T> {
     fn get_context(&self) -> &Context {

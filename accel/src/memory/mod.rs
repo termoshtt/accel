@@ -27,7 +27,7 @@ pub use device::*;
 pub use host::*;
 pub use info::*;
 
-use crate::{device::*, ffi_call};
+use crate::{error::*, ffi_call};
 use cuda::*;
 use std::{
     mem::MaybeUninit,
@@ -87,6 +87,7 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
             self.as_ptr(),
             CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID,
         )
+        .unwrap()
     }
 
     /// Memory Type
@@ -105,35 +106,45 @@ pub trait CudaMemory<T>: Deref<Target = [T]> + DerefMut {
             self.as_ptr(),
             CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE,
         )
+        .unwrap()
     }
 }
 
 // Typed wrapper of cuPointerGetAttribute
-fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Attr {
+fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Result<Attr> {
     let data = MaybeUninit::uninit();
     ffi_call!(
         cuPointerGetAttribute,
         data.as_ptr() as *mut _,
         attr,
         ptr as CUdeviceptr
-    )
-    .expect("Cannot get pointer attributes");
+    )?;
     unsafe { data.assume_init() }
+}
+
+pub fn memory_type<T>(ptr: *const T) -> Result<MemoryType> {
+    get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE)
+}
+
+pub fn buffer_id<T>(ptr: *const T) -> Result<u64> {
+    get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::*;
+    use crate::device::*;
 
     #[test]
-    fn info() -> Result<()> {
+    fn get_attr_host_memory() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mem_info = MemoryInfo::get(&ctx);
-        dbg!(&mem_info);
-        assert!(mem_info.free > 0);
-        assert!(mem_info.total > mem_info.free);
-        Ok(())
+        let _ctx = device.create_context();
+
+        let a = vec![0_u32; 12];
+        let attr = memory_type(a.as_ptr());
+        dbg!(attr);
+        let id = buffer_id(a.as_ptr());
+        dbg!(id);
+        panic!("!!");
     }
 }

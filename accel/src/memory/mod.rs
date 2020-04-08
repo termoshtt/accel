@@ -20,7 +20,7 @@
 pub mod array;
 pub mod device;
 pub mod host;
-pub mod info;
+mod info;
 
 pub use array::*;
 pub use device::*;

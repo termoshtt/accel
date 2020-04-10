@@ -27,6 +27,7 @@ mod array;
 mod device;
 mod host;
 mod info;
+mod slice;
 
 pub use array::*;
 pub use device::*;
@@ -91,32 +92,6 @@ pub trait MemoryMut: Memory {
     fn head_addr_mut(&mut self) -> *mut Self::Elem;
 }
 
-impl<'a, T> Memory for &'a [T] {
-    type Elem = T;
-    fn head_addr(&self) -> *const T {
-        self.as_ptr()
-    }
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
-    }
-}
-
-impl<'a, T> Memory for &'a mut [T] {
-    type Elem = T;
-    fn head_addr(&self) -> *const T {
-        self.as_ptr()
-    }
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
-    }
-}
-
-impl<'a, T> MemoryMut for &'a mut [T] {
-    fn head_addr_mut(&mut self) -> *mut T {
-        self.as_mut_ptr()
-    }
-}
-
 /// Has 1D index in addition to [Memory] trait.
 pub trait Continuous: Memory {
     fn length(&self) -> usize;
@@ -128,47 +103,9 @@ pub trait ContinuousMut: Continuous {
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
 
-impl<'a, T> Continuous for &'a [T] {
-    fn length(&self) -> usize {
-        self.len()
-    }
-    fn as_slice(&self) -> &[Self::Elem] {
-        self
-    }
-}
-
-impl<'a, T> Continuous for &'a mut [T] {
-    fn length(&self) -> usize {
-        self.len()
-    }
-    fn as_slice(&self) -> &[Self::Elem] {
-        self
-    }
-}
-
-impl<'a, T> ContinuousMut for &'a mut [T] {
-    fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
-        self
-    }
-}
-
 /// Is managed under the CUDA unified memory management systems in addition to [Memory] trait.
 pub trait Managed: Memory {
     fn buffer_id(&self) -> u64 {
         buffer_id(self.head_addr()).expect("Not managed by CUDA")
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn memory_for_slice() -> Result<()> {
-        let a = vec![0_u32; 12];
-        assert!(matches!(a.as_slice().memory_type(), MemoryType::Host));
-        assert_eq!(a.as_slice().length(), 12);
-        assert_eq!(a.as_slice().byte_size(), 12 * 4 /* u32 */);
-        Ok(())
     }
 }

@@ -84,44 +84,13 @@ pub trait MemoryMut: Memory {
     /// Try to convert into a slice. Return error if the memory is not continuous
     fn try_as_mut_slice(&mut self) -> Result<&mut [Self::Elem]>;
 
-    /// Copy memory
+    /// Copy data from one to another
     ///
     /// Panic
     /// -----
+    /// - `self` and `src` are identical
     /// - if the size memory size mismathes
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
-        assert_eq!(self.byte_size(), src.byte_size());
-
-        // Tuple (dest, src) cannot be matched by or-patterns syntax, which is experimental
-        // See https://github.com/rust-lang/rust/issues/54883
-        match self.memory_type() {
-            // To host
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                match src.memory_type() {
-                    // From host
-                    MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => self
-                        .try_as_mut_slice()
-                        .unwrap()
-                        .copy_from_slice(src.try_as_slice().unwrap()),
-                    // From device
-                    MemoryType::Device => todo!(),
-                    // From array
-                    MemoryType::Array => unimplemented!("Array memory is not supported yet"),
-                }
-            }
-            // To device
-            MemoryType::Device => match src.memory_type() {
-                // From host
-                MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => todo!(),
-                // From device
-                MemoryType::Device => todo!(),
-                // From array
-                MemoryType::Array => unimplemented!("Array memory is not supported yet"),
-            },
-            // To array
-            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
-        }
-    }
+    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>);
 }
 
 /// Has 1D index in addition to [Memory] trait.

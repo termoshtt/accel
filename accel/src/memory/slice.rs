@@ -53,6 +53,23 @@ impl<'a, T: Copy> MemoryMut for &'a mut [T] {
     fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
         Ok(self)
     }
+    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.byte_size(), src.byte_size());
+
+        // Tuple (dest, src) cannot be matched by or-patterns syntax, which is experimental
+        // See https://github.com/rust-lang/rust/issues/54883
+        match self.memory_type() {
+            // To host
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => unsafe {
+                copy_to_host(self, src)
+            },
+            // To device
+            MemoryType::Device => unsafe { copy_to_device(self, src) },
+            // To array
+            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+        }
+    }
 }
 
 impl<'a, T: Copy> Continuous for &'a [T] {

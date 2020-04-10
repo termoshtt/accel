@@ -55,12 +55,46 @@ impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
     }
 }
 
+/// Safety
+/// ------
+/// - This works only when `dest` is host memory
+#[allow(unused_unsafe)]
+pub(super) unsafe fn copy_to_host<T: Copy>(
+    dest: &mut impl MemoryMut<Elem = T>,
+    src: &impl Memory<Elem = T>,
+) {
+    assert_ne!(dest.head_addr(), src.head_addr());
+    assert_eq!(dest.byte_size(), src.byte_size());
+    match src.memory_type() {
+        // From host
+        MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => dest
+            .try_as_mut_slice()
+            .unwrap()
+            .copy_from_slice(src.try_as_slice().unwrap()),
+        // From device
+        MemoryType::Device => {
+            ffi_call!(
+                cuMemcpyDtoH_v2,
+                dest.head_addr_mut() as _,
+                src.head_addr() as _,
+                dest.byte_size()
+            )
+            .expect("memcpy from Device to Host failed");
+        }
+        // From array
+        MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+    }
+}
+
 impl<'ctx, T: Copy> MemoryMut for PageLockedMemory<'ctx, T> {
     fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
     }
     fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
         Ok(self.as_mut_slice())
+    }
+    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
+        unsafe { copy_to_host(self, src) }
     }
 }
 

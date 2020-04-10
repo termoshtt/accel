@@ -23,13 +23,13 @@ impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
 impl<'ctx, T> Deref for PageLockedMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        self.as_slice()
+        unsafe { std::slice::from_raw_parts(self.ptr as _, self.size) }
     }
 }
 
 impl<'ctx, T> DerefMut for PageLockedMemory<'ctx, T> {
     fn deref_mut(&mut self) -> &mut [T] {
-        self.as_mut_slice()
+        unsafe { std::slice::from_raw_parts_mut(self.ptr, self.size) }
     }
 }
 
@@ -39,7 +39,7 @@ impl<'ctx, T> Contexted for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> Memory for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -55,7 +55,7 @@ impl<'ctx, T> Memory for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> MemoryMut for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Copy> MemoryMut for PageLockedMemory<'ctx, T> {
     fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
     }
@@ -64,22 +64,22 @@ impl<'ctx, T> MemoryMut for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> Continuous for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Copy> Continuous for PageLockedMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
     }
     fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.head_addr(), self.size) }
+        self
     }
 }
 
-impl<'ctx, T> ContinuousMut for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Copy> ContinuousMut for PageLockedMemory<'ctx, T> {
     fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.head_addr_mut(), self.size) }
+        self
     }
 }
 
-impl<'ctx, T> Managed for PageLockedMemory<'ctx, T> {}
+impl<'ctx, T: Copy> Managed for PageLockedMemory<'ctx, T> {}
 
 impl<'ctx, T> PageLockedMemory<'ctx, T> {
     /// Allocate host memory as page-locked.

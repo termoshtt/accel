@@ -62,7 +62,7 @@ fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Result<Attr> {
 /// Has unique head address and allocated size.
 pub trait Memory {
     /// Scalar type of each element
-    type Elem;
+    type Elem: Copy;
 
     /// Get head address of the memory
     fn head_addr(&self) -> *const Self::Elem;
@@ -89,10 +89,7 @@ pub trait MemoryMut: Memory {
     /// Panic
     /// -----
     /// - if the size memory size mismathes
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>)
-    where
-        Self::Elem: Copy,
-    {
+    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
         assert_eq!(self.byte_size(), src.byte_size());
 
         // Tuple (dest, src) cannot be matched by or-patterns syntax, which is experimental

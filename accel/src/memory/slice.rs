@@ -14,7 +14,7 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
     }
 }
 
-impl<'a, T> Memory for &'a [T] {
+impl<'a, T: Copy> Memory for &'a [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.as_ptr()
@@ -30,7 +30,7 @@ impl<'a, T> Memory for &'a [T] {
     }
 }
 
-impl<'a, T> Memory for &'a mut [T] {
+impl<'a, T: Copy> Memory for &'a mut [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.as_ptr()
@@ -46,7 +46,7 @@ impl<'a, T> Memory for &'a mut [T] {
     }
 }
 
-impl<'a, T> MemoryMut for &'a mut [T] {
+impl<'a, T: Copy> MemoryMut for &'a mut [T] {
     fn head_addr_mut(&mut self) -> *mut T {
         self.as_mut_ptr()
     }
@@ -55,7 +55,7 @@ impl<'a, T> MemoryMut for &'a mut [T] {
     }
 }
 
-impl<'a, T> Continuous for &'a [T] {
+impl<'a, T: Copy> Continuous for &'a [T] {
     fn length(&self) -> usize {
         self.len()
     }
@@ -64,7 +64,7 @@ impl<'a, T> Continuous for &'a [T] {
     }
 }
 
-impl<'a, T> Continuous for &'a mut [T] {
+impl<'a, T: Copy> Continuous for &'a mut [T] {
     fn length(&self) -> usize {
         self.len()
     }
@@ -73,7 +73,7 @@ impl<'a, T> Continuous for &'a mut [T] {
     }
 }
 
-impl<'a, T> ContinuousMut for &'a mut [T] {
+impl<'a, T: Copy> ContinuousMut for &'a mut [T] {
     fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
         self
     }

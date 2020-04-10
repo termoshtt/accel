@@ -29,17 +29,17 @@ impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
 impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        self.as_slice()
+        unsafe { std::slice::from_raw_parts(self.ptr as _, self.size) }
     }
 }
 
 impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     fn deref_mut(&mut self) -> &mut [T] {
-        self.as_mut_slice()
+        unsafe { std::slice::from_raw_parts_mut(self.ptr as _, self.size) }
     }
 }
 
-impl<'ctx, T> Memory for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -55,7 +55,7 @@ impl<'ctx, T> Memory for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> MemoryMut for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Copy> MemoryMut for DeviceMemory<'ctx, T> {
     fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
     }
@@ -64,24 +64,24 @@ impl<'ctx, T> MemoryMut for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> Continuous for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
     }
     fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.head_addr(), self.size) }
+        self
     }
 }
 
-impl<'ctx, T> ContinuousMut for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Copy> ContinuousMut for DeviceMemory<'ctx, T> {
     fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.head_addr_mut(), self.size) }
+        self
     }
 }
 
-impl<'ctx, T> Managed for DeviceMemory<'ctx, T> {}
+impl<'ctx, T: Copy> Managed for DeviceMemory<'ctx, T> {}
 
-impl<'ctx, T> Contexted for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Copy> Contexted for DeviceMemory<'ctx, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }

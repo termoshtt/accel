@@ -8,6 +8,9 @@ impl<'a, T> Memory for &'a [T] {
     fn byte_size(&self) -> usize {
         self.len() * std::mem::size_of::<T>()
     }
+    fn try_as_slice(&self) -> Result<&[T]> {
+        Ok(self)
+    }
 }
 
 impl<'a, T> Memory for &'a mut [T] {
@@ -18,11 +21,17 @@ impl<'a, T> Memory for &'a mut [T] {
     fn byte_size(&self) -> usize {
         self.len() * std::mem::size_of::<T>()
     }
+    fn try_as_slice(&self) -> Result<&[T]> {
+        Ok(self)
+    }
 }
 
 impl<'a, T> MemoryMut for &'a mut [T] {
     fn head_addr_mut(&mut self) -> *mut T {
         self.as_mut_ptr()
+    }
+    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
+        Ok(self)
     }
 }
 

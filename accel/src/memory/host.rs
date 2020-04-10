@@ -47,11 +47,17 @@ impl<'ctx, T> Memory for PageLockedMemory<'ctx, T> {
     fn byte_size(&self) -> usize {
         self.size * std::mem::size_of::<T>()
     }
+    fn try_as_slice(&self) -> Result<&[T]> {
+        Ok(self.as_slice())
+    }
 }
 
 impl<'ctx, T> MemoryMut for PageLockedMemory<'ctx, T> {
     fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
+    }
+    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
+        Ok(self.as_mut_slice())
     }
 }
 

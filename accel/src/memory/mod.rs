@@ -105,13 +105,16 @@ pub trait MemoryMut: Memory {
     /// Panic
     /// -----
     /// - if the size memory size mismathes
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
+    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>)
+    where
+        Self::Elem: Copy,
+    {
         assert_eq!(self.byte_size(), src.byte_size());
         match (self.memory_type(), src.memory_type()) {
-            // (Host, Host) => self
-            //     .try_as_mut_slice()
-            //     .unwrap()
-            //     .copy_from_slice(src.try_as_slice().unwrap()),
+            (MemoryType::Host, MemoryType::Host) => self
+                .try_as_mut_slice()
+                .unwrap()
+                .copy_from_slice(src.try_as_slice().unwrap()),
             (dest, src) => unimplemented!("Copy from {:?} to {:?} is not supported yet", src, dest),
         }
     }

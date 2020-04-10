@@ -1,5 +1,19 @@
 use super::*;
 
+/// Determine actual memory type dynamically
+///
+/// Because `Continuous` memories can be treated as a slice,
+/// input slice may represents any type of memory.
+fn memory_type<T>(ptr: *const T) -> MemoryType {
+    match get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE) {
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::PageLocked,
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_DEVICE) => MemoryType::Device,
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_ARRAY) => MemoryType::Array,
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED) => MemoryType::Registered,
+        Err(_) => MemoryType::Host,
+    }
+}
+
 impl<'a, T> Memory for &'a [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
@@ -10,6 +24,9 @@ impl<'a, T> Memory for &'a [T] {
     }
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self)
+    }
+    fn memory_type(&self) -> MemoryType {
+        memory_type(self.as_ptr())
     }
 }
 
@@ -23,6 +40,9 @@ impl<'a, T> Memory for &'a mut [T] {
     }
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self)
+    }
+    fn memory_type(&self) -> MemoryType {
+        memory_type(self.as_ptr())
     }
 }
 

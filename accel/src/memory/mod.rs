@@ -59,20 +59,6 @@ fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Result<Attr> {
     unsafe { data.assume_init() }
 }
 
-fn memory_type<T>(ptr: *const T) -> MemoryType {
-    match get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE) {
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::PageLocked,
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_DEVICE) => MemoryType::Device,
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_ARRAY) => MemoryType::Array,
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED) => MemoryType::Registered,
-        Err(_) => MemoryType::Host,
-    }
-}
-
-fn buffer_id<T>(ptr: *const T) -> Result<u64> {
-    get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID)
-}
-
 /// Has unique head address and allocated size.
 pub trait Memory {
     /// Scalar type of each element
@@ -88,9 +74,7 @@ pub trait Memory {
     fn try_as_slice(&self) -> Result<&[Self::Elem]>;
 
     /// Get memory type
-    fn memory_type(&self) -> MemoryType {
-        memory_type(self.head_addr())
-    }
+    fn memory_type(&self) -> MemoryType;
 }
 
 /// Has unique head address and allocated size.
@@ -134,6 +118,10 @@ pub trait ContinuousMut: Continuous {
 /// Is managed under the CUDA unified memory management systems in addition to [Memory] trait.
 pub trait Managed: Memory {
     fn buffer_id(&self) -> u64 {
-        buffer_id(self.head_addr()).expect("Not managed by CUDA")
+        get_attr(
+            self.head_addr(),
+            CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID,
+        )
+        .expect("Not managed by CUDA")
     }
 }

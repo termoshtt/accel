@@ -50,6 +50,9 @@ impl<'ctx, T> Memory for PageLockedMemory<'ctx, T> {
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self.as_slice())
     }
+    fn memory_type(&self) -> MemoryType {
+        MemoryType::PageLocked
+    }
 }
 
 impl<'ctx, T> MemoryMut for PageLockedMemory<'ctx, T> {

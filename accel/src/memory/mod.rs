@@ -94,12 +94,35 @@ pub trait MemoryMut: Memory {
         Self::Elem: Copy,
     {
         assert_eq!(self.byte_size(), src.byte_size());
-        match (self.memory_type(), src.memory_type()) {
-            (MemoryType::Host, MemoryType::Host) => self
-                .try_as_mut_slice()
-                .unwrap()
-                .copy_from_slice(src.try_as_slice().unwrap()),
-            (dest, src) => unimplemented!("Copy from {:?} to {:?} is not supported yet", src, dest),
+
+        // Tuple (dest, src) cannot be matched by or-patterns syntax, which is experimental
+        // See https://github.com/rust-lang/rust/issues/54883
+        match self.memory_type() {
+            // To host
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+                match src.memory_type() {
+                    // From host
+                    MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => self
+                        .try_as_mut_slice()
+                        .unwrap()
+                        .copy_from_slice(src.try_as_slice().unwrap()),
+                    // From device
+                    MemoryType::Device => todo!(),
+                    // From array
+                    MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+                }
+            }
+            // To device
+            MemoryType::Device => match src.memory_type() {
+                // From host
+                MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => todo!(),
+                // From device
+                MemoryType::Device => todo!(),
+                // From array
+                MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+            },
+            // To array
+            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
 }

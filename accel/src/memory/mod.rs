@@ -34,7 +34,7 @@ pub use device::*;
 pub use host::*;
 pub use info::*;
 
-use crate::{error::*, ffi_call};
+use crate::{device::Context, error::*, ffi_call};
 use cuda::*;
 use std::mem::MaybeUninit;
 
@@ -70,8 +70,11 @@ pub trait Memory {
     /// Get byte size of allocated memory
     fn byte_size(&self) -> usize;
 
-    /// Try to convert into a slice. Return error if the memory is not continuous
+    /// Try to convert into a slice. Return error if the memory is not `Continuous`
     fn try_as_slice(&self) -> Result<&[Self::Elem]>;
+
+    /// Try to get CUDA context. Return None if the memory is not `Contexted`
+    fn try_get_context(&self) -> Option<&Context>;
 
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
@@ -86,9 +89,93 @@ pub trait MemoryMut: Memory {
 
     /// Copy data from one to another
     ///
+    /// Examples
+    /// ---------
+    ///
+    /// - memcpy from page-locked host memory to device memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from device memory to page-locked host memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = PageLockedMemory::<i32>::new(&ctx, 12);
+    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from device to device
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from Rust slice to device memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+    /// let src = vec![0_i32; 12];
+    /// dest.copy_from(&src.as_slice()); // requires explicit cast to slice
+    /// ```
+    ///
+    /// - memcpy from device memory to Rust slice
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = vec![0_i32; 12];
+    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
+    /// dest.as_mut_slice().copy_from(&src); // requires explict cast to mutable slice
+    /// ```
+    ///
+    /// Requirements
+    /// -------------
+    ///
+    /// - Cannot copy between different types
+    ///
+    /// ```compile_fail
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i64>::new(&ctx, 12);
+    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+    /// dest.copy_from(&src); // compile fail
+    /// ```
+    ///
+    /// - Panics if sizes are different
+    ///
+    /// ```should_panic
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 24);
+    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+    /// dest.copy_from(&src); // will panic
+    /// ```
+    ///
     /// Panic
     /// -----
     /// - `self` and `src` are identical
+    /// - if `self` nad `src` belong to different context
     /// - if the size memory size mismathes
     fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>);
 }

@@ -50,6 +50,9 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self.as_slice())
     }
+    fn try_get_context(&self) -> Option<&Context> {
+        Some(self.get_context())
+    }
     fn memory_type(&self) -> MemoryType {
         MemoryType::Device
     }
@@ -65,13 +68,28 @@ pub(super) unsafe fn copy_to_device<T: Copy>(
 ) {
     assert_ne!(dest.head_addr(), src.head_addr());
     assert_eq!(dest.byte_size(), src.byte_size());
+
+    let dest_ptr = dest.head_addr_mut();
+    let src_ptr = src.head_addr();
+
+    // context guard
+    let _g = match (dest.try_get_context(), src.try_get_context()) {
+        (Some(d_ctx), Some(s_ctx)) => {
+            assert_eq!(d_ctx, s_ctx);
+            Some(d_ctx.guard_context())
+        }
+        (Some(ctx), None) => Some(ctx.guard_context()),
+        (None, Some(ctx)) => Some(ctx.guard_context()),
+        (None, None) => None,
+    };
+
     match src.memory_type() {
         // From host
         MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
             ffi_call!(
                 cuMemcpyHtoD_v2,
-                dest.head_addr_mut() as _,
-                src.head_addr() as _,
+                dest_ptr as _,
+                src_ptr as _,
                 dest.byte_size()
             )
             .expect("memcpy from Host to Device failed");
@@ -80,8 +98,8 @@ pub(super) unsafe fn copy_to_device<T: Copy>(
         MemoryType::Device => {
             ffi_call!(
                 cuMemcpyDtoD_v2,
-                dest.head_addr_mut() as _,
-                src.head_addr() as _,
+                dest_ptr as _,
+                src_ptr as _,
                 dest.byte_size()
             )
             .expect("memcpy from Device to Device failed");

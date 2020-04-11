@@ -25,6 +25,9 @@ impl<'a, T: Copy> Memory for &'a [T] {
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self)
     }
+    fn try_get_context(&self) -> Option<&Context> {
+        None
+    }
     fn memory_type(&self) -> MemoryType {
         memory_type(self.as_ptr())
     }
@@ -40,6 +43,9 @@ impl<'a, T: Copy> Memory for &'a mut [T] {
     }
     fn try_as_slice(&self) -> Result<&[T]> {
         Ok(self)
+    }
+    fn try_get_context(&self) -> Option<&Context> {
+        None
     }
     fn memory_type(&self) -> MemoryType {
         memory_type(self.as_ptr())

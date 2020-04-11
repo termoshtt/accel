@@ -56,6 +56,18 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Device
     }
+    fn head_addr_mut(&mut self) -> *mut T {
+        self.ptr as _
+    }
+    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
+        Ok(self.as_mut_slice())
+    }
+    fn copy_from<Source>(&mut self, src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized,
+    {
+        unsafe { copy_to_device(self, src) }
+    }
 }
 
 /// Safety
@@ -64,7 +76,7 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
 #[allow(unused_unsafe)]
 pub(super) unsafe fn copy_to_device<T: Copy, Dest, Src>(dest: &mut Dest, src: &Src)
 where
-    Dest: MemoryMut<Elem = T> + ?Sized,
+    Dest: Memory<Elem = T> + ?Sized,
     Src: Memory<Elem = T> + ?Sized,
 {
     assert_ne!(dest.head_addr(), src.head_addr());
@@ -110,21 +122,6 @@ where
     }
 }
 
-impl<'ctx, T: Copy> MemoryMut for DeviceMemory<'ctx, T> {
-    fn head_addr_mut(&mut self) -> *mut T {
-        self.ptr as _
-    }
-    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
-        Ok(self.as_mut_slice())
-    }
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized,
-    {
-        unsafe { copy_to_device(self, src) }
-    }
-}
-
 impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
@@ -132,9 +129,6 @@ impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
     fn as_slice(&self) -> &[T] {
         self
     }
-}
-
-impl<'ctx, T: Copy> ContinuousMut for DeviceMemory<'ctx, T> {
     fn as_mut_slice(&mut self) -> &mut [T] {
         self
     }

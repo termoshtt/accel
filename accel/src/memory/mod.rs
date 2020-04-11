@@ -67,6 +67,8 @@ pub trait Memory {
     /// Get head address of the memory
     fn head_addr(&self) -> *const Self::Elem;
 
+    fn head_addr_mut(&mut self) -> *mut Self::Elem;
+
     /// Get byte size of allocated memory
     fn byte_size(&self) -> usize;
 
@@ -78,11 +80,6 @@ pub trait Memory {
 
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
-}
-
-/// Has unique head address and allocated size.
-pub trait MemoryMut: Memory {
-    fn head_addr_mut(&mut self) -> *mut Self::Elem;
 
     /// Try to convert into a slice. Return error if the memory is not continuous
     fn try_as_mut_slice(&mut self) -> Result<&mut [Self::Elem]>;
@@ -186,10 +183,6 @@ pub trait MemoryMut: Memory {
 pub trait Continuous: Memory {
     fn length(&self) -> usize;
     fn as_slice(&self) -> &[Self::Elem];
-}
-
-/// Has 1D index in addition to [Memory] trait.
-pub trait ContinuousMut: Continuous {
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
 

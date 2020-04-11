@@ -31,9 +31,6 @@ impl<T: Copy> Memory for [T] {
     fn memory_type(&self) -> MemoryType {
         memory_type(self.as_ptr())
     }
-}
-
-impl<T: Copy> MemoryMut for [T] {
     fn head_addr_mut(&mut self) -> *mut T {
         self.as_mut_ptr()
     }
@@ -66,9 +63,6 @@ impl<T: Copy> Continuous for [T] {
     fn as_slice(&self) -> &[Self::Elem] {
         self
     }
-}
-
-impl<T: Copy> ContinuousMut for [T] {
     fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
         self
     }

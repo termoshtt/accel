@@ -22,8 +22,8 @@ impl<'a, T: Copy> Memory for &'a [T] {
     fn byte_size(&self) -> usize {
         self.len() * std::mem::size_of::<T>()
     }
-    fn try_as_slice(&self) -> Result<&[T]> {
-        Ok(self)
+    fn try_as_slice(&self) -> Option<&[T]> {
+        Some(self)
     }
     fn try_get_context(&self) -> Option<&Context> {
         None
@@ -41,8 +41,8 @@ impl<'a, T: Copy> Memory for &'a mut [T] {
     fn byte_size(&self) -> usize {
         self.len() * std::mem::size_of::<T>()
     }
-    fn try_as_slice(&self) -> Result<&[T]> {
-        Ok(self)
+    fn try_as_slice(&self) -> Option<&[T]> {
+        Some(self)
     }
     fn try_get_context(&self) -> Option<&Context> {
         None

@@ -47,8 +47,8 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     fn byte_size(&self) -> usize {
         self.size * std::mem::size_of::<T>()
     }
-    fn try_as_slice(&self) -> Result<&[T]> {
-        Ok(self.as_slice())
+    fn try_as_slice(&self) -> Option<&[T]> {
+        Some(self.as_slice())
     }
     fn try_get_context(&self) -> Option<&Context> {
         Some(self.get_context())

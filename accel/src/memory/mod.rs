@@ -71,7 +71,7 @@ pub trait Memory {
     fn byte_size(&self) -> usize;
 
     /// Try to convert into a slice. Return error if the memory is not `Continuous`
-    fn try_as_slice(&self) -> Result<&[Self::Elem]>;
+    fn try_as_slice(&self) -> Option<&[Self::Elem]>;
 
     /// Try to get CUDA context. Return None if the memory is not `Contexted`
     fn try_get_context(&self) -> Option<&Context>;

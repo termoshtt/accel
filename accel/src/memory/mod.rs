@@ -133,7 +133,7 @@ pub trait MemoryMut: Memory {
     /// # let ctx = device.create_context();
     /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
     /// let src = vec![0_i32; 12];
-    /// dest.copy_from(&src.as_slice()); // requires explicit cast to slice
+    /// dest.copy_from(src.as_slice()); // requires explicit cast to slice
     /// ```
     ///
     /// - memcpy from device memory to Rust slice
@@ -144,7 +144,7 @@ pub trait MemoryMut: Memory {
     /// # let ctx = device.create_context();
     /// let mut dest = vec![0_i32; 12];
     /// let src = DeviceMemory::<i32>::new(&ctx, 12);
-    /// dest.as_mut_slice().copy_from(&src); // requires explict cast to mutable slice
+    /// dest.copy_from(&src);
     /// ```
     ///
     /// Requirements
@@ -177,7 +177,9 @@ pub trait MemoryMut: Memory {
     /// - `self` and `src` are identical
     /// - if `self` nad `src` belong to different context
     /// - if the size memory size mismathes
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>);
+    fn copy_from<Source>(&mut self, src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized;
 }
 
 /// Has 1D index in addition to [Memory] trait.

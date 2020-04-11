@@ -14,7 +14,7 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
     }
 }
 
-impl<'a, T: Copy> Memory for &'a [T] {
+impl<T: Copy> Memory for [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.as_ptr()
@@ -33,38 +33,19 @@ impl<'a, T: Copy> Memory for &'a [T] {
     }
 }
 
-impl<'a, T: Copy> Memory for &'a mut [T] {
-    type Elem = T;
-    fn head_addr(&self) -> *const T {
-        self.as_ptr()
-    }
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
-    }
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self)
-    }
-    fn try_get_context(&self) -> Option<&Context> {
-        None
-    }
-    fn memory_type(&self) -> MemoryType {
-        memory_type(self.as_ptr())
-    }
-}
-
-impl<'a, T: Copy> MemoryMut for &'a mut [T] {
+impl<T: Copy> MemoryMut for [T] {
     fn head_addr_mut(&mut self) -> *mut T {
         self.as_mut_ptr()
     }
     fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
         Ok(self)
     }
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
+    fn copy_from<Source>(&mut self, src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized,
+    {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.byte_size(), src.byte_size());
-
-        // Tuple (dest, src) cannot be matched by or-patterns syntax, which is experimental
-        // See https://github.com/rust-lang/rust/issues/54883
         match self.memory_type() {
             // To host
             MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => unsafe {
@@ -78,7 +59,7 @@ impl<'a, T: Copy> MemoryMut for &'a mut [T] {
     }
 }
 
-impl<'a, T: Copy> Continuous for &'a [T] {
+impl<T: Copy> Continuous for [T] {
     fn length(&self) -> usize {
         self.len()
     }
@@ -87,16 +68,7 @@ impl<'a, T: Copy> Continuous for &'a [T] {
     }
 }
 
-impl<'a, T: Copy> Continuous for &'a mut [T] {
-    fn length(&self) -> usize {
-        self.len()
-    }
-    fn as_slice(&self) -> &[Self::Elem] {
-        self
-    }
-}
-
-impl<'a, T: Copy> ContinuousMut for &'a mut [T] {
+impl<T: Copy> ContinuousMut for [T] {
     fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
         self
     }

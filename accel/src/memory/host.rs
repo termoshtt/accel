@@ -62,10 +62,11 @@ impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
 /// ------
 /// - This works only when `dest` is host memory
 #[allow(unused_unsafe)]
-pub(super) unsafe fn copy_to_host<T: Copy>(
-    dest: &mut impl MemoryMut<Elem = T>,
-    src: &impl Memory<Elem = T>,
-) {
+pub(super) unsafe fn copy_to_host<T: Copy, Dest, Src>(dest: &mut Dest, src: &Src)
+where
+    Dest: MemoryMut<Elem = T> + ?Sized,
+    Src: Memory<Elem = T> + ?Sized,
+{
     assert_ne!(dest.head_addr(), src.head_addr());
     assert_eq!(dest.byte_size(), src.byte_size());
 
@@ -109,7 +110,10 @@ impl<'ctx, T: Copy> MemoryMut for PageLockedMemory<'ctx, T> {
     fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
         Ok(self.as_mut_slice())
     }
-    fn copy_from(&mut self, src: &impl Memory<Elem = Self::Elem>) {
+    fn copy_from<Source>(&mut self, src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized,
+    {
         unsafe { copy_to_host(self, src) }
     }
 }

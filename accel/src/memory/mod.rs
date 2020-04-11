@@ -64,25 +64,26 @@ pub trait Memory {
     /// Scalar type of each element
     type Elem: Copy;
 
-    /// Get head address of the memory
+    /// Get head address of the memory as a const pointer
     fn head_addr(&self) -> *const Self::Elem;
 
+    /// Get head address of the memory as a mutable pointer
     fn head_addr_mut(&mut self) -> *mut Self::Elem;
 
     /// Get byte size of allocated memory
     fn byte_size(&self) -> usize;
 
-    /// Try to convert into a slice. Return error if the memory is not `Continuous`
-    fn try_as_slice(&self) -> Option<&[Self::Elem]>;
-
-    /// Try to get CUDA context. Return None if the memory is not `Contexted`
-    fn try_get_context(&self) -> Option<&Context>;
-
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
 
+    /// Try to convert into a slice. Return None if the memory is not `Continuous`
+    fn try_as_slice(&self) -> Option<&[Self::Elem]>;
+
     /// Try to convert into a slice. Return error if the memory is not continuous
     fn try_as_mut_slice(&mut self) -> Result<&mut [Self::Elem]>;
+
+    /// Try to get CUDA context. Return None if the memory is not `Contexted`
+    fn try_get_context(&self) -> Option<&Context>;
 
     /// Copy data from one to another
     ///
@@ -179,14 +180,14 @@ pub trait Memory {
         Source: Memory<Elem = Self::Elem> + ?Sized;
 }
 
-/// Has 1D index in addition to [Memory] trait.
+/// Memory which has continuous 1D index, i.e. can be treated as a Rust slice
 pub trait Continuous: Memory {
     fn length(&self) -> usize;
     fn as_slice(&self) -> &[Self::Elem];
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
 
-/// Is managed under the CUDA unified memory management systems in addition to [Memory] trait.
+/// Memory which is managed under the CUDA unified memory management systems
 pub trait Managed: Memory {
     fn buffer_id(&self) -> u64 {
         get_attr(

@@ -68,6 +68,9 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     {
         unsafe { copy_to_device(self, src) }
     }
+    fn set(&mut self, _value: Self::Elem) {
+        todo!()
+    }
 }
 
 /// Safety

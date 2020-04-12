@@ -68,6 +68,9 @@ impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
     {
         unsafe { copy_to_host(self, src) }
     }
+    fn set(&mut self, _value: Self::Elem) {
+        todo!()
+    }
 }
 
 /// Safety

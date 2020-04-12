@@ -54,6 +54,9 @@ impl<T: Copy> Memory for [T] {
             MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
+    fn set(&mut self, _value: Self::Elem) {
+        todo!()
+    }
 }
 
 impl<T: Copy> Continuous for [T] {

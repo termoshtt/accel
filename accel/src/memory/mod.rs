@@ -178,6 +178,8 @@ pub trait Memory {
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized;
+
+    fn set(&mut self, value: Self::Elem);
 }
 
 /// Memory which has continuous 1D index, i.e. can be treated as a Rust slice

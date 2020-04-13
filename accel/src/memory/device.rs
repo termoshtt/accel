@@ -39,7 +39,7 @@ impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -77,7 +77,7 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
 /// ------
 /// - This works only when `dest` is device memory
 #[allow(unused_unsafe)]
-pub(super) unsafe fn copy_to_device<T: Copy, Dest, Src>(dest: &mut Dest, src: &Src)
+pub(super) unsafe fn copy_to_device<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
 where
     Dest: Memory<Elem = T> + ?Sized,
     Src: Memory<Elem = T> + ?Sized,
@@ -125,7 +125,7 @@ where
     }
 }
 
-impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
     }
@@ -137,9 +137,9 @@ impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Managed for DeviceMemory<'ctx, T> {}
+impl<'ctx, T: Scalar> Managed for DeviceMemory<'ctx, T> {}
 
-impl<'ctx, T: Copy> Contexted for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Contexted for DeviceMemory<'ctx, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }

@@ -14,7 +14,7 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
     }
 }
 
-impl<T: Copy> Memory for [T] {
+impl<T: Scalar> Memory for [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.as_ptr()
@@ -59,7 +59,7 @@ impl<T: Copy> Memory for [T] {
     }
 }
 
-impl<T: Copy> Continuous for [T] {
+impl<T: Scalar> Continuous for [T] {
     fn length(&self) -> usize {
         self.len()
     }

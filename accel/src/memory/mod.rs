@@ -27,12 +27,14 @@ mod array;
 mod device;
 mod host;
 mod info;
+mod scalar;
 mod slice;
 
 pub use array::*;
 pub use device::*;
 pub use host::*;
 pub use info::*;
+pub use scalar::*;
 
 use crate::{device::Context, error::*, ffi_call};
 use cuda::*;
@@ -62,7 +64,7 @@ fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> Result<Attr> {
 /// Has unique head address and allocated size.
 pub trait Memory {
     /// Scalar type of each element
-    type Elem: Copy;
+    type Elem: Scalar;
 
     /// Get head address of the memory as a const pointer
     fn head_addr(&self) -> *const Self::Elem;

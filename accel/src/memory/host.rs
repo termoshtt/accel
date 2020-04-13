@@ -68,8 +68,8 @@ impl<'ctx, T: Scalar> Memory for PageLockedMemory<'ctx, T> {
     {
         unsafe { copy_to_host(self, src) }
     }
-    fn set(&mut self, _value: Self::Elem) {
-        todo!()
+    fn set(&mut self, value: Self::Elem) {
+        self.iter_mut().for_each(|v| *v = value);
     }
 }
 

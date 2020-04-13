@@ -2,11 +2,9 @@ pub use cuda::CUarray_format as ArrayFormatTag;
 use num_traits::Num;
 
 pub trait Scalar: Num + Copy {
-    fn format() -> ArrayFormatTag {
-        panic!("Unsupported type for CUDA Array");
-    }
+    fn format() -> ArrayFormatTag;
 
-    fn size() -> usize {
+    fn size_of() -> usize {
         std::mem::size_of::<Self>()
     }
 
@@ -51,4 +49,8 @@ impl_array_scalar!(i32, u32, CU_AD_FORMAT_SIGNED_INT32);
 // impl_array_scalar!(f16, u16, CU_AD_FORMAT_HALF);
 impl_array_scalar!(f32, u32, CU_AD_FORMAT_FLOAT);
 
-impl Scalar for f64 {}
+impl Scalar for f64 {
+    fn format() -> ArrayFormatTag {
+        panic!("CUDA Array does not support f64");
+    }
+}

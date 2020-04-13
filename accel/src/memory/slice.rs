@@ -54,8 +54,17 @@ impl<T: Scalar> Memory for [T] {
             MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
-    fn set(&mut self, _value: Self::Elem) {
-        todo!()
+    fn set(&mut self, value: Self::Elem) {
+        match self.memory_type() {
+            // To host
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+                self.iter_mut().for_each(|v| *v = value);
+            }
+            // To device
+            MemoryType::Device => unsafe { memset_device(self, value).expect("memset failed") },
+            // To array
+            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+        }
     }
 }
 

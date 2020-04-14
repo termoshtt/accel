@@ -181,6 +181,55 @@ pub trait Memory {
     where
         Source: Memory<Elem = Self::Elem> + ?Sized;
 
+    /// Set all elements by `value`
+    ///
+    /// Examples
+    /// ---------
+    ///
+    /// - Set `i32`
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+    /// mem.set(1234);
+    /// assert_eq!(mem[10], 1234);
+    /// ```
+    ///
+    /// - Set `f32`
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = DeviceMemory::<f32>::new(&ctx, 12);
+    /// mem.set(1.0);
+    /// assert_eq!(mem[10], 1.0);
+    /// ```
+    ///
+    /// - Set `f64`. CUDA memset does not support `f64`.
+    ///   `set` uses direct access and this will be slow.
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = DeviceMemory::<f64>::new(&ctx, 12);
+    /// mem.set(1.0);
+    /// assert_eq!(mem[10], 1.0);
+    /// ```
+    ///
+    /// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
+    /// mem.set(1234);
+    /// assert_eq!(mem[10], 1234);
+    /// ```
     fn set(&mut self, value: Self::Elem);
 }
 

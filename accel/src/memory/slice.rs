@@ -19,24 +19,31 @@ impl<T: Scalar> Memory for [T] {
     fn head_addr(&self) -> *const T {
         self.as_ptr()
     }
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
-    }
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self)
-    }
-    fn try_get_context(&self) -> Option<&Context> {
-        None
-    }
-    fn memory_type(&self) -> MemoryType {
-        memory_type(self.as_ptr())
-    }
+
     fn head_addr_mut(&mut self) -> *mut T {
         self.as_mut_ptr()
     }
-    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
-        Ok(self)
+
+    fn byte_size(&self) -> usize {
+        self.len() * std::mem::size_of::<T>()
     }
+
+    fn memory_type(&self) -> MemoryType {
+        memory_type(self.as_ptr())
+    }
+
+    fn try_as_slice(&self) -> Option<&[T]> {
+        Some(self)
+    }
+
+    fn try_as_mut_slice(&mut self) -> Option<&mut [T]> {
+        Some(self)
+    }
+
+    fn try_get_context(&self) -> Option<&Context> {
+        None
+    }
+
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized,
@@ -54,6 +61,7 @@ impl<T: Scalar> Memory for [T] {
             MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
+
     fn set(&mut self, value: Self::Elem) {
         match self.memory_type() {
             // To host
@@ -72,9 +80,11 @@ impl<T: Scalar> Continuous for [T] {
     fn length(&self) -> usize {
         self.len()
     }
+
     fn as_slice(&self) -> &[Self::Elem] {
         self
     }
+
     fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
         self
     }

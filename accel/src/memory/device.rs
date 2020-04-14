@@ -44,30 +44,38 @@ impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
     fn head_addr(&self) -> *const T {
         self.ptr as _
     }
-    fn byte_size(&self) -> usize {
-        self.size * std::mem::size_of::<T>()
-    }
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self.as_slice())
-    }
-    fn try_get_context(&self) -> Option<&Context> {
-        Some(self.get_context())
-    }
-    fn memory_type(&self) -> MemoryType {
-        MemoryType::Device
-    }
+
     fn head_addr_mut(&mut self) -> *mut T {
         self.ptr as _
     }
-    fn try_as_mut_slice(&mut self) -> Result<&mut [T]> {
-        Ok(self.as_mut_slice())
+
+    fn byte_size(&self) -> usize {
+        self.size * std::mem::size_of::<T>()
     }
+
+    fn memory_type(&self) -> MemoryType {
+        MemoryType::Device
+    }
+
+    fn try_as_slice(&self) -> Option<&[T]> {
+        Some(self.as_slice())
+    }
+
+    fn try_as_mut_slice(&mut self) -> Option<&mut [T]> {
+        Some(self.as_mut_slice())
+    }
+
+    fn try_get_context(&self) -> Option<&Context> {
+        Some(self.get_context())
+    }
+
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized,
     {
         unsafe { copy_to_device(self, src) }
     }
+
     fn set(&mut self, value: Self::Elem) {
         unsafe { memset_device(self, value).expect("memset failed") };
     }

@@ -67,6 +67,47 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     }
 }
 
+impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
+    type Elem = T;
+    fn head_addr(&self) -> *const T {
+        self.array as _
+    }
+    fn head_addr_mut(&mut self) -> *mut T {
+        self.array as _
+    }
+
+    fn byte_size(&self) -> usize {
+        todo!()
+    }
+
+    fn memory_type(&self) -> MemoryType {
+        MemoryType::Array
+    }
+
+    fn try_as_slice(&self) -> Option<&[Self::Elem]> {
+        None
+    }
+
+    fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]> {
+        None
+    }
+
+    fn try_get_context(&self) -> Option<&Context> {
+        todo!()
+    }
+
+    fn copy_from<Source>(&mut self, _src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized,
+    {
+        todo!()
+    }
+
+    fn set(&mut self, _value: Self::Elem) {
+        todo!()
+    }
+}
+
 pub trait Dimension {
     /// `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
     fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor;

@@ -9,7 +9,6 @@ use cuda::*;
 use derive_new::new;
 use std::marker::PhantomData;
 
-pub use cuda::CUarray_format as ArrayFormatTag;
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
 #[derive(Debug)]
@@ -243,29 +242,6 @@ impl Dimension for Ix2Layered {
         self.width * self.hight * self.depth
     }
 }
-
-pub trait Scalar {
-    fn format() -> ArrayFormatTag;
-}
-
-macro_rules! impl_array_scalar {
-    ($scalar:ty, $format:ident) => {
-        impl Scalar for $scalar {
-            fn format() -> ArrayFormatTag {
-                ArrayFormatTag::$format
-            }
-        }
-    };
-}
-
-impl_array_scalar!(u8, CU_AD_FORMAT_UNSIGNED_INT8);
-impl_array_scalar!(u16, CU_AD_FORMAT_UNSIGNED_INT16);
-impl_array_scalar!(u32, CU_AD_FORMAT_UNSIGNED_INT32);
-impl_array_scalar!(i8, CU_AD_FORMAT_SIGNED_INT8);
-impl_array_scalar!(i16, CU_AD_FORMAT_SIGNED_INT16);
-impl_array_scalar!(i32, CU_AD_FORMAT_SIGNED_INT32);
-// FIXME f16 is not supported yet
-impl_array_scalar!(f32, CU_AD_FORMAT_FLOAT);
 
 bitflags::bitflags! {
     pub struct ArrayFlag: u32 {

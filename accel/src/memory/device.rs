@@ -39,7 +39,7 @@ impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -68,17 +68,57 @@ impl<'ctx, T: Copy> Memory for DeviceMemory<'ctx, T> {
     {
         unsafe { copy_to_device(self, src) }
     }
+    fn set(&mut self, value: Self::Elem) {
+        unsafe { memset_device(self, value).expect("memset failed") };
+    }
+}
+
+/// Safety
+/// ------
+/// - This works only when `mem` is device memory
+#[allow(unused_unsafe)]
+pub(super) unsafe fn memset_device<T, Mem>(mem: &mut Mem, value: T) -> Result<()>
+where
+    T: Scalar,
+    Mem: Continuous<Elem = T> + ?Sized,
+{
+    assert_eq!(mem.memory_type(), MemoryType::Device);
+    let ptr = mem.head_addr_mut() as _;
+    let size = mem.length();
+    match T::size_of() {
+        1 => {
+            let ctx = mem.try_get_context().unwrap();
+            let _g = ctx.guard_context();
+            let value = value.to_le_u8().unwrap();
+            ffi_call!(cuMemsetD8_v2, ptr, value, size)?;
+        }
+        2 => {
+            let ctx = mem.try_get_context().unwrap();
+            let _g = ctx.guard_context();
+            let value = value.to_le_u16().unwrap();
+            ffi_call!(cuMemsetD16_v2, ptr, value, size)?;
+        }
+        4 => {
+            let ctx = mem.try_get_context().unwrap();
+            let _g = ctx.guard_context();
+            let value = value.to_le_u32().unwrap();
+            ffi_call!(cuMemsetD32_v2, ptr, value, size)?;
+        }
+        _ => mem.as_mut_slice().iter_mut().for_each(|v| *v = value),
+    }
+    Ok(())
 }
 
 /// Safety
 /// ------
 /// - This works only when `dest` is device memory
 #[allow(unused_unsafe)]
-pub(super) unsafe fn copy_to_device<T: Copy, Dest, Src>(dest: &mut Dest, src: &Src)
+pub(super) unsafe fn copy_to_device<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
 where
     Dest: Memory<Elem = T> + ?Sized,
     Src: Memory<Elem = T> + ?Sized,
 {
+    assert_eq!(dest.memory_type(), MemoryType::Device);
     assert_ne!(dest.head_addr(), src.head_addr());
     assert_eq!(dest.byte_size(), src.byte_size());
 
@@ -122,7 +162,7 @@ where
     }
 }
 
-impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
     }
@@ -134,9 +174,9 @@ impl<'ctx, T: Copy> Continuous for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Managed for DeviceMemory<'ctx, T> {}
+impl<'ctx, T: Scalar> Managed for DeviceMemory<'ctx, T> {}
 
-impl<'ctx, T: Copy> Contexted for DeviceMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Contexted for DeviceMemory<'ctx, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }

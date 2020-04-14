@@ -39,7 +39,7 @@ impl<'ctx, T> Contexted for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Memory for PageLockedMemory<'ctx, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -68,13 +68,16 @@ impl<'ctx, T: Copy> Memory for PageLockedMemory<'ctx, T> {
     {
         unsafe { copy_to_host(self, src) }
     }
+    fn set(&mut self, value: Self::Elem) {
+        self.iter_mut().for_each(|v| *v = value);
+    }
 }
 
 /// Safety
 /// ------
 /// - This works only when `dest` is host memory
 #[allow(unused_unsafe)]
-pub(super) unsafe fn copy_to_host<T: Copy, Dest, Src>(dest: &mut Dest, src: &Src)
+pub(super) unsafe fn copy_to_host<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
 where
     Dest: Memory<Elem = T> + ?Sized,
     Src: Memory<Elem = T> + ?Sized,
@@ -115,7 +118,7 @@ where
     }
 }
 
-impl<'ctx, T: Copy> Continuous for PageLockedMemory<'ctx, T> {
+impl<'ctx, T: Scalar> Continuous for PageLockedMemory<'ctx, T> {
     fn length(&self) -> usize {
         self.size
     }
@@ -127,7 +130,7 @@ impl<'ctx, T: Copy> Continuous for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Copy> Managed for PageLockedMemory<'ctx, T> {}
+impl<'ctx, T: Scalar> Managed for PageLockedMemory<'ctx, T> {}
 
 impl<'ctx, T> PageLockedMemory<'ctx, T> {
     /// Allocate host memory as page-locked.

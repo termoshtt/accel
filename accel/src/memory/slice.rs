@@ -14,7 +14,7 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
     }
 }
 
-impl<T: Copy> Memory for [T] {
+impl<T: Scalar> Memory for [T] {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.as_ptr()
@@ -54,9 +54,21 @@ impl<T: Copy> Memory for [T] {
             MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
+    fn set(&mut self, value: Self::Elem) {
+        match self.memory_type() {
+            // To host
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+                self.iter_mut().for_each(|v| *v = value);
+            }
+            // To device
+            MemoryType::Device => unsafe { memset_device(self, value).expect("memset failed") },
+            // To array
+            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+        }
+    }
 }
 
-impl<T: Copy> Continuous for [T] {
+impl<T: Scalar> Continuous for [T] {
     fn length(&self) -> usize {
         self.len()
     }

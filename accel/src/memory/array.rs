@@ -12,14 +12,15 @@ use std::marker::PhantomData;
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
 #[derive(Debug)]
-pub struct Array<T, Dim> {
+pub struct Array<'ctx, T, Dim> {
     array: CUarray,
     dim: Dim,
     num_channels: u32,
+    ctx: &'ctx Context,
     phantom: PhantomData<T>,
 }
 
-impl<T, Dim> Drop for Array<T, Dim> {
+impl<'ctx, T, Dim> Drop for Array<'ctx, T, Dim> {
     fn drop(&mut self) {
         if let Err(e) = ffi_call!(cuArrayDestroy, self.array) {
             log::error!("Failed to cleanup array: {:?}", e);
@@ -27,7 +28,7 @@ impl<T, Dim> Drop for Array<T, Dim> {
     }
 }
 
-impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
+impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// Create a new array on the device.
     ///
     /// - `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
@@ -37,7 +38,7 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     /// -----
     /// - when allocation failed
     ///
-    pub fn new(ctx: &Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
+    pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
         let _gurad = ctx.guard_context();
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
@@ -46,6 +47,7 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
             array,
             dim,
             num_channels,
+            ctx,
             phantom: PhantomData,
         }
     }
@@ -67,7 +69,7 @@ impl<T: Scalar, Dim: Dimension> Array<T, Dim> {
     }
 }
 
-impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
+impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.array as _
@@ -93,7 +95,7 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     }
 
     fn try_get_context(&self) -> Option<&Context> {
-        todo!()
+        Some(self.get_context())
     }
 
     fn copy_from<Source>(&mut self, _src: &Source)
@@ -105,6 +107,12 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
 
     fn set(&mut self, _value: Self::Elem) {
         todo!()
+    }
+}
+
+impl<'ctx, T: Scalar, Dim: Dimension> Contexted for Array<'ctx, T, Dim> {
+    fn get_context(&self) -> &Context {
+        self.ctx
     }
 }
 

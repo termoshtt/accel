@@ -24,8 +24,8 @@ impl<T: Scalar> Memory for [T] {
         self.as_mut_ptr()
     }
 
-    fn byte_size(&self) -> usize {
-        self.len() * std::mem::size_of::<T>()
+    fn num_elem(&self) -> usize {
+        self.len()
     }
 
     fn memory_type(&self) -> MemoryType {
@@ -49,7 +49,7 @@ impl<T: Scalar> Memory for [T] {
         Source: Memory<Elem = Self::Elem> + ?Sized,
     {
         assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.byte_size(), src.byte_size());
+        assert_eq!(self.num_elem(), src.num_elem());
         match self.memory_type() {
             // To host
             MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => unsafe {
@@ -77,10 +77,6 @@ impl<T: Scalar> Memory for [T] {
 }
 
 impl<T: Scalar> Continuous for [T] {
-    fn length(&self) -> usize {
-        self.len()
-    }
-
     fn as_slice(&self) -> &[Self::Elem] {
         self
     }
@@ -98,8 +94,7 @@ mod tests {
     fn memory_for_slice() -> Result<()> {
         let a = vec![0_u32; 12];
         assert!(matches!(a.as_slice().memory_type(), MemoryType::Host));
-        assert_eq!(a.as_slice().length(), 12);
-        assert_eq!(a.as_slice().byte_size(), 12 * 4 /* u32 */);
+        assert_eq!(a.as_slice().num_elem(), 12);
         Ok(())
     }
 }

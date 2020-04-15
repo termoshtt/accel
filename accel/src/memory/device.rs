@@ -49,8 +49,8 @@ impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
         self.ptr as _
     }
 
-    fn byte_size(&self) -> usize {
-        self.size * std::mem::size_of::<T>()
+    fn num_elem(&self) -> usize {
+        self.size
     }
 
     fn memory_type(&self) -> MemoryType {
@@ -92,7 +92,7 @@ where
 {
     assert_eq!(mem.memory_type(), MemoryType::Device);
     let ptr = mem.head_addr_mut() as _;
-    let size = mem.length();
+    let size = mem.num_elem();
     match T::size_of() {
         1 => {
             let ctx = mem.try_get_context().unwrap();
@@ -128,7 +128,7 @@ where
 {
     assert_eq!(dest.memory_type(), MemoryType::Device);
     assert_ne!(dest.head_addr(), src.head_addr());
-    assert_eq!(dest.byte_size(), src.byte_size());
+    assert_eq!(dest.num_elem(), src.num_elem());
 
     let dest_ptr = dest.head_addr_mut();
     let src_ptr = src.head_addr();
@@ -151,7 +151,7 @@ where
                 cuMemcpyHtoD_v2,
                 dest_ptr as _,
                 src_ptr as _,
-                dest.byte_size()
+                dest.num_elem()
             )
             .expect("memcpy from Host to Device failed");
         }
@@ -161,7 +161,7 @@ where
                 cuMemcpyDtoD_v2,
                 dest_ptr as _,
                 src_ptr as _,
-                dest.byte_size()
+                dest.num_elem()
             )
             .expect("memcpy from Device to Device failed");
         }
@@ -171,9 +171,6 @@ where
 }
 
 impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
-    fn length(&self) -> usize {
-        self.size
-    }
     fn as_slice(&self) -> &[T] {
         self
     }
@@ -230,7 +227,7 @@ mod tests {
         let ctx = device.create_context();
         let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
         assert_eq!(mem.len(), 12);
-        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        assert_eq!(mem.num_elem(), 12 * 4 /* size of i32 */);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())

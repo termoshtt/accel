@@ -78,7 +78,7 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
         self.array as _
     }
 
-    fn byte_size(&self) -> usize {
+    fn num_elem(&self) -> usize {
         todo!()
     }
 

@@ -49,8 +49,8 @@ impl<'ctx, T: Scalar> Memory for PageLockedMemory<'ctx, T> {
         self.ptr as _
     }
 
-    fn byte_size(&self) -> usize {
-        self.size * std::mem::size_of::<T>()
+    fn num_elem(&self) -> usize {
+        self.size
     }
 
     fn memory_type(&self) -> MemoryType {
@@ -91,7 +91,7 @@ where
     Src: Memory<Elem = T> + ?Sized,
 {
     assert_ne!(dest.head_addr(), src.head_addr());
-    assert_eq!(dest.byte_size(), src.byte_size());
+    assert_eq!(dest.num_elem(), src.num_elem());
 
     match src.memory_type() {
         // From host
@@ -117,7 +117,7 @@ where
                 cuMemcpyDtoH_v2,
                 dest_ptr as _,
                 src_ptr as _,
-                dest.byte_size()
+                dest.num_elem()
             )
             .expect("memcpy from Device to Host failed");
         }
@@ -127,9 +127,6 @@ where
 }
 
 impl<'ctx, T: Scalar> Continuous for PageLockedMemory<'ctx, T> {
-    fn length(&self) -> usize {
-        self.size
-    }
     fn as_slice(&self) -> &[T] {
         self
     }
@@ -178,8 +175,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
-        assert_eq!(mem.len(), 12);
-        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())
@@ -198,8 +194,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
-        assert_eq!(mem.len(), 12);
-        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())

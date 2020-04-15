@@ -72,8 +72,8 @@ pub trait Memory {
     /// Get head address of the memory as a mutable pointer
     fn head_addr_mut(&mut self) -> *mut Self::Elem;
 
-    /// Get byte size of allocated memory
-    fn byte_size(&self) -> usize;
+    /// Number of elements
+    fn num_elem(&self) -> usize;
 
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
@@ -235,7 +235,6 @@ pub trait Memory {
 
 /// Memory which has continuous 1D index, i.e. can be treated as a Rust slice
 pub trait Continuous: Memory {
-    fn length(&self) -> usize;
     fn as_slice(&self) -> &[Self::Elem];
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }

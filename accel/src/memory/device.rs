@@ -226,8 +226,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
-        assert_eq!(mem.len(), 12);
-        assert_eq!(mem.num_elem(), 12 * 4 /* size of i32 */);
+        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())

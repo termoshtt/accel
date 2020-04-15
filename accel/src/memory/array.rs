@@ -31,8 +31,19 @@ impl<'ctx, T, Dim> Drop for Array<'ctx, T, Dim> {
 impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// Create a new array on the device.
     ///
-    /// - `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
-    ///   - e.g. `T=f32` and `num_channels == 2`, then the size of an element is 64bit as packed two 32bit float values
+    /// - `num_channels` specifies the number of packed components per "CUDA array element"; it may be 1, 2, or 4;
+    ///   - e.g. `T=f32` and `num_channels == 2`, the size of "CUDA array element" is 64bit as packed two 32bit float values
+    ///   - We call `T` element, although "CUDA array element" represents `[T; num_channels]`.
+    ///     `Memory::num_elem()` returns how many `T` exists in this array.
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let array: Array<f32, Ix2> = Array::new(&ctx, (10 /* X */ , 12 /* Y */), 2 /* num channel */);
+    /// assert_eq!(array.dim().len(), 10 * 12);     // how many "CUDA array elements" exists
+    /// assert_eq!(array.num_elem(), 10 * 12 * 2);  // how many `T` exists
+    /// ```
     ///
     /// Panic
     /// -----
@@ -52,18 +63,12 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
         }
     }
 
+    /// Get dimension
     pub fn dim(&self) -> &Dim {
         &self.dim
     }
 
-    pub fn element_size(&self) -> usize {
-        std::mem::size_of::<T>() * self.num_channels as usize
-    }
-
-    pub fn len(&self) -> usize {
-        self.dim.len()
-    }
-
+    /// Number of packed components
     pub fn num_channels(&self) -> u32 {
         self.num_channels
     }
@@ -79,7 +84,7 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     }
 
     fn num_elem(&self) -> usize {
-        todo!()
+        self.dim.len() * self.num_channels as usize
     }
 
     fn memory_type(&self) -> MemoryType {

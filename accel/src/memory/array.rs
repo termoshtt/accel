@@ -22,7 +22,7 @@ pub struct Array<'ctx, T, Dim> {
 
 impl<'ctx, T, Dim> Drop for Array<'ctx, T, Dim> {
     fn drop(&mut self) {
-        if let Err(e) = contexted_call!(self, cuArrayDestroy, self.array) {
+        if let Err(e) = unsafe { contexted_call!(self, cuArrayDestroy, self.array) } {
             log::error!("Failed to cleanup array: {:?}", e);
         }
     }
@@ -42,8 +42,8 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
         let _gurad = ctx.guard_context();
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
-        let array =
-            contexted_new!(ctx, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+        let array = unsafe { contexted_new!(ctx, cuArray3DCreate_v2, &desc) }
+            .expect("Cannot create a new array");
         Array {
             array,
             dim,

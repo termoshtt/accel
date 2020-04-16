@@ -14,7 +14,7 @@ pub struct PageLockedMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
     fn drop(&mut self) {
-        if let Err(e) = contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) {
+        if let Err(e) = unsafe { contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) } {
             log::error!("Cannot free page-locked memory: {:?}", e);
         }
     }
@@ -113,12 +113,14 @@ where
                 (None, Some(ctx)) => Some(ctx.guard_context()),
                 (None, None) => None,
             };
-            ffi_call!(
-                cuMemcpyDtoH_v2,
-                dest_ptr as _,
-                src_ptr as _,
-                dest.byte_size()
-            )
+            unsafe {
+                ffi_call!(
+                    cuMemcpyDtoH_v2,
+                    dest_ptr as _,
+                    src_ptr as _,
+                    dest.byte_size()
+                )
+            }
             .expect("memcpy from Device to Host failed");
         }
         // From array
@@ -157,8 +159,9 @@ impl<'ctx, T> PageLockedMemory<'ctx, T> {
     ///
     pub fn new(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr = contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
-            .expect("Cannot allocate page-locked memory");
+        let ptr =
+            unsafe { contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>()) }
+                .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,

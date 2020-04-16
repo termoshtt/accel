@@ -20,7 +20,7 @@ pub struct DeviceMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
-        if let Err(e) = contexted_call!(self, cuMemFree_v2, self.ptr) {
+        if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {
             log::error!("Failed to free device memory: {:?}", e);
         }
     }
@@ -96,33 +96,39 @@ where
     match T::size_of() {
         1 => {
             let value = value.to_le_u8().unwrap();
-            contexted_call!(
-                mem.try_get_context().unwrap(),
-                cuMemsetD8_v2,
-                ptr,
-                value,
-                size
-            )?;
+            unsafe {
+                contexted_call!(
+                    mem.try_get_context().unwrap(),
+                    cuMemsetD8_v2,
+                    ptr,
+                    value,
+                    size
+                )?
+            }
         }
         2 => {
             let value = value.to_le_u16().unwrap();
-            contexted_call!(
-                mem.try_get_context().unwrap(),
-                cuMemsetD16_v2,
-                ptr,
-                value,
-                size
-            )?;
+            unsafe {
+                contexted_call!(
+                    mem.try_get_context().unwrap(),
+                    cuMemsetD16_v2,
+                    ptr,
+                    value,
+                    size
+                )?;
+            }
         }
         4 => {
             let value = value.to_le_u32().unwrap();
-            contexted_call!(
-                mem.try_get_context().unwrap(),
-                cuMemsetD32_v2,
-                ptr,
-                value,
-                size
-            )?;
+            unsafe {
+                contexted_call!(
+                    mem.try_get_context().unwrap(),
+                    cuMemsetD32_v2,
+                    ptr,
+                    value,
+                    size
+                )?;
+            }
         }
         _ => mem.as_mut_slice().iter_mut().for_each(|v| *v = value),
     }
@@ -159,22 +165,26 @@ where
     match src.memory_type() {
         // From host
         MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-            ffi_call!(
-                cuMemcpyHtoD_v2,
-                dest_ptr as _,
-                src_ptr as _,
-                dest.byte_size()
-            )
+            unsafe {
+                ffi_call!(
+                    cuMemcpyHtoD_v2,
+                    dest_ptr as _,
+                    src_ptr as _,
+                    dest.byte_size()
+                )
+            }
             .expect("memcpy from Host to Device failed");
         }
         // From device
         MemoryType::Device => {
-            ffi_call!(
-                cuMemcpyDtoD_v2,
-                dest_ptr as _,
-                src_ptr as _,
-                dest.byte_size()
-            )
+            unsafe {
+                ffi_call!(
+                    cuMemcpyDtoD_v2,
+                    dest_ptr as _,
+                    src_ptr as _,
+                    dest.byte_size()
+                )
+            }
             .expect("memcpy from Device to Device failed");
         }
         // From array
@@ -215,12 +225,14 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     pub fn new(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr = contexted_new!(
-            context,
-            cuMemAllocManaged,
-            size * std::mem::size_of::<T>(),
-            AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
-        )
+        let ptr = unsafe {
+            contexted_new!(
+                context,
+                cuMemAllocManaged,
+                size * std::mem::size_of::<T>(),
+                AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
+            )
+        }
         .expect("Cannot allocate device memory");
         DeviceMemory {
             ptr,

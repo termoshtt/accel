@@ -12,12 +12,14 @@ impl MemoryInfo {
     fn get(ctx: &Context) -> Self {
         let mut free = 0;
         let mut total = 0;
-        contexted_call!(
-            ctx,
-            cuMemGetInfo_v2,
-            &mut free as *mut usize,
-            &mut total as *mut usize
-        )
+        unsafe {
+            contexted_call!(
+                ctx,
+                cuMemGetInfo_v2,
+                &mut free as *mut usize,
+                &mut total as *mut usize
+            )
+        }
         .expect("Cannot get memory info");
         MemoryInfo { free, total }
     }

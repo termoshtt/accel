@@ -52,13 +52,15 @@ pub enum MemoryType {
 /// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
     let data = MaybeUninit::uninit();
-    ffi_call!(
-        cuPointerGetAttribute,
-        data.as_ptr() as *mut _,
-        attr,
-        ptr as CUdeviceptr
-    )?;
-    unsafe { data.assume_init() }
+    unsafe {
+        ffi_call!(
+            cuPointerGetAttribute,
+            data.as_ptr() as *mut _,
+            attr,
+            ptr as CUdeviceptr
+        )?;
+        data.assume_init()
+    }
 }
 
 /// Has unique head address and allocated size.

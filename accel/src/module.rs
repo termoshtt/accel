@@ -501,21 +501,23 @@ pub trait Launchable<'arg> {
         let block = block.into();
         let kernel = self.get_kernel()?;
         let mut params = args.kernel_params();
-        contexted_call!(
-            kernel.get_context(),
-            cuLaunchKernel,
-            kernel.func,
-            grid.x,
-            grid.y,
-            grid.z,
-            block.x,
-            block.y,
-            block.z,
-            0,          /* FIXME: no shared memory */
-            null_mut(), /* use default stream */
-            params.as_mut_ptr(),
-            null_mut() /* no extra */
-        )?;
+        unsafe {
+            contexted_call!(
+                kernel.get_context(),
+                cuLaunchKernel,
+                kernel.func,
+                grid.x,
+                grid.y,
+                grid.z,
+                block.x,
+                block.y,
+                block.z,
+                0,          /* FIXME: no shared memory */
+                null_mut(), /* use default stream */
+                params.as_mut_ptr(),
+                null_mut() /* no extra */
+            )?;
+        }
         kernel.sync_context()?;
         Ok(())
     }
@@ -550,21 +552,23 @@ pub trait Launchable<'arg> {
         let block = block.into();
         let kernel = self.get_kernel()?;
         let mut params = args.kernel_params();
-        contexted_call!(
-            kernel.get_context(),
-            cuLaunchKernel,
-            kernel.func,
-            grid.x,
-            grid.y,
-            grid.z,
-            block.x,
-            block.y,
-            block.z,
-            0, /* FIXME: no shared memory */
-            stream.stream,
-            params.as_mut_ptr(),
-            null_mut() /* no extra */
-        )?;
+        unsafe {
+            contexted_call!(
+                kernel.get_context(),
+                cuLaunchKernel,
+                kernel.func,
+                grid.x,
+                grid.y,
+                grid.z,
+                block.x,
+                block.y,
+                block.z,
+                0, /* FIXME: no shared memory */
+                stream.stream,
+                params.as_mut_ptr(),
+                null_mut() /* no extra */
+            )?;
+        }
         Ok(())
     }
 }
@@ -578,7 +582,8 @@ pub struct Module<'ctx> {
 
 impl<'ctx> Drop for Module<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = contexted_call!(self.get_context(), cuModuleUnload, self.module) {
+        if let Err(e) = unsafe { contexted_call!(self.get_context(), cuModuleUnload, self.module) }
+        {
             log::error!("Failed to unload module: {:?}", e);
         }
     }
@@ -595,16 +600,18 @@ impl<'ctx> Module<'ctx> {
     pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
         match *data {
             Instruction::PTX(ref ptx) => {
-                let module = contexted_new!(context, cuModuleLoadData, ptx.as_ptr() as *const _)?;
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, ptx.as_ptr() as *const _)? };
                 Ok(Module { module, context })
             }
             Instruction::Cubin(ref bin) => {
-                let module = contexted_new!(context, cuModuleLoadData, bin.as_ptr() as *const _)?;
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, bin.as_ptr() as *const _)? };
                 Ok(Module { module, context })
             }
             Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
-                let module = contexted_new!(context, cuModuleLoad, filename.as_ptr())?;
+                let module = unsafe { contexted_new!(context, cuModuleLoad, filename.as_ptr())? };
                 Ok(Module { module, context })
             }
         }
@@ -618,12 +625,14 @@ impl<'ctx> Module<'ctx> {
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
         let name = CString::new(name).expect("Invalid Kernel name");
-        let func = contexted_new!(
-            self.get_context(),
-            cuModuleGetFunction,
-            self.module,
-            name.as_ptr()
-        )?;
+        let func = unsafe {
+            contexted_new!(
+                self.get_context(),
+                cuModuleGetFunction,
+                self.module,
+                name.as_ptr()
+            )
+        }?;
         Ok(Kernel { func, module: self })
     }
 }

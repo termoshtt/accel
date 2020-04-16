@@ -185,7 +185,7 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = contexted_call!(self, cuLinkDestroy, self.state) {
+        if let Err(e) = unsafe { contexted_call!(self, cuLinkDestroy, self.state) } {
             log::error!("Failed to release Linker: {:?}", e)
         }
     }
@@ -201,7 +201,6 @@ impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
         let (n, mut opt, mut opts) = cfg.pack();
-        #[allow(unused_unsafe)]
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
             contexted_call!(
@@ -222,44 +221,38 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddData
-    #[allow(unused_unsafe)]
     unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
-        {
-            contexted_call!(
-                &self,
-                cuLinkAddData_v2,
-                self.state,
-                input_type,
-                data.as_ptr() as *mut _,
-                data.len(),
-                name.as_ptr(),
-                nopts,
-                opts.as_mut_ptr(),
-                opt_vals.as_mut_ptr()
-            )?;
-        }
+        contexted_call!(
+            &self,
+            cuLinkAddData_v2,
+            self.state,
+            input_type,
+            data.as_ptr() as *mut _,
+            data.len(),
+            name.as_ptr(),
+            nopts,
+            opts.as_mut_ptr(),
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
     /// Wrapper of cuLinkAddFile
-    #[allow(unused_unsafe)]
     unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
-        {
-            contexted_call!(
-                &self,
-                cuLinkAddFile_v2,
-                self.state,
-                input_type,
-                filename.as_ptr(),
-                nopts,
-                opts.as_mut_ptr(),
-                opt_vals.as_mut_ptr()
-            )?;
-        }
+        contexted_call!(
+            &self,
+            cuLinkAddFile_v2,
+            self.state,
+            input_type,
+            filename.as_ptr(),
+            nopts,
+            opts.as_mut_ptr(),
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
@@ -284,7 +277,6 @@ impl<'ctx> Linker<'ctx> {
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Instruction> {
         let mut cb = null_mut();
-        #[allow(unused_unsafe)]
         unsafe {
             contexted_call!(
                 &self,

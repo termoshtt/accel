@@ -3,7 +3,7 @@
 //! [Device]:  https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__DEVICE.html
 //! [Context]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__CTX.html
 
-use crate::{error::*, ffi_call, ffi_new};
+use crate::{error::*, *};
 use cuda::*;
 use std::sync::Once;
 
@@ -137,7 +137,8 @@ impl Context {
 
     /// Pop from the context stack of this thread
     fn pop(&self) {
-        let context_ptr = ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context");
+        let context_ptr =
+            ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context");
         if context_ptr.is_null() {
             panic!("No current context");
         }

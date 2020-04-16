@@ -1,4 +1,4 @@
-use crate::{device::*, ffi_call};
+use crate::{contexted_call, device::*};
 use cuda::*;
 
 /// Total and Free memory size of the device (in bytes)
@@ -10,10 +10,10 @@ struct MemoryInfo {
 
 impl MemoryInfo {
     fn get(ctx: &Context) -> Self {
-        let _gurad = ctx.guard_context();
         let mut free = 0;
         let mut total = 0;
-        ffi_call!(
+        contexted_call!(
+            ctx,
             cuMemGetInfo_v2,
             &mut free as *mut usize,
             &mut total as *mut usize

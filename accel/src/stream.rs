@@ -1,4 +1,4 @@
-use crate::{device::*, error::*, ffi_call, ffi_new};
+use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
 
 /// Handler for non-blocking CUDA Stream
@@ -9,7 +9,7 @@ pub struct Stream<'ctx> {
 
 impl<'ctx> Drop for Stream<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuStreamDestroy_v2, self.stream) {
+        if let Err(e) = contexted_call!(self.get_context(), cuStreamDestroy_v2, self.stream) {
             log::error!("Failed to delete CUDA stream: {:?}", e);
         }
     }
@@ -24,8 +24,8 @@ impl<'ctx> Contexted for Stream<'ctx> {
 impl<'ctx> Stream<'ctx> {
     /// Create a new non-blocking CUDA stream on the current context
     pub fn new(ctx: &'ctx Context) -> Self {
-        let _gurad = ctx.guard_context();
-        let stream = ffi_new!(
+        let stream = contexted_new!(
+            ctx,
             cuStreamCreate,
             CUstream_flags::CU_STREAM_NON_BLOCKING as u32
         )
@@ -35,8 +35,7 @@ impl<'ctx> Stream<'ctx> {
 
     /// Check all tasks in this stream have been completed
     pub fn query(&self) -> bool {
-        let _g = self.guard_context();
-        match ffi_call!(cuStreamQuery, self.stream) {
+        match contexted_call!(self.get_context(), cuStreamQuery, self.stream) {
             Ok(_) => true,
             Err(AccelError::AsyncOperationNotReady) => false,
             Err(e) => panic!("Unknown error is happened while cuStreamQuery: {:?}", e),
@@ -45,16 +44,20 @@ impl<'ctx> Stream<'ctx> {
 
     /// Wait until all tasks in this stream have been completed
     pub fn sync(&self) -> Result<()> {
-        let _g = self.guard_context();
-        ffi_call!(cuStreamSynchronize, self.stream)?;
+        contexted_call!(self.get_context(), cuStreamSynchronize, self.stream)?;
         Ok(())
     }
 
     /// Wait event to sync another stream
     pub fn wait_event(&mut self, event: &Event) {
-        let _g = self.guard_context();
-        ffi_call!(cuStreamWaitEvent, self.stream, event.event, 0)
-            .expect("Failed to register an CUDA event waiting on CUDA stream");
+        contexted_call!(
+            self.get_context(),
+            cuStreamWaitEvent,
+            self.stream,
+            event.event,
+            0
+        )
+        .expect("Failed to register an CUDA event waiting on CUDA stream");
     }
 }
 
@@ -65,7 +68,7 @@ pub struct Event<'ctx> {
 
 impl<'ctx> Drop for Event<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuEventDestroy_v2, self.event) {
+        if let Err(e) = contexted_call!(self.get_context(), cuEventDestroy_v2, self.event) {
             log::error!("Failed to delete CUDA event: {:?}", e);
         }
     }
@@ -79,8 +82,8 @@ impl<'ctx> Contexted for Event<'ctx> {
 
 impl<'ctx> Event<'ctx> {
     pub fn new(ctx: &'ctx Context) -> Self {
-        let _gurad = ctx.guard_context();
-        let event = ffi_new!(
+        let event = contexted_new!(
+            ctx,
             cuEventCreate,
             CUevent_flags_enum::CU_EVENT_BLOCKING_SYNC as u32
         )
@@ -89,14 +92,13 @@ impl<'ctx> Event<'ctx> {
     }
 
     pub fn record(&mut self, stream: &mut Stream) {
-        let _g = self.guard_context();
-        ffi_call!(cuEventRecord, self.event, stream.stream).expect("Failed to set event record");
+        contexted_call!(self.get_context(), cuEventRecord, self.event, stream.stream)
+            .expect("Failed to set event record");
     }
 
     /// Query if the event has occur, returns true if already occurs
     pub fn query(&self) -> bool {
-        let _g = self.guard_context();
-        match ffi_call!(cuEventQuery, self.event) {
+        match contexted_call!(self.get_context(), cuEventQuery, self.event) {
             Ok(_) => true,
             Err(AccelError::AsyncOperationNotReady) => false,
             Err(e) => panic!("Unknown error occurs while cuEventQuery: {:?}", e),
@@ -105,8 +107,7 @@ impl<'ctx> Event<'ctx> {
 
     /// Wait until the event occurs with blocking
     pub fn sync(&self) -> Result<()> {
-        let _g = self.guard_context();
-        ffi_call!(cuEventSynchronize, self.event)?;
+        contexted_call!(self.get_context(), cuEventSynchronize, self.event)?;
         Ok(())
     }
 }

@@ -41,6 +41,27 @@ pub(crate) fn check(error: DeviceError, api_name: &str) -> Result<()> {
 }
 
 #[macro_export]
+macro_rules! contexted_call {
+    ($ctx:expr, $ffi:path $(,$args:expr)*) => {
+        unsafe {
+            let _g = $crate::Contexted::guard_context($ctx);
+            $crate::error::check($ffi($($args),*), stringify!($ffi))
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! contexted_new {
+    ($ctx:expr, $ffi:path $(,$args:expr)*) => {
+        unsafe {
+            let _g = $crate::Contexted::guard_context($ctx);
+            let mut value = ::std::mem::MaybeUninit::uninit();
+            $crate::error::check($ffi(value.as_mut_ptr(), $($args),*), stringify!($ffi)).map(|_| value.assume_init())
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! ffi_call {
     ($ffi:path $(,$args:expr)*) => {
         unsafe {

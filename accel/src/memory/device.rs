@@ -1,7 +1,7 @@
 //! Device and Host memory handlers
 
 use super::*;
-use crate::{device::*, ffi_call, ffi_new};
+use crate::*;
 use cuda::*;
 use std::{
     marker::PhantomData,
@@ -20,7 +20,7 @@ pub struct DeviceMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuMemFree_v2, self.ptr) {
+        if let Err(e) = contexted_call!(self, cuMemFree_v2, self.ptr) {
             log::error!("Failed to free device memory: {:?}", e);
         }
     }
@@ -85,7 +85,7 @@ impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
 /// ------
 /// - This works only when `mem` is device memory
 #[allow(unused_unsafe)]
-pub(super) unsafe fn memset_device<T, Mem>(mem: &mut Mem, value: T) -> Result<()>
+pub(super) unsafe fn memset_device<T, Mem>(mem: &mut Mem, value: T) -> error::Result<()>
 where
     T: Scalar,
     Mem: Continuous<Elem = T> + ?Sized,
@@ -95,22 +95,34 @@ where
     let size = mem.length();
     match T::size_of() {
         1 => {
-            let ctx = mem.try_get_context().unwrap();
-            let _g = ctx.guard_context();
             let value = value.to_le_u8().unwrap();
-            ffi_call!(cuMemsetD8_v2, ptr, value, size)?;
+            contexted_call!(
+                mem.try_get_context().unwrap(),
+                cuMemsetD8_v2,
+                ptr,
+                value,
+                size
+            )?;
         }
         2 => {
-            let ctx = mem.try_get_context().unwrap();
-            let _g = ctx.guard_context();
             let value = value.to_le_u16().unwrap();
-            ffi_call!(cuMemsetD16_v2, ptr, value, size)?;
+            contexted_call!(
+                mem.try_get_context().unwrap(),
+                cuMemsetD16_v2,
+                ptr,
+                value,
+                size
+            )?;
         }
         4 => {
-            let ctx = mem.try_get_context().unwrap();
-            let _g = ctx.guard_context();
             let value = value.to_le_u32().unwrap();
-            ffi_call!(cuMemsetD32_v2, ptr, value, size)?;
+            contexted_call!(
+                mem.try_get_context().unwrap(),
+                cuMemsetD32_v2,
+                ptr,
+                value,
+                size
+            )?;
         }
         _ => mem.as_mut_slice().iter_mut().for_each(|v| *v = value),
     }
@@ -184,7 +196,7 @@ impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
 
 impl<'ctx, T: Scalar> Managed for DeviceMemory<'ctx, T> {}
 
-impl<'ctx, T: Scalar> Contexted for DeviceMemory<'ctx, T> {
+impl<'ctx, T> Contexted for DeviceMemory<'ctx, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }
@@ -203,8 +215,8 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     pub fn new(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let _gurad = context.guard_context();
-        let ptr = ffi_new!(
+        let ptr = contexted_new!(
+            context,
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
             AttachFlag::CU_MEM_ATTACH_GLOBAL as u32

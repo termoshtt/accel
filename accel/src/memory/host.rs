@@ -1,7 +1,7 @@
 //! Device and Host memory handlers
 
 use super::*;
-use crate::{device::*, ffi_call, ffi_new};
+use crate::*;
 use cuda::*;
 use std::ops::{Deref, DerefMut};
 
@@ -14,7 +14,7 @@ pub struct PageLockedMemory<'ctx, T> {
 
 impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuMemFreeHost, self.ptr as *mut _) {
+        if let Err(e) = contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) {
             log::error!("Cannot free page-locked memory: {:?}", e);
         }
     }
@@ -157,8 +157,7 @@ impl<'ctx, T> PageLockedMemory<'ctx, T> {
     ///
     pub fn new(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let _g = context.guard_context();
-        let ptr = ffi_new!(cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+        let ptr = contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,

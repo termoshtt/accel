@@ -4,7 +4,7 @@
 //! [Texture]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TEXOBJECT.html#group__CUDA__TEXOBJECT
 //! [Surface]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__SURFOBJECT.html#group__CUDA__SURFOBJECT
 
-use crate::{device::Contexted, ffi_call, ffi_new, *};
+use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
 use derive_new::new;
 use std::marker::PhantomData;
@@ -22,7 +22,7 @@ pub struct Array<'ctx, T, Dim> {
 
 impl<'ctx, T, Dim> Drop for Array<'ctx, T, Dim> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuArrayDestroy, self.array) {
+        if let Err(e) = contexted_call!(self, cuArrayDestroy, self.array) {
             log::error!("Failed to cleanup array: {:?}", e);
         }
     }
@@ -42,7 +42,8 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
         let _gurad = ctx.guard_context();
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
-        let array = ffi_new!(cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+        let array =
+            contexted_new!(ctx, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
         Array {
             array,
             dim,
@@ -69,7 +70,7 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     }
 }
 
-impl<'ctx, T: Scalar, Dim: Dimension> Contexted for Array<'ctx, T, Dim> {
+impl<'ctx, T, Dim> Contexted for Array<'ctx, T, Dim> {
     fn get_context(&self) -> &Context {
         self.ctx
     }

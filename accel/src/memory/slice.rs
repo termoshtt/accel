@@ -91,7 +91,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn memory_for_slice() -> Result<()> {
+    fn memory_for_slice() -> error::Result<()> {
         let a = vec![0_u32; 12];
         assert!(matches!(a.as_slice().memory_type(), MemoryType::Host));
         assert_eq!(a.as_slice().num_elem(), 12);

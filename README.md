@@ -27,7 +27,8 @@ Requirements
 
 - Minimum Supported Rust Version (MSRV) is 1.42.0
 - Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
-  - accel depends on CUDA Runtime and Device APIs through [rust-cuda/cuda-sys](https://github.com/rust-cuda/cuda-sys)
+  - accel depends on CUDA Device APIs through [rust-cuda/cuda-sys](https://github.com/rust-cuda/cuda-sys)
+  - accel does not depend on CUDA Runtime APIs. It means that a compiled binary requires only `libcuda.so` at runtime, which is far lighter than entire CUDA development toolkit.
 - Setup NVPTX target of Rust
   - Install `nightly-2020-01-02` toolchain with  `nvptx64-nvidia-cuda` target, and [rust-ptx-linker](https://github.com/denzp/rust-ptx-linker)
   - There is an [setup script](setup_nvptx_toolchain.sh) for them:

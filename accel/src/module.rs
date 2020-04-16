@@ -1,6 +1,6 @@
 //! CUDA Module (i.e. loaded PTX or cubin)
 
-use crate::{device::*, error::*, ffi_call, ffi_new, stream::*, *};
+use crate::{contexted_call, contexted_new, device::*, error::*, stream::*, *};
 use cuda::*;
 use num_traits::ToPrimitive;
 use std::{ffi::*, path::*, ptr::null_mut};
@@ -500,22 +500,24 @@ pub trait Launchable<'arg> {
         let grid = grid.into();
         let block = block.into();
         let kernel = self.get_kernel()?;
-        let _g = kernel.guard_context();
         let mut params = args.kernel_params();
-        ffi_call!(
-            cuLaunchKernel,
-            kernel.func,
-            grid.x,
-            grid.y,
-            grid.z,
-            block.x,
-            block.y,
-            block.z,
-            0,          /* FIXME: no shared memory */
-            null_mut(), /* use default stream */
-            params.as_mut_ptr(),
-            null_mut() /* no extra */
-        )?;
+        unsafe {
+            contexted_call!(
+                kernel.get_context(),
+                cuLaunchKernel,
+                kernel.func,
+                grid.x,
+                grid.y,
+                grid.z,
+                block.x,
+                block.y,
+                block.z,
+                0,          /* FIXME: no shared memory */
+                null_mut(), /* use default stream */
+                params.as_mut_ptr(),
+                null_mut() /* no extra */
+            )?;
+        }
         kernel.sync_context()?;
         Ok(())
     }
@@ -549,22 +551,24 @@ pub trait Launchable<'arg> {
         let grid = grid.into();
         let block = block.into();
         let kernel = self.get_kernel()?;
-        let _g = kernel.guard_context();
         let mut params = args.kernel_params();
-        ffi_call!(
-            cuLaunchKernel,
-            kernel.func,
-            grid.x,
-            grid.y,
-            grid.z,
-            block.x,
-            block.y,
-            block.z,
-            0, /* FIXME: no shared memory */
-            stream.stream,
-            params.as_mut_ptr(),
-            null_mut() /* no extra */
-        )?;
+        unsafe {
+            contexted_call!(
+                kernel.get_context(),
+                cuLaunchKernel,
+                kernel.func,
+                grid.x,
+                grid.y,
+                grid.z,
+                block.x,
+                block.y,
+                block.z,
+                0, /* FIXME: no shared memory */
+                stream.stream,
+                params.as_mut_ptr(),
+                null_mut() /* no extra */
+            )?;
+        }
         Ok(())
     }
 }
@@ -578,7 +582,8 @@ pub struct Module<'ctx> {
 
 impl<'ctx> Drop for Module<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuModuleUnload, self.module) {
+        if let Err(e) = unsafe { contexted_call!(self.get_context(), cuModuleUnload, self.module) }
+        {
             log::error!("Failed to unload module: {:?}", e);
         }
     }
@@ -593,19 +598,20 @@ impl<'ctx> Contexted for Module<'ctx> {
 impl<'ctx> Module<'ctx> {
     /// integrated loader of Instruction
     pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
-        let _gurad = context.guard_context();
         match *data {
             Instruction::PTX(ref ptx) => {
-                let module = ffi_new!(cuModuleLoadData, ptx.as_ptr() as *const _)?;
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, ptx.as_ptr() as *const _)? };
                 Ok(Module { module, context })
             }
             Instruction::Cubin(ref bin) => {
-                let module = ffi_new!(cuModuleLoadData, bin.as_ptr() as *const _)?;
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, bin.as_ptr() as *const _)? };
                 Ok(Module { module, context })
             }
             Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
-                let module = ffi_new!(cuModuleLoad, filename.as_ptr())?;
+                let module = unsafe { contexted_new!(context, cuModuleLoad, filename.as_ptr())? };
                 Ok(Module { module, context })
             }
         }
@@ -618,9 +624,15 @@ impl<'ctx> Module<'ctx> {
 
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
-        let _gurad = self.guard_context();
         let name = CString::new(name).expect("Invalid Kernel name");
-        let func = ffi_new!(cuModuleGetFunction, self.module, name.as_ptr())?;
+        let func = unsafe {
+            contexted_new!(
+                self.get_context(),
+                cuModuleGetFunction,
+                self.module,
+                name.as_ptr()
+            )
+        }?;
         Ok(Kernel { func, module: self })
     }
 }

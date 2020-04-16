@@ -1,7 +1,7 @@
 //! CUDA JIT compiler and Linkers
 
 use super::{device::*, module::*};
-use crate::{error::*, ffi_call};
+use crate::{contexted_call, error::*};
 use cuda::*;
 use std::{
     collections::HashMap,
@@ -185,7 +185,7 @@ pub struct Linker<'ctx> {
 
 impl<'ctx> Drop for Linker<'ctx> {
     fn drop(&mut self) {
-        if let Err(e) = ffi_call!(cuLinkDestroy, self.state) {
+        if let Err(e) = unsafe { contexted_call!(self, cuLinkDestroy, self.state) } {
             log::error!("Failed to release Linker: {:?}", e)
         }
     }
@@ -200,12 +200,11 @@ impl<'ctx> Contexted for Linker<'ctx> {
 impl<'ctx> Linker<'ctx> {
     /// Create a new Linker
     pub fn create(context: &'ctx Context, mut cfg: JITConfig) -> Result<Self> {
-        let _g = context.guard_context();
         let (n, mut opt, mut opts) = cfg.pack();
-        #[allow(unused_unsafe)]
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
-            ffi_call!(
+            contexted_call!(
+                context,
                 cuLinkCreate_v2,
                 n,
                 opt.as_mut_ptr(),
@@ -222,44 +221,38 @@ impl<'ctx> Linker<'ctx> {
     }
 
     /// Wrapper of cuLinkAddData
-    #[allow(unused_unsafe)]
     unsafe fn add_data(mut self, input_type: CUjitInputType, data: &[u8]) -> Result<Self> {
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
         let name = CString::new("").unwrap();
-        {
-            let _g = self.guard_context();
-            ffi_call!(
-                cuLinkAddData_v2,
-                self.state,
-                input_type,
-                data.as_ptr() as *mut _,
-                data.len(),
-                name.as_ptr(),
-                nopts,
-                opts.as_mut_ptr(),
-                opt_vals.as_mut_ptr()
-            )?;
-        }
+        contexted_call!(
+            &self,
+            cuLinkAddData_v2,
+            self.state,
+            input_type,
+            data.as_ptr() as *mut _,
+            data.len(),
+            name.as_ptr(),
+            nopts,
+            opts.as_mut_ptr(),
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
     /// Wrapper of cuLinkAddFile
-    #[allow(unused_unsafe)]
     unsafe fn add_file(mut self, input_type: CUjitInputType, path: &Path) -> Result<Self> {
         let filename = CString::new(path.to_str().unwrap()).expect("Invalid file path");
         let (nopts, mut opts, mut opt_vals) = self.cfg.pack();
-        {
-            let _g = self.guard_context();
-            ffi_call!(
-                cuLinkAddFile_v2,
-                self.state,
-                input_type,
-                filename.as_ptr(),
-                nopts,
-                opts.as_mut_ptr(),
-                opt_vals.as_mut_ptr()
-            )?;
-        }
+        contexted_call!(
+            &self,
+            cuLinkAddFile_v2,
+            self.state,
+            input_type,
+            filename.as_ptr(),
+            nopts,
+            opts.as_mut_ptr(),
+            opt_vals.as_mut_ptr()
+        )?;
         Ok(self)
     }
 
@@ -283,11 +276,15 @@ impl<'ctx> Linker<'ctx> {
     /// which is managed by LinkState.
     /// Use owned strategy to avoid considering lifetime.
     pub fn complete(self) -> Result<Instruction> {
-        let _g = self.guard_context();
         let mut cb = null_mut();
-        #[allow(unused_unsafe)]
         unsafe {
-            ffi_call!(cuLinkComplete, self.state, &mut cb as *mut _, null_mut())?;
+            contexted_call!(
+                &self,
+                cuLinkComplete,
+                self.state,
+                &mut cb as *mut _,
+                null_mut()
+            )?;
             Ok(Instruction::cubin(CStr::from_ptr(cb as _).to_bytes()))
         }
     }

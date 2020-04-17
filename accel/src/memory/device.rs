@@ -84,50 +84,31 @@ impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
 /// Safety
 /// ------
 /// - This works only when `mem` is device memory
-#[allow(unused_unsafe)]
 pub(super) unsafe fn memset_device<T, Mem>(mem: &mut Mem, value: T) -> error::Result<()>
 where
     T: Scalar,
     Mem: Continuous<Elem = T> + ?Sized,
 {
     assert_eq!(mem.memory_type(), MemoryType::Device);
-    let ptr = mem.head_addr_mut() as _;
-    let size = mem.num_elem();
     match T::size_of() {
-        1 => {
-            let value = value.to_le_u8().unwrap();
-            unsafe {
-                contexted_call!(
-                    mem.try_get_context().unwrap(),
-                    cuMemsetD8_v2,
-                    ptr,
-                    value,
-                    size
-                )?
-            }
-        }
-        2 => {
-            let value = value.to_le_u16().unwrap();
-            unsafe {
-                contexted_call!(
-                    mem.try_get_context().unwrap(),
-                    cuMemsetD16_v2,
-                    ptr,
-                    value,
-                    size
-                )?;
-            }
-        }
-        4 => {
-            let value = value.to_le_u32().unwrap();
-            unsafe {
-                contexted_call!(
-                    mem.try_get_context().unwrap(),
-                    cuMemsetD32_v2,
-                    ptr,
-                    value,
-                    size
-                )?;
+        bytes @ 1 | bytes @ 2 | bytes @ 4 => {
+            let ptr = mem.head_addr_mut() as _;
+            let size = mem.num_elem();
+            let ctx = mem.try_get_context().unwrap();
+            match bytes {
+                1 => {
+                    let value = value.to_le_u8().unwrap();
+                    contexted_call!(ctx, cuMemsetD8_v2, ptr, value, size)?;
+                }
+                2 => {
+                    let value = value.to_le_u16().unwrap();
+                    contexted_call!(ctx, cuMemsetD16_v2, ptr, value, size)?;
+                }
+                4 => {
+                    let value = value.to_le_u32().unwrap();
+                    contexted_call!(ctx, cuMemsetD32_v2, ptr, value, size)?;
+                }
+                _ => unreachable!(),
             }
         }
         _ => mem.as_mut_slice().iter_mut().for_each(|v| *v = value),
@@ -138,7 +119,6 @@ where
 /// Safety
 /// ------
 /// - This works only when `dest` is device memory
-#[allow(unused_unsafe)]
 pub(super) unsafe fn copy_to_device<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
 where
     Dest: Memory<Elem = T> + ?Sized,
@@ -165,26 +145,22 @@ where
     match src.memory_type() {
         // From host
         MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-            unsafe {
-                ffi_call!(
-                    cuMemcpyHtoD_v2,
-                    dest_ptr as _,
-                    src_ptr as _,
-                    dest.num_elem() * std::mem::size_of::<T>()
-                )
-            }
+            ffi_call!(
+                cuMemcpyHtoD_v2,
+                dest_ptr as _,
+                src_ptr as _,
+                dest.num_elem() * std::mem::size_of::<T>()
+            )
             .expect("memcpy from Host to Device failed");
         }
         // From device
         MemoryType::Device => {
-            unsafe {
-                ffi_call!(
-                    cuMemcpyDtoD_v2,
-                    dest_ptr as _,
-                    src_ptr as _,
-                    dest.num_elem() * std::mem::size_of::<T>()
-                )
-            }
+            ffi_call!(
+                cuMemcpyDtoD_v2,
+                dest_ptr as _,
+                src_ptr as _,
+                dest.num_elem() * std::mem::size_of::<T>()
+            )
             .expect("memcpy from Device to Device failed");
         }
         // From array

@@ -104,11 +104,19 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
         Some(self.get_context())
     }
 
-    fn copy_from<Source>(&mut self, _src: &Source)
+    fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized,
     {
-        todo!()
+        assert_eq!(self.memory_type(), MemoryType::Array);
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+
+        match src.memory_type() {
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => todo!(),
+            MemoryType::Device => todo!(),
+            MemoryType::Array => todo!(),
+        }
     }
 
     fn set(&mut self, _value: Self::Elem) {

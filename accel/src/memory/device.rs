@@ -68,17 +68,6 @@ impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
     fn try_get_context(&self) -> Option<&Context> {
         Some(self.get_context())
     }
-
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized,
-    {
-        unsafe { copy_to_device(self, src) }
-    }
-
-    fn set(&mut self, value: Self::Elem) {
-        unsafe { memset_device(self, value).expect("memset failed") };
-    }
 }
 
 /// Safety
@@ -165,6 +154,21 @@ where
         }
         // From array
         MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+    }
+}
+
+impl<'ctx, T: Scalar> Memcpy for DeviceMemory<'ctx, T> {
+    fn copy_from<Source>(&mut self, src: &Source)
+    where
+        Source: Memory<Elem = Self::Elem> + ?Sized,
+    {
+        unsafe { copy_to_device(self, src) }
+    }
+}
+
+impl<'ctx, T: Scalar> Memset for DeviceMemory<'ctx, T> {
+    fn set(&mut self, value: Self::Elem) {
+        unsafe { memset_device(self, value).expect("memset failed") };
     }
 }
 

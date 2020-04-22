@@ -88,150 +88,154 @@ pub trait Memory {
 
     /// Try to get CUDA context. Return None if the memory is not `Contexted`
     fn try_get_context(&self) -> Option<&Context>;
+}
 
-    /// Copy data from one to another
-    ///
-    /// Examples
-    /// ---------
-    ///
-    /// - memcpy from page-locked host memory to device memory
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
-    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src);
-    /// ```
-    ///
-    /// - memcpy from device memory to page-locked host memory
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src);
-    /// ```
-    ///
-    /// - memcpy from device to device
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
-    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src);
-    /// ```
-    ///
-    /// - memcpy from Rust slice to device memory
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
-    /// let src = vec![0_i32; 12];
-    /// dest.copy_from(src.as_slice()); // requires explicit cast to slice
-    /// ```
-    ///
-    /// - memcpy from device memory to Rust slice
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = vec![0_i32; 12];
-    /// let src = DeviceMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src);
-    /// ```
-    ///
-    /// Requirements
-    /// -------------
-    ///
-    /// - Cannot copy between different types
-    ///
-    /// ```compile_fail
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = DeviceMemory::<i64>::new(&ctx, 12);
-    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src); // compile fail
-    /// ```
-    ///
-    /// - Panics if sizes are different
-    ///
-    /// ```should_panic
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut dest = DeviceMemory::<i32>::new(&ctx, 24);
-    /// let src = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// dest.copy_from(&src); // will panic
-    /// ```
-    ///
-    /// Panic
-    /// -----
-    /// - `self` and `src` are identical
-    /// - if `self` nad `src` belong to different context
-    /// - if the size memory size mismathes
+/// Copy data from one to another
+///
+/// Examples
+/// ---------
+///
+/// - memcpy from page-locked host memory to device memory
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src);
+/// ```
+///
+/// - memcpy from device memory to page-locked host memory
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = PageLockedMemory::<i32>::new(&ctx, 12);
+/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src);
+/// ```
+///
+/// - memcpy from device to device
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src);
+/// ```
+///
+/// - memcpy from Rust slice to device memory
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+/// let src = vec![0_i32; 12];
+/// dest.copy_from(src.as_slice()); // requires explicit cast to slice
+/// ```
+///
+/// - memcpy from device memory to Rust slice
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = vec![0_i32; 12];
+/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src);
+/// ```
+///
+/// Requirements
+/// -------------
+///
+/// - Cannot copy between different types
+///
+/// ```compile_fail
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = DeviceMemory::<i64>::new(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src); // compile fail
+/// ```
+///
+/// - Panics if sizes are different
+///
+/// ```should_panic
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut dest = DeviceMemory::<i32>::new(&ctx, 24);
+/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// dest.copy_from(&src); // will panic
+/// ```
+///
+/// Panic
+/// -----
+/// - `self` and `src` are identical
+/// - if `self` nad `src` belong to different context
+/// - if the size memory size mismathes
+pub trait Memcpy: Memory {
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized;
+}
 
-    /// Set all elements by `value`
-    ///
-    /// Examples
-    /// ---------
-    ///
-    /// - Set `i32`
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
-    /// mem.set(1234);
-    /// assert_eq!(mem[10], 1234);
-    /// ```
-    ///
-    /// - Set `f32`
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut mem = DeviceMemory::<f32>::new(&ctx, 12);
-    /// mem.set(1.0);
-    /// assert_eq!(mem[10], 1.0);
-    /// ```
-    ///
-    /// - Set `f64`. CUDA memset does not support `f64`.
-    ///   `set` uses direct access and this will be slow.
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut mem = DeviceMemory::<f64>::new(&ctx, 12);
-    /// mem.set(1.0);
-    /// assert_eq!(mem[10], 1.0);
-    /// ```
-    ///
-    /// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
-    /// mem.set(1234);
-    /// assert_eq!(mem[10], 1234);
-    /// ```
+/// Set all elements by `value`
+///
+/// Examples
+/// ---------
+///
+/// - Set `i32`
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+/// mem.set(1234);
+/// assert_eq!(mem[10], 1234);
+/// ```
+///
+/// - Set `f32`
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut mem = DeviceMemory::<f32>::new(&ctx, 12);
+/// mem.set(1.0);
+/// assert_eq!(mem[10], 1.0);
+/// ```
+///
+/// - Set `f64`. CUDA memset does not support `f64`.
+///   `set` uses direct access and this will be slow.
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut mem = DeviceMemory::<f64>::new(&ctx, 12);
+/// mem.set(1.0);
+/// assert_eq!(mem[10], 1.0);
+/// ```
+///
+/// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
+///
+/// ```
+/// # use accel::*;
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
+/// mem.set(1234);
+/// assert_eq!(mem[10], 1234);
+/// ```
+pub trait Memset: Memory {
     fn set(&mut self, value: Self::Elem);
 }
 

@@ -43,7 +43,9 @@ impl<T: Scalar> Memory for [T] {
     fn try_get_context(&self) -> Option<&Context> {
         None
     }
+}
 
+impl<T: Scalar> Memcpy for [T] {
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized,
@@ -61,7 +63,9 @@ impl<T: Scalar> Memory for [T] {
             MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
+}
 
+impl<T: Scalar> Memset for [T] {
     fn set(&mut self, value: Self::Elem) {
         match self.memory_type() {
             // To host

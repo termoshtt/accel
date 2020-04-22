@@ -103,7 +103,9 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     fn try_get_context(&self) -> Option<&Context> {
         Some(self.get_context())
     }
+}
 
+impl<'ctx, T: Scalar, Dim: Dimension> Memcpy for Array<'ctx, T, Dim> {
     fn copy_from<Source>(&mut self, src: &Source)
     where
         Source: Memory<Elem = Self::Elem> + ?Sized,
@@ -118,7 +120,9 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
             MemoryType::Array => todo!(),
         }
     }
+}
 
+impl<'ctx, T: Scalar, Dim: Dimension> Memset for Array<'ctx, T, Dim> {
     fn set(&mut self, _value: Self::Elem) {
         todo!()
     }

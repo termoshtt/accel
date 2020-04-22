@@ -11,6 +11,9 @@ test:cargo-clippy:
     - rustup component add clippy
   script:
     - cargo clippy
+  cache:
+    paths:
+      - target/
 
 test:cargo-fmt:
   stage: test

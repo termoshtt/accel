@@ -28,14 +28,6 @@ test:cargo-fmt:
   script:
     - cargo fmt -- --check
 
-test:accel-derive:
-  stage: test
-  before_script:
-    - ./setup_nvptx_toolchain.sh
-  script:
-    - cd accel-derive
-    - cargo test
-
 .with_gpu:
   image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
   before_script:
@@ -51,7 +43,6 @@ test:accel:
   extends: .with_gpu
   stage: test
   script:
-    - cd accel
     - cargo test
 
 test:ignored:

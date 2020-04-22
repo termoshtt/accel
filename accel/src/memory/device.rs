@@ -157,12 +157,20 @@ where
     }
 }
 
-impl<T, Target: ?Sized> Memcpy<Target> for DeviceMemory<'_, T>
-where
-    T: Scalar,
-    Target: Memory<Elem = T> + Memcpy<Self>,
-{
-    fn copy_from(&mut self, src: &Target) {
+impl<T: Scalar> Memcpy<Self> for DeviceMemory<'_, T> {
+    fn copy_from(&mut self, src: &Self) {
+        unsafe { copy_to_device(self, src) }
+    }
+}
+
+impl<T: Scalar> Memcpy<PageLockedMemory<'_, T>> for DeviceMemory<'_, T> {
+    fn copy_from(&mut self, src: &PageLockedMemory<T>) {
+        unsafe { copy_to_device(self, src) }
+    }
+}
+
+impl<T: Scalar> Memcpy<[T]> for DeviceMemory<'_, T> {
+    fn copy_from(&mut self, src: &[T]) {
         unsafe { copy_to_device(self, src) }
     }
 }

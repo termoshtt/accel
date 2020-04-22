@@ -18,7 +18,7 @@ pub struct DeviceMemory<'ctx, T> {
     phantom: PhantomData<T>,
 }
 
-impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
+impl<T> Drop for DeviceMemory<'_, T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {
             log::error!("Failed to free device memory: {:?}", e);
@@ -26,20 +26,20 @@ impl<'ctx, T> Drop for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> Deref for DeviceMemory<'ctx, T> {
+impl<T> Deref for DeviceMemory<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         unsafe { std::slice::from_raw_parts(self.ptr as _, self.size) }
     }
 }
 
-impl<'ctx, T> DerefMut for DeviceMemory<'ctx, T> {
+impl<T> DerefMut for DeviceMemory<'_, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr as _, self.size) }
     }
 }
 
-impl<'ctx, T: Scalar> Memory for DeviceMemory<'ctx, T> {
+impl<T: Scalar> Memory for DeviceMemory<'_, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -192,7 +192,7 @@ where
     }
 }
 
-impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
+impl<T: Scalar> Continuous for DeviceMemory<'_, T> {
     fn length(&self) -> usize {
         self.size
     }
@@ -204,9 +204,9 @@ impl<'ctx, T: Scalar> Continuous for DeviceMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Scalar> Managed for DeviceMemory<'ctx, T> {}
+impl<T: Scalar> Managed for DeviceMemory<'_, T> {}
 
-impl<'ctx, T> Contexted for DeviceMemory<'ctx, T> {
+impl<T> Contexted for DeviceMemory<'_, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }

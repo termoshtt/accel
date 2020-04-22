@@ -20,7 +20,7 @@ pub struct Array<'ctx, T, Dim> {
     phantom: PhantomData<T>,
 }
 
-impl<'ctx, T, Dim> Drop for Array<'ctx, T, Dim> {
+impl<T, Dim> Drop for Array<'_, T, Dim> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuArrayDestroy, self.array) } {
             log::error!("Failed to cleanup array: {:?}", e);
@@ -70,7 +70,7 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     }
 }
 
-impl<'ctx, T, Dim> Contexted for Array<'ctx, T, Dim> {
+impl<T, Dim> Contexted for Array<'_, T, Dim> {
     fn get_context(&self) -> &Context {
         self.ctx
     }

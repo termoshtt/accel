@@ -7,6 +7,8 @@ stages:
 
 test:cargo-check:
   stage: test
+  before_script:
+    - ./setup_nvptx_toolchain.sh
   script:
     - cd $CI_PROJECT_DIR/accel; cargo check
     - cd $CI_PROJECT_DIR/accel-core; cargo check
@@ -28,6 +30,8 @@ test:cargo-fmt:
 
 test:accel-derive:
   stage: test
+  before_script:
+    - ./setup_nvptx_toolchain.sh
   script:
     - cd accel-derive
     - cargo test

@@ -12,7 +12,7 @@ pub struct PageLockedMemory<'ctx, T> {
     context: &'ctx Context,
 }
 
-impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
+impl<T> Drop for PageLockedMemory<'_, T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) } {
             log::error!("Cannot free page-locked memory: {:?}", e);
@@ -20,26 +20,26 @@ impl<'ctx, T> Drop for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T> Deref for PageLockedMemory<'ctx, T> {
+impl<T> Deref for PageLockedMemory<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         unsafe { std::slice::from_raw_parts(self.ptr as _, self.size) }
     }
 }
 
-impl<'ctx, T> DerefMut for PageLockedMemory<'ctx, T> {
+impl<T> DerefMut for PageLockedMemory<'_, T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr, self.size) }
     }
 }
 
-impl<'ctx, T> Contexted for PageLockedMemory<'ctx, T> {
+impl<T> Contexted for PageLockedMemory<'_, T> {
     fn get_context(&self) -> &Context {
         &self.context
     }
 }
 
-impl<'ctx, T: Scalar> Memory for PageLockedMemory<'ctx, T> {
+impl<T: Scalar> Memory for PageLockedMemory<'_, T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -117,7 +117,7 @@ where
     }
 }
 
-impl<'ctx, T, Target: ?Sized> Memcpy<Target> for PageLockedMemory<'ctx, T>
+impl<T, Target: ?Sized> Memcpy<Target> for PageLockedMemory<'_, T>
 where
     T: Scalar,
     Target: Memory<Elem = T> + Memcpy<Self>,
@@ -127,13 +127,13 @@ where
     }
 }
 
-impl<'ctx, T: Scalar> Memset for PageLockedMemory<'ctx, T> {
+impl<T: Scalar> Memset for PageLockedMemory<'_, T> {
     fn set(&mut self, value: Self::Elem) {
         self.iter_mut().for_each(|v| *v = value);
     }
 }
 
-impl<'ctx, T: Scalar> Continuous for PageLockedMemory<'ctx, T> {
+impl<T: Scalar> Continuous for PageLockedMemory<'_, T> {
     fn as_slice(&self) -> &[T] {
         self
     }
@@ -142,7 +142,7 @@ impl<'ctx, T: Scalar> Continuous for PageLockedMemory<'ctx, T> {
     }
 }
 
-impl<'ctx, T: Scalar> Managed for PageLockedMemory<'ctx, T> {}
+impl<T: Scalar> Managed for PageLockedMemory<'_, T> {}
 
 impl<'ctx, T> PageLockedMemory<'ctx, T> {
     /// Allocate host memory as page-locked.

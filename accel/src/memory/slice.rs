@@ -45,11 +45,12 @@ impl<T: Scalar> Memory for [T] {
     }
 }
 
-impl<T: Scalar> Memcpy for [T] {
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized,
-    {
+impl<T, Source> Memcpy<Source> for [T]
+where
+    T: Scalar,
+    Source: Memory<Elem = T> + ?Sized,
+{
+    fn copy_from(&mut self, src: &Source) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         match self.memory_type() {

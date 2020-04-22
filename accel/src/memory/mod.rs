@@ -80,13 +80,16 @@ pub trait Memory {
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
 
-    /// Try to convert into a slice. Return None if the memory is not `Continuous`
+    /// Try to convert into a slice.
+    /// Return None if the memory is not continuous
     fn try_as_slice(&self) -> Option<&[Self::Elem]>;
 
-    /// Try to convert into a slice. Return error if the memory is not continuous
+    /// Try to convert into a mutable slice.
+    /// Return None if the memory is not continuous
     fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]>;
 
-    /// Try to get CUDA context. Return None if the memory is not `Contexted`
+    /// Try to get CUDA context.
+    /// Return None if the memory is not `Contexted`
     fn try_get_context(&self) -> Option<&Context>;
 }
 
@@ -180,10 +183,11 @@ pub trait Memory {
 /// - `self` and `src` are identical
 /// - if `self` nad `src` belong to different context
 /// - if the size memory size mismathes
-pub trait Memcpy: Memory {
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized;
+pub trait Memcpy<Source>: Memory
+where
+    Source: Memory<Elem = Self::Elem> + ?Sized,
+{
+    fn copy_from(&mut self, src: &Source);
 }
 
 /// Set all elements by `value`

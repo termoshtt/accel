@@ -105,11 +105,13 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     }
 }
 
-impl<'ctx, T: Scalar, Dim: Dimension> Memcpy for Array<'ctx, T, Dim> {
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized,
-    {
+impl<'ctx, T, Dim, Source> Memcpy<Source> for Array<'ctx, T, Dim>
+where
+    T: Scalar,
+    Dim: Dimension,
+    Source: Memory<Elem = Self::Elem> + ?Sized,
+{
+    fn copy_from(&mut self, src: &Source) {
         assert_eq!(self.memory_type(), MemoryType::Array);
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());

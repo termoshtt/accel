@@ -12,6 +12,16 @@ test:cargo-check:
     - cd $CI_PROJECT_DIR/accel-core; cargo check
     - cd $CI_PROJECT_DIR/accel-derive; cargo check
 
+test:cargo-clippy:
+  stage: test
+  script:
+    - cargo clippy
+
+test:cargo-fmt:
+  stage: test
+  script:
+    - cargo fmt -- --check
+
 test:accel-derive:
   stage: test
   script:

@@ -183,11 +183,16 @@ pub trait Memory {
 /// - `self` and `src` are identical
 /// - if `self` nad `src` belong to different context
 /// - if the size memory size mismathes
-pub trait Memcpy<Source>: Memory
+pub trait Memcpy<Target: ?Sized>: Memory
 where
-    Source: Memory<Elem = Self::Elem> + ?Sized,
+    Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
 {
-    fn copy_from(&mut self, src: &Source);
+    fn copy_from(&mut self, source: &Target) {
+        source.copy_to(self);
+    }
+    fn copy_to(&self, destination: &mut Target) {
+        destination.copy_from(self);
+    }
 }
 
 /// Set all elements by `value`

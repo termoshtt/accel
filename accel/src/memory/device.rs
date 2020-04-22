@@ -157,12 +157,12 @@ where
     }
 }
 
-impl<'ctx, T, Source> Memcpy<Source> for DeviceMemory<'ctx, T>
+impl<'ctx, T, Target: ?Sized> Memcpy<Target> for DeviceMemory<'ctx, T>
 where
     T: Scalar,
-    Source: Memory<Elem = T> + ?Sized,
+    Target: Memory<Elem = T> + Memcpy<Self>,
 {
-    fn copy_from(&mut self, src: &Source) {
+    fn copy_from(&mut self, src: &Target) {
         unsafe { copy_to_device(self, src) }
     }
 }

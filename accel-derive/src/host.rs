@@ -5,7 +5,7 @@ fn get_input_types(func: &syn::ItemFn) -> Vec<syn::Type> {
         .inputs
         .iter()
         .map(|arg| match arg {
-            &syn::FnArg::Typed(ref val) => &*val.ty,
+            syn::FnArg::Typed(ref val) => &*val.ty,
             _ => panic!("Unsupported kernel input type sigunature"),
         })
         .cloned()

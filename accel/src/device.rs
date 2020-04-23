@@ -105,7 +105,7 @@ pub(crate) trait Contexted {
     fn get_context(&self) -> &Context;
 
     /// RAII utility for push/pop onto the thread-local context stack
-    fn guard_context<'lock>(&'lock self) -> ContextGuard<'lock> {
+    fn guard_context(&self) -> ContextGuard<'_> {
         let ctx = self.get_context();
         ContextGuard::guard_context(ctx)
     }

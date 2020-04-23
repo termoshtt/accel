@@ -131,10 +131,8 @@
 //!     }
 //! }
 //!
-//! fn main() {
-//!     // PTX assembler code is embedded as `add::PTX_STR`
-//!     println!("{}", add::PTX_STR);
-//! }
+//! // PTX assembler code is embedded as `add::PTX_STR`
+//! println!("{}", add::PTX_STR);
 //! ```
 //!
 //! ### Asynchronous launch

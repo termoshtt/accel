@@ -168,7 +168,7 @@ impl JITConfig {
             unimplemented!("Log for JIT is not supported yet");
         }
 
-        if self.global_symbol.len() != 0 {
+        if !self.global_symbol.is_empty() {
             unimplemented!("GLOBAL_SYMBOL flags are not supported yet");
         }
         assert_eq!(opt_keys.len(), opt_values.len());

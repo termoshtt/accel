@@ -10,7 +10,7 @@ use std::{
     process::Command,
 };
 
-const NIGHTLY_VERSION: &'static str = "nightly-2020-01-02";
+const NIGHTLY_VERSION: &str = "nightly-2020-01-02";
 
 trait CheckRun {
     fn check_run(&mut self) -> Fallible<()>;
@@ -94,12 +94,12 @@ pub fn compile_tokens(func: &syn::ItemFn) -> Fallible<String> {
 
     // Generate lib.rs and write into a file
     let mut lib_rs = fs::File::create(dir.join("src/lib.rs"))?;
-    lib_rs.write(ptx_kernel(func).as_bytes())?;
+    lib_rs.write_all(ptx_kernel(func).as_bytes())?;
     lib_rs.sync_data()?;
 
     // Generate Cargo.toml
     let mut cargo_toml = fs::File::create(dir.join("Cargo.toml"))?;
-    cargo_toml.write(toml::to_string(&meta)?.as_bytes())?;
+    cargo_toml.write_all(toml::to_string(&meta)?.as_bytes())?;
     cargo_toml.sync_data()?;
 
     // Build

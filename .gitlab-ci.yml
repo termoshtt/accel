@@ -1,24 +1,29 @@
-image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
+image: rust:1.42.0
 
 stages:
   - docker
   - test
   - deploy
 
-test:cargo-check:
+test:cargo-clippy:
   stage: test
+  before_script:
+    - rustup component add clippy
   script:
-    - cd $CI_PROJECT_DIR/accel; cargo check
-    - cd $CI_PROJECT_DIR/accel-core; cargo check
-    - cd $CI_PROJECT_DIR/accel-derive; cargo check
+    - cargo clippy
+  cache:
+    paths:
+      - target/
 
-test:accel-derive:
+test:cargo-fmt:
   stage: test
+  before_script:
+    - rustup component add rustfmt
   script:
-    - cd accel-derive
-    - cargo test
+    - cargo fmt -- --check
 
 .with_gpu:
+  image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
   before_script:
     - nvidia-smi
   tags:
@@ -32,7 +37,6 @@ test:accel:
   extends: .with_gpu
   stage: test
   script:
-    - cd accel
     - cargo test
 
 test:ignored:

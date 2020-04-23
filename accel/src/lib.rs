@@ -2,8 +2,30 @@
 //!
 //! [CUDA Driver API]: https://docs.nvidia.com/cuda/cuda-driver-api/
 //!
+//! Setup
+//! -----
+//! Currently (0.3.0), accel works only on Linux system. Windows support will come in future release (0.3.x or 0.4~).
+//!
+//! 1. Install [CUDA](https://developer.nvidia.com/cuda-downloads) on your system
+//! 2. Setup Rust environement using rustup (Requires 1.42 or later)
+//! 3. Add `nvptx64-nvidia-cuda` target and install `ptx-linker`, or run
+//!
+//!     ```shell
+//!     curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh | bash
+//!     ```
+//!
 //! Basic Examples
 //! --------------
+//! accel works with stable Rust
+//!
+//! ```toml
+//! [dependencies]
+//! accel        = "0.3.0-alpha.2"
+//! accel-derive = "0.3.0-alpha.2"
+//! ```
+//!
+//! Do **NOT** add `accel-core` to `[dependencies]`.
+//! It will be linked automatically by `accel-derive` to the device code.
 //!
 //! ### Vector Add
 //!
@@ -109,10 +131,8 @@
 //!     }
 //! }
 //!
-//! fn main() {
-//!     // PTX assembler code is embedded as `add::PTX_STR`
-//!     println!("{}", add::PTX_STR);
-//! }
+//! // PTX assembler code is embedded as `add::PTX_STR`
+//! println!("{}", add::PTX_STR);
 //! ```
 //!
 //! ### Asynchronous launch

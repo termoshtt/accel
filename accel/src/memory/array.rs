@@ -30,25 +30,6 @@ impl<T, Dim> Drop for Array<'_, T, Dim> {
 }
 
 impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
-    /// Create a new array on the device.
-    ///
-    /// Panic
-    /// -----
-    /// - when allocation failed
-    pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>) -> Self {
-        let _gurad = ctx.guard_context();
-        let dim = dim.into();
-        let desc = dim.as_descriptor::<T>();
-        let array = unsafe { contexted_new!(ctx, cuArray3DCreate_v2, &desc) }
-            .expect("Cannot create a new array");
-        Array {
-            array,
-            dim,
-            ctx,
-            phantom: PhantomData,
-        }
-    }
-
     /// Get dimension
     pub fn dim(&self) -> &Dim {
         &self.dim
@@ -168,6 +149,22 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memset for Array<'ctx, T, Dim> {
 impl<T, Dim> Contexted for Array<'_, T, Dim> {
     fn get_context(&self) -> &Context {
         self.ctx
+    }
+}
+
+impl<'ctx, T: Scalar, Dim: Dimension> Allocatable<'ctx> for Array<'ctx, T, Dim> {
+    type Shape = Dim;
+    unsafe fn uninitialized(ctx: &'ctx Context, dim: Dim) -> Self {
+        let _gurad = ctx.guard_context();
+        let desc = dim.as_descriptor::<T>();
+        let array =
+            contexted_new!(ctx, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+        Array {
+            array,
+            dim,
+            ctx,
+            phantom: PhantomData,
+        }
     }
 }
 
@@ -561,8 +558,8 @@ mod tests {
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array1: Array<f32, Ix1> = Array::new(&ctx, 10);
-        let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,));
+        let _array1: Array<f32, Ix1> = Array::zeros(&ctx, 10.into());
+        let _array2: Array<f32, Ix1> = Array::zeros(&ctx, (10,).into());
         Ok(())
     }
 
@@ -570,7 +567,7 @@ mod tests {
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12));
+        let _array: Array<f32, Ix2> = Array::zeros(&ctx, (10, 12).into());
         Ok(())
     }
 
@@ -578,7 +575,7 @@ mod tests {
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8));
+        let _array: Array<f32, Ix3> = Array::zeros(&ctx, (10, 12, 8).into());
         Ok(())
     }
 
@@ -586,7 +583,7 @@ mod tests {
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12));
+        let _array: Array<f32, Ix1Layered> = Array::zeros(&ctx, (10, 12).into());
         Ok(())
     }
 
@@ -594,7 +591,7 @@ mod tests {
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8));
+        let _array: Array<f32, Ix2Layered> = Array::zeros(&ctx, (10, 12, 8).into());
         Ok(())
     }
 }

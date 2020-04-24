@@ -8,8 +8,8 @@ use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
 use derive_new::new;
 use num_derive::{FromPrimitive, ToPrimitive};
-use num_traits::ToPrimitive;
-use std::marker::PhantomData;
+use num_traits::{ToPrimitive, Zero};
+use std::{marker::PhantomData, ops::Add};
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
@@ -209,7 +209,7 @@ impl Default for NumChannels {
     }
 }
 
-pub trait Dimension {
+pub trait Dimension: Zero {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor;
 
     /// Number of elements
@@ -242,6 +242,27 @@ impl From<(usize,)> for Ix1 {
             width,
             num_channels: NumChannels::One,
         }
+    }
+}
+
+impl Add for Ix1 {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        assert_eq!(self.num_channels, other.num_channels);
+        Self {
+            width: self.width + other.width,
+            num_channels: self.num_channels,
+        }
+    }
+}
+
+impl Zero for Ix1 {
+    fn zero() -> Self {
+        Ix1::new(0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -282,6 +303,28 @@ impl From<(usize, usize)> for Ix2 {
             hight,
             num_channels: NumChannels::One,
         }
+    }
+}
+
+impl Add for Ix2 {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        assert_eq!(self.num_channels, other.num_channels);
+        Self {
+            width: self.width + other.width,
+            hight: self.hight + other.hight,
+            num_channels: self.num_channels,
+        }
+    }
+}
+
+impl Zero for Ix2 {
+    fn zero() -> Self {
+        Ix2::new(0, 0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -327,6 +370,29 @@ impl From<(usize, usize, usize)> for Ix3 {
     }
 }
 
+impl Add for Ix3 {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        assert_eq!(self.num_channels, other.num_channels);
+        Self {
+            width: self.width + other.width,
+            hight: self.hight + other.hight,
+            depth: self.depth + other.depth,
+            num_channels: self.num_channels,
+        }
+    }
+}
+
+impl Zero for Ix3 {
+    fn zero() -> Self {
+        Ix3::new(0, 0, 0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.len() == 0
+    }
+}
+
 impl Dimension for Ix3 {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
@@ -366,6 +432,28 @@ impl From<(usize, usize)> for Ix1Layered {
             depth,
             num_channels: NumChannels::One,
         }
+    }
+}
+
+impl Add for Ix1Layered {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        assert_eq!(self.num_channels, other.num_channels);
+        Self {
+            width: self.width + other.width,
+            depth: self.depth + other.depth,
+            num_channels: self.num_channels,
+        }
+    }
+}
+
+impl Zero for Ix1Layered {
+    fn zero() -> Self {
+        Self::new(0, 0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -411,6 +499,29 @@ impl From<(usize, usize, usize)> for Ix2Layered {
             depth,
             num_channels: NumChannels::One,
         }
+    }
+}
+
+impl Add for Ix2Layered {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        assert_eq!(self.num_channels, other.num_channels);
+        Self {
+            width: self.width + other.width,
+            hight: self.hight + other.hight,
+            depth: self.depth + other.depth,
+            num_channels: self.num_channels,
+        }
+    }
+}
+
+impl Zero for Ix2Layered {
+    fn zero() -> Self {
+        Self::new(0, 0, 0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.len() == 0
     }
 }
 

@@ -7,6 +7,8 @@
 use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
 use derive_new::new;
+use num_derive::{FromPrimitive, ToPrimitive};
+use num_traits::ToPrimitive;
 use std::marker::PhantomData;
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
@@ -15,7 +17,6 @@ pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 pub struct Array<'ctx, T, Dim> {
     array: CUarray,
     dim: Dim,
-    num_channels: u32,
     ctx: &'ctx Context,
     phantom: PhantomData<T>,
 }
@@ -31,10 +32,6 @@ impl<T, Dim> Drop for Array<'_, T, Dim> {
 impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// Create a new array on the device.
     ///
-    /// - `num_channels` specifies the number of packed components per "CUDA array element"; it may be 1, 2, or 4;
-    ///   - e.g. `T=f32` and `num_channels == 2`, the size of "CUDA array element" is 64bit as packed two 32bit float values
-    ///   - We call `T` element, although "CUDA array element" represents `[T; num_channels]`.
-    ///     `Memory::num_elem()` returns how many `T` exists in this array.
     ///
     /// ```
     /// # use accel::*;
@@ -49,16 +46,15 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// -----
     /// - when allocation failed
     ///
-    pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
+    pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>) -> Self {
         let _gurad = ctx.guard_context();
         let dim = dim.into();
-        let desc = dim.as_descriptor::<T>(num_channels);
+        let desc = dim.as_descriptor::<T>();
         let array = unsafe { contexted_new!(ctx, cuArray3DCreate_v2, &desc) }
             .expect("Cannot create a new array");
         Array {
             array,
             dim,
-            num_channels,
             ctx,
             phantom: PhantomData,
         }
@@ -67,11 +63,6 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// Get dimension
     pub fn dim(&self) -> &Dim {
         &self.dim
-    }
-
-    /// Number of packed components
-    pub fn num_channels(&self) -> u32 {
-        self.num_channels
     }
 }
 
@@ -85,7 +76,7 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     }
 
     fn num_elem(&self) -> usize {
-        self.dim.len() * self.num_channels as usize
+        self.dim.len()
     }
 
     fn memory_type(&self) -> MemoryType {
@@ -191,48 +182,87 @@ impl<T, Dim> Contexted for Array<'_, T, Dim> {
     }
 }
 
+/// This specifies the number of packed elements per "CUDA array element".
+///
+/// - The CUDA array element approach is useful e.g. for [RGBA color model],
+///   which has 4 values at each point of figures.
+/// - For example, When `T=f32` and `NumChannels::Two`,
+///   the size of "CUDA array element" is 64bit as packed two 32bit float values.
+/// - We call `T` element, although "CUDA array element" represents `[T; num_channels]`.
+///   `Memory::num_elem()` returns how many `T` exists in this array.
+///
+/// [RGBA color model]: https://en.wikipedia.org/wiki/RGBA_color_model
+#[repr(u32)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, FromPrimitive, ToPrimitive)]
+pub enum NumChannels {
+    /// Single element in each "CUDA Array element"
+    One = 1,
+    /// Two scalars in each CUDA Array element
+    Two = 2,
+    /// Four scalars in each CUDA Array element
+    Four = 4,
+}
+
+impl Default for NumChannels {
+    fn default() -> Self {
+        NumChannels::One
+    }
+}
+
 pub trait Dimension {
-    /// `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor;
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor;
+
     /// Number of elements
     fn len(&self) -> usize;
+
+    /// Get number of element `T` in each "CUDA Array element"
+    fn num_channels(&self) -> NumChannels;
 }
 
 /// Spec of 1D Array
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix1 {
     pub width: usize,
+    #[new(default)]
+    pub num_channels: NumChannels,
 }
 
 impl From<usize> for Ix1 {
     fn from(width: usize) -> Ix1 {
-        Ix1 { width }
+        Ix1 {
+            width,
+            num_channels: NumChannels::One,
+        }
     }
 }
 
 impl From<(usize,)> for Ix1 {
-    fn from(width: (usize,)) -> Ix1 {
-        Ix1::new(width.0)
+    fn from((width,): (usize,)) -> Ix1 {
+        Ix1 {
+            width,
+            num_channels: NumChannels::One,
+        }
     }
 }
 
 impl Dimension for Ix1 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
-        assert!(
-            (num_channels == 1) || (num_channels == 2) || (num_channels == 4),
-            "num_channels must be one of 1,2,4"
-        );
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
             Height: 0,
             Depth: 0,
-            NumChannels: num_channels,
+            NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::empty().bits(),
             Format: T::format(),
         }
     }
+
     fn len(&self) -> usize {
-        self.width
+        self.width * self.num_channels.to_usize().unwrap()
+    }
+
+    fn num_channels(&self) -> NumChannels {
+        self.num_channels
     }
 }
 
@@ -241,27 +271,38 @@ impl Dimension for Ix1 {
 pub struct Ix2 {
     pub width: usize,
     pub hight: usize,
+    #[new(default)]
+    pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize)> for Ix2 {
     fn from((width, hight): (usize, usize)) -> Ix2 {
-        Ix2 { width, hight }
+        Ix2 {
+            width,
+            hight,
+            num_channels: NumChannels::One,
+        }
     }
 }
 
 impl Dimension for Ix2 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: 0,
-            NumChannels: num_channels,
+            NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::empty().bits(),
             Format: T::format(),
         }
     }
+
     fn len(&self) -> usize {
-        self.width * self.hight
+        self.width * self.hight * self.num_channels.to_usize().unwrap()
+    }
+
+    fn num_channels(&self) -> NumChannels {
+        self.num_channels
     }
 }
 
@@ -271,6 +312,8 @@ pub struct Ix3 {
     pub width: usize,
     pub hight: usize,
     pub depth: usize,
+    #[new(default)]
+    pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize, usize)> for Ix3 {
@@ -279,23 +322,29 @@ impl From<(usize, usize, usize)> for Ix3 {
             width,
             hight,
             depth,
+            num_channels: NumChannels::One,
         }
     }
 }
 
 impl Dimension for Ix3 {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: self.depth,
-            NumChannels: num_channels,
+            NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::empty().bits(),
             Format: T::format(),
         }
     }
+
     fn len(&self) -> usize {
-        self.width * self.hight * self.depth
+        self.width * self.hight * self.depth * self.num_channels().to_usize().unwrap()
+    }
+
+    fn num_channels(&self) -> NumChannels {
+        self.num_channels
     }
 }
 
@@ -306,27 +355,38 @@ pub struct Ix1Layered {
     pub width: usize,
     /// Depth of layer
     pub depth: usize,
+    #[new(default)]
+    pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize)> for Ix1Layered {
     fn from((width, depth): (usize, usize)) -> Ix1Layered {
-        Ix1Layered { width, depth }
+        Ix1Layered {
+            width,
+            depth,
+            num_channels: NumChannels::One,
+        }
     }
 }
 
 impl Dimension for Ix1Layered {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
             Height: 0,
             Depth: self.depth,
-            NumChannels: num_channels,
+            NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::LAYERED.bits(),
             Format: T::format(),
         }
     }
+
     fn len(&self) -> usize {
-        self.width * self.depth
+        self.width * self.depth * self.num_channels.to_usize().unwrap()
+    }
+
+    fn num_channels(&self) -> NumChannels {
+        self.num_channels
     }
 }
 
@@ -339,6 +399,8 @@ pub struct Ix2Layered {
     pub hight: usize,
     /// Depth of layer
     pub depth: usize,
+    #[new(default)]
+    pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize, usize)> for Ix2Layered {
@@ -347,23 +409,29 @@ impl From<(usize, usize, usize)> for Ix2Layered {
             width,
             hight,
             depth,
+            num_channels: NumChannels::One,
         }
     }
 }
 
 impl Dimension for Ix2Layered {
-    fn as_descriptor<T: Scalar>(&self, num_channels: u32) -> Descriptor {
+    fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
             Height: self.hight,
             Depth: self.depth,
-            NumChannels: num_channels,
+            NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::LAYERED.bits(),
             Format: T::format(),
         }
     }
+
     fn len(&self) -> usize {
-        self.width * self.hight * self.depth
+        self.width * self.hight * self.depth * self.num_channels.to_usize().unwrap()
+    }
+
+    fn num_channels(&self) -> NumChannels {
+        self.num_channels
     }
 }
 
@@ -393,8 +461,8 @@ mod tests {
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array1: Array<f32, Ix1> = Array::new(&ctx, 10, 1);
-        let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,), 1);
+        let _array1: Array<f32, Ix1> = Array::new(&ctx, 10);
+        let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,));
         Ok(())
     }
 
@@ -402,7 +470,7 @@ mod tests {
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12), 1);
+        let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12));
         Ok(())
     }
 
@@ -410,7 +478,7 @@ mod tests {
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8), 1);
+        let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8));
         Ok(())
     }
 
@@ -418,7 +486,7 @@ mod tests {
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12), 1);
+        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12));
         Ok(())
     }
 
@@ -426,7 +494,7 @@ mod tests {
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8), 1);
+        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8));
         Ok(())
     }
 }

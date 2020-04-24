@@ -32,20 +32,9 @@ impl<T, Dim> Drop for Array<'_, T, Dim> {
 impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// Create a new array on the device.
     ///
-    ///
-    /// ```
-    /// # use accel::*;
-    /// # let device = Device::nth(0).unwrap();
-    /// # let ctx = device.create_context();
-    /// let array: Array<f32, Ix2> = Array::new(&ctx, (10 /* X */ , 12 /* Y */), 2 /* num channel */);
-    /// assert_eq!(array.dim().len(), 10 * 12);     // how many "CUDA array elements" exists
-    /// assert_eq!(array.num_elem(), 10 * 12 * 2);  // how many `T` exists
-    /// ```
-    ///
     /// Panic
     /// -----
     /// - when allocation failed
-    ///
     pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>) -> Self {
         let _gurad = ctx.guard_context();
         let dim = dim.into();

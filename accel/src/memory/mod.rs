@@ -208,7 +208,9 @@ where
 /// # let ctx = device.create_context();
 /// let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
 /// mem.set(1234);
-/// assert_eq!(mem[10], 1234);
+/// for &val in mem.as_slice() {
+///   assert_eq!(val, 1234);
+/// }
 /// ```
 ///
 /// - Set `f32`
@@ -219,7 +221,9 @@ where
 /// # let ctx = device.create_context();
 /// let mut mem = DeviceMemory::<f32>::new(&ctx, 12);
 /// mem.set(1.0);
-/// assert_eq!(mem[10], 1.0);
+/// for &val in mem.as_slice() {
+///   assert_eq!(val, 1.0);
+/// }
 /// ```
 ///
 /// - Set `f64`. CUDA memset does not support `f64`.
@@ -231,7 +235,9 @@ where
 /// # let ctx = device.create_context();
 /// let mut mem = DeviceMemory::<f64>::new(&ctx, 12);
 /// mem.set(1.0);
-/// assert_eq!(mem[10], 1.0);
+/// for &val in mem.as_slice() {
+///   assert_eq!(val, 1.0);
+/// }
 /// ```
 ///
 /// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
@@ -242,7 +248,9 @@ where
 /// # let ctx = device.create_context();
 /// let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
 /// mem.set(1234);
-/// assert_eq!(mem[10], 1234);
+/// for &val in mem.as_slice() {
+///   assert_eq!(val, 1234);
+/// }
 /// ```
 pub trait Memset: Memory {
     fn set(&mut self, value: Self::Elem);

@@ -198,27 +198,16 @@ impl<T> Contexted for DeviceMemory<'_, T> {
     }
 }
 
-impl<'ctx, T> DeviceMemory<'ctx, T> {
-    /// Allocate a new device memory with `size` byte length by [cuMemAllocManaged].
-    /// This memory is managed by the unified memory system.
-    ///
-    /// Panic
-    /// ------
-    /// - when given context is not current
-    /// - allocation failed including `size == 0` case
-    ///
-    /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
-    ///
-    pub fn new(context: &'ctx Context, size: usize) -> Self {
+impl<'ctx, T: Scalar> Allocatable<'ctx> for DeviceMemory<'ctx, T> {
+    type Shape = usize;
+    unsafe fn uninitialized(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr = unsafe {
-            contexted_new!(
-                context,
-                cuMemAllocManaged,
-                size * std::mem::size_of::<T>(),
-                AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
-            )
-        }
+        let ptr = contexted_new!(
+            context,
+            cuMemAllocManaged,
+            size * std::mem::size_of::<T>(),
+            AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
+        )
         .expect("Cannot allocate device memory");
         DeviceMemory {
             ptr,
@@ -238,7 +227,7 @@ mod tests {
     fn device() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+        let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
         assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
@@ -250,6 +239,6 @@ mod tests {
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::new(&ctx, 0);
+        let _a = DeviceMemory::<i32>::zeros(&ctx, 0);
     }
 }

@@ -82,7 +82,7 @@ impl Device {
 /// it, and then pop it.
 ///
 /// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
-pub(crate) struct ContextGuard<'lock> {
+pub struct ContextGuard<'lock> {
     ctx: &'lock Context,
 }
 
@@ -101,7 +101,7 @@ impl<'lock> Drop for ContextGuard<'lock> {
 }
 
 /// Object tied up to a CUDA context
-pub(crate) trait Contexted {
+pub trait Contexted {
     fn get_context(&self) -> &Context;
 
     /// RAII utility for push/pop onto the thread-local context stack

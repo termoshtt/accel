@@ -5,7 +5,15 @@ use crate::*;
 use cuda::*;
 use std::ops::{Deref, DerefMut};
 
-/// Memory allocated as page-locked
+/// Host memory as page-locked.
+///
+/// Allocating excessive amounts of pinned memory may degrade system performance,
+/// since it reduces the amount of memory available to the system for paging.
+/// As a result, this function is best used sparingly to allocate staging areas for data exchange between host and device.
+///
+/// See also [cuMemAllocHost].
+///
+/// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
 pub struct PageLockedMemory<'ctx, T> {
     ptr: *mut T,
     size: usize,
@@ -152,26 +160,12 @@ impl<T: Scalar> Continuous for PageLockedMemory<'_, T> {
 
 impl<T: Scalar> Managed for PageLockedMemory<'_, T> {}
 
-impl<'ctx, T> PageLockedMemory<'ctx, T> {
-    /// Allocate host memory as page-locked.
-    ///
-    /// Allocating excessive amounts of pinned memory may degrade system performance,
-    /// since it reduces the amount of memory available to the system for paging.
-    /// As a result, this function is best used sparingly to allocate staging areas for data exchange between host and device.
-    ///
-    /// See also [cuMemAllocHost].
-    ///
-    /// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
-    ///
-    /// Panic
-    /// ------
-    /// - when memory allocation failed includeing `size == 0` case
-    ///
-    pub fn new(context: &'ctx Context, size: usize) -> Self {
+impl<'ctx, T: Scalar> Allocatable<'ctx> for PageLockedMemory<'ctx, T> {
+    type Shape = usize;
+    unsafe fn uninitialized(context: &'ctx Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr =
-            unsafe { contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>()) }
-                .expect("Cannot allocate page-locked memory");
+        let ptr = contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+            .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,
@@ -189,7 +183,7 @@ mod tests {
     fn page_locked() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
+        let mut mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
         assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
@@ -201,14 +195,14 @@ mod tests {
     fn page_locked_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = PageLockedMemory::<i32>::new(&ctx, 0);
+        let _a = PageLockedMemory::<i32>::zeros(&ctx, 0);
     }
 
     #[test]
     fn device() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+        let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
         assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
@@ -220,6 +214,6 @@ mod tests {
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::new(&ctx, 0);
+        let _a = DeviceMemory::<i32>::zeros(&ctx, 0);
     }
 }

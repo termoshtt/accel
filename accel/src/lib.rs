@@ -47,9 +47,9 @@
 //!
 //!     // Allocate memories on GPU
 //!     let n = 32;
-//!     let mut a = DeviceMemory::<f64>::new(&ctx, n);
-//!     let mut b = DeviceMemory::<f64>::new(&ctx, n);
-//!     let mut c = DeviceMemory::<f64>::new(&ctx, n);
+//!     let mut a = DeviceMemory::<f64>::zeros(&ctx, n);
+//!     let mut b = DeviceMemory::<f64>::zeros(&ctx, n);
+//!     let mut c = DeviceMemory::<f64>::zeros(&ctx, n);
 //!
 //!     // Accessible from CPU as usual Rust slice (though this will be slow)
 //!     for i in 0..n {

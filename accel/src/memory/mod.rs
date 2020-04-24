@@ -38,6 +38,7 @@ pub use scalar::*;
 
 use crate::*;
 use cuda::*;
+use num_traits::Zero;
 use std::mem::MaybeUninit;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -104,8 +105,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
-/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -115,8 +116,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = PageLockedMemory::<i32>::new(&ctx, 12);
-/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// let mut dest = PageLockedMemory::<i32>::zeros(&ctx, 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -126,8 +127,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
-/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -137,7 +138,7 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::new(&ctx, 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// let src = vec![0_i32; 12];
 /// dest.copy_from(src.as_slice()); // requires explicit cast to slice
 /// ```
@@ -149,7 +150,7 @@ pub trait Memory {
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut dest = vec![0_i32; 12];
-/// let src = DeviceMemory::<i32>::new(&ctx, 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -162,8 +163,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i64>::new(&ctx, 12);
-/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// let mut dest = DeviceMemory::<i64>::zeros(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src); // compile fail
 /// ```
 ///
@@ -173,8 +174,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::new(&ctx, 24);
-/// let src = PageLockedMemory::<i32>::new(&ctx, 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 24);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src); // will panic
 /// ```
 ///
@@ -206,7 +207,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+/// let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// mem.set(1234);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1234);
@@ -219,7 +220,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<f32>::new(&ctx, 12);
+/// let mut mem = DeviceMemory::<f32>::zeros(&ctx, 12);
 /// mem.set(1.0);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1.0);
@@ -233,7 +234,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<f64>::new(&ctx, 12);
+/// let mut mem = DeviceMemory::<f64>::zeros(&ctx, 12);
 /// mem.set(1.0);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1.0);
@@ -246,7 +247,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = PageLockedMemory::<i32>::new(&ctx, 12);
+/// let mut mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// mem.set(1234);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1234);
@@ -254,6 +255,43 @@ where
 /// ```
 pub trait Memset: Memory {
     fn set(&mut self, value: Self::Elem);
+}
+
+/// Allocatable memories with CUDA context
+pub trait Allocatable<'ctx>: Contexted + Memset + Sized {
+    /// Shape for initialization
+    type Shape: Zero;
+
+    /// Allocate a memory without initialization
+    ///
+    /// Safety
+    /// ------
+    /// - Cause undefined behavior when read before write
+    ///
+    /// Panic
+    /// ------
+    /// - if shape is zero
+    unsafe fn uninitialized(ctx: &'ctx Context, shape: Self::Shape) -> Self;
+
+    /// uniformly initialized
+    ///
+    /// Panic
+    /// ------
+    /// - if shape is zero
+    fn from_elem(ctx: &'ctx Context, shape: Self::Shape, elem: Self::Elem) -> Self {
+        let mut mem = unsafe { Self::uninitialized(ctx, shape) };
+        mem.set(elem);
+        mem
+    }
+
+    /// uniformly initialized by zero
+    ///
+    /// Panic
+    /// ------
+    /// - if shape is zero
+    fn zeros(ctx: &'ctx Context, shape: Self::Shape) -> Self {
+        Self::from_elem(ctx, shape, <Self::Elem as Zero>::zero())
+    }
 }
 
 /// Memory which has continuous 1D index, i.e. can be treated as a Rust slice

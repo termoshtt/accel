@@ -49,6 +49,8 @@ test:ignored:
 
 pages:
   stage: deploy
+  before_script:
+    - ./setup_nvptx_toolchain.sh
   script:
     - rm -rf public
     - mkdir -p public

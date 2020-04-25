@@ -6,19 +6,20 @@ use cuda::*;
 use std::{
     marker::PhantomData,
     ops::{Deref, DerefMut},
+    sync::Arc,
 };
 
 use cuda::CUmemAttach_flags_enum as AttachFlag;
 
 /// Memory allocated on the device.
-pub struct DeviceMemory<'ctx, T> {
+pub struct DeviceMemory<T> {
     ptr: CUdeviceptr,
     size: usize,
-    context: &'ctx Context,
+    context: Arc<Context>,
     phantom: PhantomData<T>,
 }
 
-impl<T> Drop for DeviceMemory<'_, T> {
+impl<T> Drop for DeviceMemory<T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {
             log::error!("Failed to free device memory: {:?}", e);
@@ -26,20 +27,20 @@ impl<T> Drop for DeviceMemory<'_, T> {
     }
 }
 
-impl<T> Deref for DeviceMemory<'_, T> {
+impl<T> Deref for DeviceMemory<T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
         unsafe { std::slice::from_raw_parts(self.ptr as _, self.size) }
     }
 }
 
-impl<T> DerefMut for DeviceMemory<'_, T> {
+impl<T> DerefMut for DeviceMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr as _, self.size) }
     }
 }
 
-impl<T: Scalar> Memory for DeviceMemory<'_, T> {
+impl<T: Scalar> Memory for DeviceMemory<T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {
         self.ptr as _
@@ -65,7 +66,7 @@ impl<T: Scalar> Memory for DeviceMemory<'_, T> {
         Some(self.as_mut_slice())
     }
 
-    fn try_get_context(&self) -> Option<&Context> {
+    fn try_get_context(&self) -> Option<Arc<Context>> {
         Some(self.get_context())
     }
 
@@ -98,7 +99,7 @@ where
             let value = value.to_le_u8().unwrap();
             unsafe {
                 contexted_call!(
-                    mem.try_get_context().unwrap(),
+                    &mem.try_get_context().unwrap(),
                     cuMemsetD8_v2,
                     ptr,
                     value,
@@ -110,7 +111,7 @@ where
             let value = value.to_le_u16().unwrap();
             unsafe {
                 contexted_call!(
-                    mem.try_get_context().unwrap(),
+                    &mem.try_get_context().unwrap(),
                     cuMemsetD16_v2,
                     ptr,
                     value,
@@ -122,7 +123,7 @@ where
             let value = value.to_le_u32().unwrap();
             unsafe {
                 contexted_call!(
-                    mem.try_get_context().unwrap(),
+                    &mem.try_get_context().unwrap(),
                     cuMemsetD32_v2,
                     ptr,
                     value,
@@ -192,7 +193,7 @@ where
     }
 }
 
-impl<T: Scalar> Continuous for DeviceMemory<'_, T> {
+impl<T: Scalar> Continuous for DeviceMemory<T> {
     fn length(&self) -> usize {
         self.size
     }
@@ -204,15 +205,15 @@ impl<T: Scalar> Continuous for DeviceMemory<'_, T> {
     }
 }
 
-impl<T: Scalar> Managed for DeviceMemory<'_, T> {}
+impl<T: Scalar> Managed for DeviceMemory<T> {}
 
-impl<T> Contexted for DeviceMemory<'_, T> {
-    fn get_context(&self) -> &Context {
-        &self.context
+impl<T> Contexted for DeviceMemory<T> {
+    fn get_context(&self) -> Arc<Context> {
+        self.context.clone()
     }
 }
 
-impl<'ctx, T> DeviceMemory<'ctx, T> {
+impl<T> DeviceMemory<T> {
     /// Allocate a new device memory with `size` byte length by [cuMemAllocManaged].
     /// This memory is managed by the unified memory system.
     ///
@@ -223,11 +224,11 @@ impl<'ctx, T> DeviceMemory<'ctx, T> {
     ///
     /// [cuMemAllocManaged]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gb82d2a09844a58dd9e744dc31e8aa467
     ///
-    pub fn new(context: &'ctx Context, size: usize) -> Self {
+    pub fn new(context: Arc<Context>, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
         let ptr = unsafe {
             contexted_new!(
-                context,
+                &context,
                 cuMemAllocManaged,
                 size * std::mem::size_of::<T>(),
                 AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
@@ -252,7 +253,7 @@ mod tests {
     fn device() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::new(&ctx, 12);
+        let mut mem = DeviceMemory::<i32>::new(ctx, 12);
         assert_eq!(mem.len(), 12);
         assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
         let sl = mem.as_mut_slice();
@@ -265,6 +266,6 @@ mod tests {
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::new(&ctx, 0);
+        let _a = DeviceMemory::<i32>::new(ctx, 0);
     }
 }

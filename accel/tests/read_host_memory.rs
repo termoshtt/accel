@@ -12,11 +12,11 @@ fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
 
-    let mut a = PageLockedMemory::new(&ctx, 4);
+    let mut a = PageLockedMemory::new(ctx.clone(), 4);
     a[0] = 0;
     a[1] = 1;
     a[2] = 2;
     a[3] = 3;
-    read_host_memory(&ctx, 1, 4, &(&a.as_ptr(),))?;
+    read_host_memory(ctx, 1, 4, &(&a.as_ptr(),))?;
     Ok(())
 }

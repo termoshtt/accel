@@ -47,9 +47,9 @@
 //!
 //!     // Allocate memories on GPU
 //!     let n = 32;
-//!     let mut a = DeviceMemory::<f64>::new(&ctx, n);
-//!     let mut b = DeviceMemory::<f64>::new(&ctx, n);
-//!     let mut c = DeviceMemory::<f64>::new(&ctx, n);
+//!     let mut a = DeviceMemory::<f64>::new(ctx.clone(), n);
+//!     let mut b = DeviceMemory::<f64>::new(ctx.clone(), n);
+//!     let mut c = DeviceMemory::<f64>::new(ctx.clone(), n);
 //!
 //!     // Accessible from CPU as usual Rust slice (though this will be slow)
 //!     for i in 0..n {
@@ -60,7 +60,7 @@
 //!     println!("b = {:?}", b.as_slice());
 //!
 //!     // Launch kernel synchronously
-//!     add(&ctx,
+//!     add(ctx,
 //!         1 /* grid */,
 //!         n /* block */,
 //!         &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)
@@ -85,7 +85,7 @@
 //! fn main() -> error::Result<()> {
 //!     let device = Device::nth(0)?;
 //!     let ctx = device.create_context();
-//!     let result = assert(&ctx, 1 /* grid */, 4 /* block */, &());
+//!     let result = assert(ctx, 1 /* grid */, 4 /* block */, &());
 //!     assert!(result.is_err()); // assertion failed
 //!     Ok(())
 //! }
@@ -106,7 +106,7 @@
 //! fn main() -> error::Result<()> {
 //!     let device = Device::nth(0)?;
 //!     let ctx = device.create_context();
-//!     print(&ctx, 1, 4, &())?;
+//!     print(ctx, 1, 4, &())?;
 //!     Ok(())
 //! }
 //! ```
@@ -155,9 +155,9 @@
 //! fn main() -> error::Result<()> {
 //!     let device = Device::nth(0)?;
 //!     let ctx = device.create_context();
-//!     let stream = Stream::new(&ctx);
+//!     let stream = Stream::new(ctx.clone());
 //!
-//!     let module = assert::Module::new(&ctx)?;
+//!     let module = assert::Module::new(ctx)?;
 //!     module.stream_launch(&stream, 1, 4, &())?; // lanch will succeed
 //!     assert!(stream.sync().is_err()); // assertion failed is detected in next sync
 //!     Ok(())

@@ -204,40 +204,6 @@ mod tests {
     }
 
     #[test]
-    fn memcpy_h2a2h_1d() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let n = 10;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n);
-        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
-        array.copy_from(&src);
-        dst.copy_from(&array);
-        dbg!(dst.as_slice());
-        for i in 0..n {
-            assert_eq!(dst[i], 2_u32);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn memcpy_d2a2d_1d() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let n = 10;
-        let src = DeviceMemory::from_elem(ctx.clone(), n, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n);
-        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
-        array.copy_from(&src);
-        dst.copy_from(&array);
-        dbg!(dst.as_slice());
-        for i in 0..n {
-            assert_eq!(dst[i], 2_u32);
-        }
-        Ok(())
-    }
-
-    #[test]
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
@@ -266,6 +232,192 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let _array: Array<f32, Ix2Layered> = Array::zeros(ctx, (10, 12, 8).into());
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_h2a2h_1d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 10;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n);
+        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_2d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n * m {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_h2a2h_2d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n * m, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_1d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+    #[test]
+    fn memcpy_h2a2h_3d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let l = 2;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m * l);
+        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_3d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let l = 2;
+        let src = DeviceMemory::from_elem(ctx.clone(), n * l * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n * l * m);
+        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_h2a2h_1dlayer() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n * m, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m);
+        let mut array =
+            unsafe { Array::<u32, Ix1Layered>::uninitialized(ctx.clone(), (n, m).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_1dlayer() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
+        let mut array =
+            unsafe { Array::<u32, Ix1Layered>::uninitialized(ctx.clone(), (n, m).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_h2a2h_2dlayer() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let l = 2;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m * l);
+        let mut array =
+            unsafe { Array::<u32, Ix2Layered>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_2dlayer() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 3;
+        let m = 4;
+        let l = 2;
+        let src = DeviceMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m * l);
+        let mut array =
+            unsafe { Array::<u32, Ix2Layered>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        dbg!(dst.as_slice());
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
         Ok(())
     }
 }

@@ -71,7 +71,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
             srcHost: src.as_ptr() as *mut _,
-            srcPitch: desc.Depth * desc.Height,
+            srcPitch: desc.Width * T::size_of(),
             srcHeight: desc.Height,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,

@@ -40,7 +40,7 @@ impl<T: Scalar> Memory for [T] {
         Some(self)
     }
 
-    fn try_get_context(&self) -> Option<&Context> {
+    fn try_get_context(&self) -> Option<Arc<Context>> {
         None
     }
 }

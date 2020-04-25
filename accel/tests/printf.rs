@@ -11,6 +11,6 @@ pub fn print() {
 fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
-    print(&ctx, 1, 4, &())?;
+    print(ctx, 1, 4, &())?;
     Ok(())
 }

@@ -1,13 +1,14 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
+use std::sync::Arc;
 
 /// Handler for non-blocking CUDA Stream
-pub struct Stream<'ctx> {
-    ctx: &'ctx Context,
+pub struct Stream {
     pub(crate) stream: CUstream,
+    ctx: Arc<Context>,
 }
 
-impl<'ctx> Drop for Stream<'ctx> {
+impl Drop for Stream {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuStreamDestroy_v2, self.stream) } {
             log::error!("Failed to delete CUDA stream: {:?}", e);
@@ -15,18 +16,18 @@ impl<'ctx> Drop for Stream<'ctx> {
     }
 }
 
-impl<'ctx> Contexted for Stream<'ctx> {
-    fn get_context(&self) -> &Context {
-        &self.ctx
+impl Contexted for Stream {
+    fn get_context(&self) -> Arc<Context> {
+        self.ctx.clone()
     }
 }
 
-impl<'ctx> Stream<'ctx> {
+impl Stream {
     /// Create a new non-blocking CUDA stream on the current context
-    pub fn new(ctx: &'ctx Context) -> Self {
+    pub fn new(ctx: Arc<Context>) -> Self {
         let stream = unsafe {
             contexted_new!(
-                ctx,
+                &ctx,
                 cuStreamCreate,
                 CUstream_flags::CU_STREAM_NON_BLOCKING as u32
             )
@@ -57,12 +58,12 @@ impl<'ctx> Stream<'ctx> {
     }
 }
 
-pub struct Event<'ctx> {
-    ctx: &'ctx Context,
+pub struct Event {
     event: CUevent,
+    ctx: Arc<Context>,
 }
 
-impl<'ctx> Drop for Event<'ctx> {
+impl Drop for Event {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuEventDestroy_v2, self.event) } {
             log::error!("Failed to delete CUDA event: {:?}", e);
@@ -70,17 +71,17 @@ impl<'ctx> Drop for Event<'ctx> {
     }
 }
 
-impl<'ctx> Contexted for Event<'ctx> {
-    fn get_context(&self) -> &Context {
-        &self.ctx
+impl Contexted for Event {
+    fn get_context(&self) -> Arc<Context> {
+        self.ctx.clone()
     }
 }
 
-impl<'ctx> Event<'ctx> {
-    pub fn new(ctx: &'ctx Context) -> Self {
+impl Event {
+    pub fn new(ctx: Arc<Context>) -> Self {
         let event = unsafe {
             contexted_new!(
-                ctx,
+                &ctx,
                 cuEventCreate,
                 CUevent_flags_enum::CU_EVENT_BLOCKING_SYNC as u32
             )
@@ -118,7 +119,7 @@ mod tests {
     fn new() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _st = Stream::new(&ctx);
+        let _st = Stream::new(ctx);
         Ok(())
     }
 
@@ -126,8 +127,8 @@ mod tests {
     fn trivial_sync() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut stream = Stream::new(&ctx);
-        let mut event = Event::new(&ctx);
+        let mut stream = Stream::new(ctx.clone());
+        let mut event = Event::new(ctx);
         event.record(&mut stream);
         // nothing to be waited
         event.sync()?;

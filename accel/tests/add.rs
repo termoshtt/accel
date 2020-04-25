@@ -15,9 +15,9 @@ fn main() -> error::Result<()> {
     let ctx = device.create_context();
 
     let n = 32;
-    let mut a = DeviceMemory::<f64>::zeros(&ctx, n);
-    let mut b = DeviceMemory::<f64>::zeros(&ctx, n);
-    let mut c = DeviceMemory::<f64>::zeros(&ctx, n);
+    let mut a = DeviceMemory::<f64>::zeros(ctx.clone(), n);
+    let mut b = DeviceMemory::<f64>::zeros(ctx.clone(), n);
+    let mut c = DeviceMemory::<f64>::zeros(ctx.clone(), n);
 
     for i in 0..n {
         a[i] = i as f64;
@@ -26,7 +26,7 @@ fn main() -> error::Result<()> {
     println!("a = {:?}", a.as_slice());
     println!("b = {:?}", b.as_slice());
 
-    add(&ctx, 1, n, &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)).expect("Kernel call failed");
+    add(ctx, 1, n, &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)).expect("Kernel call failed");
 
     println!("c = {:?}", c.as_slice());
     Ok(())

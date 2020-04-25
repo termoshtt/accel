@@ -115,16 +115,16 @@ impl Dimension for Ix1 {
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix2 {
     pub width: usize,
-    pub hight: usize,
+    pub height: usize,
     #[new(default)]
     pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize)> for Ix2 {
-    fn from((width, hight): (usize, usize)) -> Ix2 {
+    fn from((width, height): (usize, usize)) -> Ix2 {
         Ix2 {
             width,
-            hight,
+            height,
             num_channels: NumChannels::One,
         }
     }
@@ -136,7 +136,7 @@ impl Add for Ix2 {
         assert_eq!(self.num_channels, other.num_channels);
         Self {
             width: self.width + other.width,
-            hight: self.hight + other.hight,
+            height: self.height + other.height,
             num_channels: self.num_channels,
         }
     }
@@ -156,7 +156,7 @@ impl Dimension for Ix2 {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
-            Height: self.hight,
+            Height: self.height,
             Depth: 0,
             NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::empty().bits(),
@@ -165,7 +165,7 @@ impl Dimension for Ix2 {
     }
 
     fn len(&self) -> usize {
-        self.width * self.hight * self.num_channels.to_usize().unwrap()
+        self.width * self.height * self.num_channels.to_usize().unwrap()
     }
 
     fn num_channels(&self) -> NumChannels {
@@ -177,17 +177,17 @@ impl Dimension for Ix2 {
 #[derive(Debug, Clone, Copy, PartialEq, new)]
 pub struct Ix3 {
     pub width: usize,
-    pub hight: usize,
+    pub height: usize,
     pub depth: usize,
     #[new(default)]
     pub num_channels: NumChannels,
 }
 
 impl From<(usize, usize, usize)> for Ix3 {
-    fn from((width, hight, depth): (usize, usize, usize)) -> Ix3 {
+    fn from((width, height, depth): (usize, usize, usize)) -> Ix3 {
         Ix3 {
             width,
-            hight,
+            height,
             depth,
             num_channels: NumChannels::One,
         }
@@ -200,7 +200,7 @@ impl Add for Ix3 {
         assert_eq!(self.num_channels, other.num_channels);
         Self {
             width: self.width + other.width,
-            hight: self.hight + other.hight,
+            height: self.height + other.height,
             depth: self.depth + other.depth,
             num_channels: self.num_channels,
         }
@@ -221,7 +221,7 @@ impl Dimension for Ix3 {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
-            Height: self.hight,
+            Height: self.height,
             Depth: self.depth,
             NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::empty().bits(),
@@ -230,7 +230,7 @@ impl Dimension for Ix3 {
     }
 
     fn len(&self) -> usize {
-        self.width * self.hight * self.depth * self.num_channels().to_usize().unwrap()
+        self.width * self.height * self.depth * self.num_channels().to_usize().unwrap()
     }
 
     fn num_channels(&self) -> NumChannels {
@@ -307,8 +307,8 @@ impl Dimension for Ix1Layered {
 pub struct Ix2Layered {
     /// Width of each layer
     pub width: usize,
-    /// Hight of each layer
-    pub hight: usize,
+    /// height of each layer
+    pub height: usize,
     /// Depth of layer
     pub depth: usize,
     #[new(default)]
@@ -316,10 +316,10 @@ pub struct Ix2Layered {
 }
 
 impl From<(usize, usize, usize)> for Ix2Layered {
-    fn from((width, hight, depth): (usize, usize, usize)) -> Ix2Layered {
+    fn from((width, height, depth): (usize, usize, usize)) -> Ix2Layered {
         Ix2Layered {
             width,
-            hight,
+            height,
             depth,
             num_channels: NumChannels::One,
         }
@@ -332,7 +332,7 @@ impl Add for Ix2Layered {
         assert_eq!(self.num_channels, other.num_channels);
         Self {
             width: self.width + other.width,
-            hight: self.hight + other.hight,
+            height: self.height + other.height,
             depth: self.depth + other.depth,
             num_channels: self.num_channels,
         }
@@ -353,7 +353,7 @@ impl Dimension for Ix2Layered {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor {
         Descriptor {
             Width: self.width,
-            Height: self.hight,
+            Height: self.height,
             Depth: self.depth,
             NumChannels: self.num_channels.to_u32().unwrap(),
             Flags: ArrayFlag::LAYERED.bits(),
@@ -362,7 +362,7 @@ impl Dimension for Ix2Layered {
     }
 
     fn len(&self) -> usize {
-        self.width * self.hight * self.depth * self.num_channels.to_usize().unwrap()
+        self.width * self.height * self.depth * self.num_channels.to_usize().unwrap()
     }
 
     fn num_channels(&self) -> NumChannels {

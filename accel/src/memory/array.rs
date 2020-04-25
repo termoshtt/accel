@@ -115,8 +115,10 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
 impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for DeviceMemory<T> {}
 
 impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
-    fn set(&mut self, _value: Self::Elem) {
-        todo!()
+    fn set(&mut self, value: Self::Elem) {
+        // FIXME CUDA does not have memcpy for array. This is easy but too expensive alternative way
+        let src = PageLockedMemory::from_elem(self.get_context(), self.dim.len(), value);
+        self.copy_from(&src);
     }
 }
 

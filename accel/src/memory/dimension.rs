@@ -2,7 +2,7 @@ use crate::*;
 use derive_new::new;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{ToPrimitive, Zero};
-use std::ops::Add;
+use std::{fmt::Debug, ops::Add};
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
@@ -33,7 +33,7 @@ impl Default for NumChannels {
     }
 }
 
-pub trait Dimension: Zero {
+pub trait Dimension: Zero + Debug + Clone + Copy + PartialEq {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor;
 
     /// Number of elements
@@ -41,6 +41,18 @@ pub trait Dimension: Zero {
 
     /// Get number of element `T` in each "CUDA Array element"
     fn num_channels(&self) -> NumChannels;
+
+    fn width(&self) -> usize {
+        self.as_descriptor::<u32>().Width
+    }
+
+    fn height(&self) -> usize {
+        self.as_descriptor::<u32>().Height
+    }
+
+    fn depth(&self) -> usize {
+        self.as_descriptor::<u32>().Depth
+    }
 }
 
 /// Spec of 1D Array

@@ -6,6 +6,7 @@
 
 use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
+use num_traits::ToPrimitive;
 use std::{marker::PhantomData, sync::Arc};
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
@@ -67,19 +68,19 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
     fn copy_from(&mut self, src: &PageLockedMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        let desc = self.dim.as_descriptor::<T>();
+        let dim = self.dim;
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
             srcHost: src.as_ptr() as *mut _,
-            srcPitch: desc.Width * T::size_of(),
-            srcHeight: desc.Height,
+            srcPitch: dim.width() * T::size_of(),
+            srcHeight: dim.height(),
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             dstArray: self.array,
 
-            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
-            Height: desc.Height,
-            Depth: desc.Depth,
+            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+            Height: dim.height(),
+            Depth: dim.depth(),
 
             ..Default::default()
         };
@@ -90,19 +91,19 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
     fn copy_to(&self, dst: &mut PageLockedMemory<T>) {
         assert_ne!(self.head_addr(), dst.head_addr());
         assert_eq!(self.num_elem(), dst.num_elem());
-        let desc = self.dim.as_descriptor::<T>();
+        let dim = self.dim;
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             srcArray: self.array,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            dstHost: dst.as_ptr() as *mut _,
-            dstPitch: desc.Width * T::size_of(),
-            dstHeight: desc.Height,
+            dstDevice: dst.as_mut_ptr() as CUdeviceptr,
+            dstPitch: dim.width() * T::size_of(),
+            dstHeight: dim.height(),
 
-            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
-            Height: desc.Height,
-            Depth: desc.Depth,
+            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+            Height: dim.height(),
+            Depth: dim.depth(),
 
             ..Default::default()
         };
@@ -118,47 +119,47 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
     fn copy_from(&mut self, src: &DeviceMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        let desc = self.dim.as_descriptor::<T>();
+        let dim = self.dim;
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
-            srcHost: src.as_ptr() as *mut _,
-            srcPitch: desc.Width * T::size_of(),
-            srcHeight: desc.Height,
+            srcDevice: src.as_ptr() as CUdeviceptr,
+            srcPitch: dim.width() * T::size_of(),
+            srcHeight: dim.height(),
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             dstArray: self.array,
 
-            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
-            Height: desc.Height,
-            Depth: desc.Depth,
+            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+            Height: dim.height(),
+            Depth: dim.depth(),
 
             ..Default::default()
         };
         unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to page-locked host memory failed");
+            .expect("memcpy from Array to Device memory failed");
     }
 
     fn copy_to(&self, dst: &mut DeviceMemory<T>) {
         assert_ne!(self.head_addr(), dst.head_addr());
         assert_eq!(self.num_elem(), dst.num_elem());
-        let desc = self.dim.as_descriptor::<T>();
+        let dim = self.dim;
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             srcArray: self.array,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
             dstHost: dst.as_mut_ptr() as *mut _,
-            dstPitch: desc.Width * T::size_of(),
-            dstHeight: desc.Height,
+            dstPitch: dim.width() * T::size_of(),
+            dstHeight: dim.height(),
 
-            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
-            Height: desc.Height,
-            Depth: desc.Depth,
+            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+            Height: dim.height(),
+            Depth: dim.depth(),
 
             ..Default::default()
         };
         unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to page-locked host memory failed");
+            .expect("memcpy from Array to Device memory failed");
     }
 }
 
@@ -235,6 +236,7 @@ mod tests {
         let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
         array.copy_from(&src);
         dst.copy_from(&array);
+        dbg!(dst.as_slice());
         for i in 0..n {
             assert_eq!(dst[i], 2_u32);
         }

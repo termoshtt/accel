@@ -47,11 +47,11 @@ pub trait Dimension: Zero + Debug + Clone + Copy + PartialEq {
     }
 
     fn height(&self) -> usize {
-        self.as_descriptor::<u32>().Height
+        std::cmp::max(self.as_descriptor::<u32>().Height, 1)
     }
 
     fn depth(&self) -> usize {
-        self.as_descriptor::<u32>().Depth
+        std::cmp::max(self.as_descriptor::<u32>().Depth, 1)
     }
 }
 

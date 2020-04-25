@@ -72,8 +72,6 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
             srcHost: src.as_ptr() as *mut _,
-            srcPitch: dim.width() * T::size_of(),
-            srcHeight: dim.height(),
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             dstArray: self.array,
@@ -97,9 +95,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
             srcArray: self.array,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            dstDevice: dst.as_mut_ptr() as CUdeviceptr,
-            dstPitch: dim.width() * T::size_of(),
-            dstHeight: dim.height(),
+            dstHost: dst.as_mut_ptr() as *mut _,
 
             WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
             Height: dim.height(),
@@ -123,8 +119,6 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
         let param = CUDA_MEMCPY3D {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
             srcDevice: src.as_ptr() as CUdeviceptr,
-            srcPitch: dim.width() * T::size_of(),
-            srcHeight: dim.height(),
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             dstArray: self.array,
@@ -148,7 +142,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
             srcArray: self.array,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
-            dstHost: dst.as_mut_ptr() as *mut _,
+            dstDevice: dst.as_mut_ptr() as CUdeviceptr,
             dstPitch: dim.width() * T::size_of(),
             dstHeight: dim.height(),
 
@@ -216,7 +210,7 @@ mod tests {
         let n = 10;
         let src = PageLockedMemory::from_elem(ctx.clone(), n, 2_u32);
         let mut dst = PageLockedMemory::zeros(ctx.clone(), n);
-        let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
+        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -233,7 +227,7 @@ mod tests {
         let n = 10;
         let src = DeviceMemory::from_elem(ctx.clone(), n, 2_u32);
         let mut dst = DeviceMemory::zeros(ctx.clone(), n);
-        let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
+        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());

@@ -66,79 +66,56 @@ impl<'ctx, T: Scalar, Dim: Dimension> Memory for Array<'ctx, T, Dim> {
     }
 }
 
-impl<T: Scalar> Memcpy<PageLockedMemory<'_, T>> for Array<'_, T, Ix1> {
+impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<'_, T>> for Array<'_, T, Dim> {
     fn copy_from(&mut self, src: &PageLockedMemory<'_, T>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self.get_context(),
-                cuMemcpyHtoA_v2,
-                self.array,
-                0, /* offset */
-                src.head_addr() as *const _,
-                src.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Array to page-locked host memory failed");
+        let desc = self.dim.as_descriptor::<T>();
+        let param = CUDA_MEMCPY3D {
+            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
+            srcHost: src.as_ptr() as *mut _,
+            srcPitch: desc.Depth * desc.Height,
+            srcHeight: desc.Height,
+
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+            dstArray: self.array,
+
+            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
+            Height: desc.Height,
+            Depth: desc.Depth,
+
+            ..Default::default()
+        };
+        unsafe { contexted_call!(self.get_context(), cuMemcpy3D_v2, &param) }
+            .expect("memcpy from Array to page-locked host memory failed");
     }
 
     fn copy_to(&self, dest: &mut PageLockedMemory<'_, T>) {
         assert_ne!(self.head_addr(), dest.head_addr());
         assert_eq!(self.num_elem(), dest.num_elem());
-        unsafe {
-            contexted_call!(
-                self.get_context(),
-                cuMemcpyAtoH_v2,
-                dest.head_addr_mut() as *mut _,
-                self.array,
-                0, /* offset */
-                dest.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Array to page-locked host memory failed");
+        todo!()
     }
 }
 
 // use default impl
-impl<T: Scalar> Memcpy<Array<'_, T, Ix1>> for PageLockedMemory<'_, T> {}
+impl<T: Scalar, Dim: Dimension> Memcpy<Array<'_, T, Dim>> for PageLockedMemory<'_, T> {}
 
-impl<T: Scalar> Memcpy<DeviceMemory<'_, T>> for Array<'_, T, Ix1> {
+impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<'_, T>> for Array<'_, T, Dim> {
     fn copy_from(&mut self, src: &DeviceMemory<'_, T>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self.get_context(),
-                cuMemcpyDtoA_v2,
-                self.array,
-                0, /* offset */
-                src.head_addr() as CUdeviceptr,
-                src.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Device to Array failed");
+        todo!()
     }
 
     fn copy_to(&self, dest: &mut DeviceMemory<'_, T>) {
         assert_ne!(self.head_addr(), dest.head_addr());
         assert_eq!(self.num_elem(), dest.num_elem());
-        unsafe {
-            contexted_call!(
-                self.get_context(),
-                cuMemcpyAtoD_v2,
-                dest.head_addr_mut() as CUdeviceptr,
-                self.array,
-                0, /* offset */
-                dest.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Array to Device failed");
+        todo!()
     }
 }
 
 // use default impl
-impl<T: Scalar> Memcpy<Array<'_, T, Ix1>> for DeviceMemory<'_, T> {}
+impl<T: Scalar, Dim: Dimension> Memcpy<Array<'_, T, Dim>> for DeviceMemory<'_, T> {}
 
 impl<'ctx, T: Scalar, Dim: Dimension> Memset for Array<'ctx, T, Dim> {
     fn set(&mut self, _value: Self::Elem) {

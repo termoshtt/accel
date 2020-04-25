@@ -8,7 +8,15 @@ use std::{
     sync::Arc,
 };
 
-/// Memory allocated as page-locked
+/// Host memory as page-locked.
+///
+/// Allocating excessive amounts of pinned memory may degrade system performance,
+/// since it reduces the amount of memory available to the system for paging.
+/// As a result, this function is best used sparingly to allocate staging areas for data exchange between host and device.
+///
+/// See also [cuMemAllocHost].
+///
+/// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
@@ -52,8 +60,8 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
         self.ptr as _
     }
 
-    fn byte_size(&self) -> usize {
-        self.size * std::mem::size_of::<T>()
+    fn num_elem(&self) -> usize {
+        self.size
     }
 
     fn memory_type(&self) -> MemoryType {
@@ -71,17 +79,6 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
     fn try_get_context(&self) -> Option<Arc<Context>> {
         Some(self.get_context())
     }
-
-    fn copy_from<Source>(&mut self, src: &Source)
-    where
-        Source: Memory<Elem = Self::Elem> + ?Sized,
-    {
-        unsafe { copy_to_host(self, src) }
-    }
-
-    fn set(&mut self, value: Self::Elem) {
-        self.iter_mut().for_each(|v| *v = value);
-    }
 }
 
 /// Safety
@@ -94,7 +91,7 @@ where
     Src: Memory<Elem = T> + ?Sized,
 {
     assert_ne!(dest.head_addr(), src.head_addr());
-    assert_eq!(dest.byte_size(), src.byte_size());
+    assert_eq!(dest.num_elem(), src.num_elem());
 
     match src.memory_type() {
         // From host
@@ -121,7 +118,7 @@ where
                     cuMemcpyDtoH_v2,
                     dest_ptr as _,
                     src_ptr as _,
-                    dest.byte_size()
+                    dest.num_elem() * std::mem::size_of::<T>()
                 )
             }
             .expect("memcpy from Device to Host failed");
@@ -131,10 +128,31 @@ where
     }
 }
 
-impl<T: Scalar> Continuous for PageLockedMemory<T> {
-    fn length(&self) -> usize {
-        self.size
+impl<T: Scalar> Memcpy<Self> for PageLockedMemory<T> {
+    fn copy_from(&mut self, src: &Self) {
+        unsafe { copy_to_host(self, src) }
     }
+}
+
+impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
+    fn copy_from(&mut self, src: &[T]) {
+        unsafe { copy_to_host(self, src) }
+    }
+}
+
+impl<T: Scalar> Memcpy<DeviceMemory<T>> for PageLockedMemory<T> {
+    fn copy_from(&mut self, src: &DeviceMemory<T>) {
+        unsafe { copy_to_host(self, src) }
+    }
+}
+
+impl<T: Scalar> Memset for PageLockedMemory<T> {
+    fn set(&mut self, value: Self::Elem) {
+        self.iter_mut().for_each(|v| *v = value);
+    }
+}
+
+impl<T: Scalar> Continuous for PageLockedMemory<T> {
     fn as_slice(&self) -> &[T] {
         self
     }
@@ -145,26 +163,12 @@ impl<T: Scalar> Continuous for PageLockedMemory<T> {
 
 impl<T: Scalar> Managed for PageLockedMemory<T> {}
 
-impl<T> PageLockedMemory<T> {
-    /// Allocate host memory as page-locked.
-    ///
-    /// Allocating excessive amounts of pinned memory may degrade system performance,
-    /// since it reduces the amount of memory available to the system for paging.
-    /// As a result, this function is best used sparingly to allocate staging areas for data exchange between host and device.
-    ///
-    /// See also [cuMemAllocHost].
-    ///
-    /// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
-    ///
-    /// Panic
-    /// ------
-    /// - when memory allocation failed includeing `size == 0` case
-    ///
-    pub fn new(context: Arc<Context>, size: usize) -> Self {
+impl<T: Scalar> Allocatable for PageLockedMemory<T> {
+    type Shape = usize;
+    unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr =
-            unsafe { contexted_new!(&context, cuMemAllocHost_v2, size * std::mem::size_of::<T>()) }
-                .expect("Cannot allocate page-locked memory");
+        let ptr = contexted_new!(&context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+            .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,
@@ -182,9 +186,8 @@ mod tests {
     fn page_locked() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = PageLockedMemory::<i32>::new(ctx, 12);
-        assert_eq!(mem.len(), 12);
-        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        let mut mem = PageLockedMemory::<i32>::zeros(ctx, 12);
+        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())
@@ -195,16 +198,15 @@ mod tests {
     fn page_locked_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = PageLockedMemory::<i32>::new(ctx, 0);
+        let _a = PageLockedMemory::<i32>::zeros(ctx, 0);
     }
 
     #[test]
     fn device() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::new(ctx, 12);
-        assert_eq!(mem.len(), 12);
-        assert_eq!(mem.byte_size(), 12 * 4 /* size of i32 */);
+        let mut mem = DeviceMemory::<i32>::zeros(ctx, 12);
+        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3;
         Ok(())
@@ -215,6 +217,6 @@ mod tests {
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::new(ctx, 0);
+        let _a = DeviceMemory::<i32>::zeros(ctx, 0);
     }
 }

@@ -15,9 +15,9 @@ fn main() -> error::Result<()> {
     let ctx = device.create_context();
 
     let n = 32;
-    let mut a = DeviceMemory::<f64>::new(ctx.clone(), n);
-    let mut b = DeviceMemory::<f64>::new(ctx.clone(), n);
-    let mut c = DeviceMemory::<f64>::new(ctx.clone(), n);
+    let mut a = DeviceMemory::<f64>::zeros(ctx.clone(), n);
+    let mut b = DeviceMemory::<f64>::zeros(ctx.clone(), n);
+    let mut c = DeviceMemory::<f64>::zeros(ctx.clone(), n);
 
     for i in 0..n {
         a[i] = i as f64;

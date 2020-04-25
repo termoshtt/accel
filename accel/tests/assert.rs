@@ -10,7 +10,7 @@ pub fn assert() {
 fn sync() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
-    let result = assert(&ctx, 1, 4, &());
+    let result = assert(ctx, 1, 4, &());
     assert!(result.is_err()); // assertion failed
     Ok(())
 }
@@ -20,9 +20,9 @@ fn sync() -> error::Result<()> {
 fn stream() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
-    let stream = Stream::new(&ctx);
+    let stream = Stream::new(ctx.clone());
 
-    let module = assert::Module::new(&ctx)?;
+    let module = assert::Module::new(ctx)?;
     module.stream_launch(&stream, 1, 4, &())?; // lanch will succeed
     assert!(stream.sync().is_err()); // assertion failed is detected in next sync
     Ok(())

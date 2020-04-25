@@ -38,7 +38,7 @@ pub use scalar::*;
 
 use crate::*;
 use cuda::*;
-use std::mem::MaybeUninit;
+use std::{mem::MaybeUninit, sync::Arc};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
@@ -87,7 +87,7 @@ pub trait Memory {
     fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]>;
 
     /// Try to get CUDA context. Return None if the memory is not `Contexted`
-    fn try_get_context(&self) -> Option<&Context>;
+    fn try_get_context(&self) -> Option<Arc<Context>>;
 
     /// Copy data from one to another
     ///

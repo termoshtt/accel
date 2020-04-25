@@ -7,20 +7,20 @@
 use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
 use derive_new::new;
-use std::marker::PhantomData;
+use std::{marker::PhantomData, sync::Arc};
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
 #[derive(Debug)]
-pub struct Array<'ctx, T, Dim> {
+pub struct Array<T, Dim> {
     array: CUarray,
     dim: Dim,
     num_channels: u32,
-    ctx: &'ctx Context,
+    ctx: Arc<Context>,
     phantom: PhantomData<T>,
 }
 
-impl<T, Dim> Drop for Array<'_, T, Dim> {
+impl<T, Dim> Drop for Array<T, Dim> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuArrayDestroy, self.array) } {
             log::error!("Failed to cleanup array: {:?}", e);
@@ -28,7 +28,7 @@ impl<T, Dim> Drop for Array<'_, T, Dim> {
     }
 }
 
-impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
+impl<'ctx, T: Scalar, Dim: Dimension> Array<T, Dim> {
     /// Create a new array on the device.
     ///
     /// - `num_channels` specifies the number of packed components per CUDA array element; it may be 1, 2, or 4;
@@ -38,11 +38,11 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     /// -----
     /// - when allocation failed
     ///
-    pub fn new(ctx: &'ctx Context, dim: impl Into<Dim>, num_channels: u32) -> Self {
+    pub fn new(ctx: Arc<Context>, dim: impl Into<Dim>, num_channels: u32) -> Self {
         let _gurad = ctx.guard_context();
         let dim = dim.into();
         let desc = dim.as_descriptor::<T>(num_channels);
-        let array = unsafe { contexted_new!(ctx, cuArray3DCreate_v2, &desc) }
+        let array = unsafe { contexted_new!(&ctx, cuArray3DCreate_v2, &desc) }
             .expect("Cannot create a new array");
         Array {
             array,
@@ -70,9 +70,9 @@ impl<'ctx, T: Scalar, Dim: Dimension> Array<'ctx, T, Dim> {
     }
 }
 
-impl<T, Dim> Contexted for Array<'_, T, Dim> {
-    fn get_context(&self) -> &Context {
-        self.ctx
+impl<T, Dim> Contexted for Array<T, Dim> {
+    fn get_context(&self) -> Arc<Context> {
+        self.ctx.clone()
     }
 }
 
@@ -278,8 +278,8 @@ mod tests {
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array1: Array<f32, Ix1> = Array::new(&ctx, 10, 1);
-        let _array2: Array<f32, Ix1> = Array::new(&ctx, (10,), 1);
+        let _array1: Array<f32, Ix1> = Array::new(ctx.clone(), 10, 1);
+        let _array2: Array<f32, Ix1> = Array::new(ctx, (10,), 1);
         Ok(())
     }
 
@@ -287,7 +287,7 @@ mod tests {
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2> = Array::new(&ctx, (10, 12), 1);
+        let _array: Array<f32, Ix2> = Array::new(ctx, (10, 12), 1);
         Ok(())
     }
 
@@ -295,7 +295,7 @@ mod tests {
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix3> = Array::new(&ctx, (10, 12, 8), 1);
+        let _array: Array<f32, Ix3> = Array::new(ctx, (10, 12, 8), 1);
         Ok(())
     }
 
@@ -303,7 +303,7 @@ mod tests {
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix1Layered> = Array::new(&ctx, (10, 12), 1);
+        let _array: Array<f32, Ix1Layered> = Array::new(ctx, (10, 12), 1);
         Ok(())
     }
 
@@ -311,7 +311,7 @@ mod tests {
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _array: Array<f32, Ix2Layered> = Array::new(&ctx, (10, 12, 8), 1);
+        let _array: Array<f32, Ix2Layered> = Array::new(ctx, (10, 12, 8), 1);
         Ok(())
     }
 }

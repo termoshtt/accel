@@ -1,5 +1,6 @@
 use crate::{contexted_call, device::*};
 use cuda::*;
+use std::sync::Arc;
 
 /// Total and Free memory size of the device (in bytes)
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -9,12 +10,12 @@ struct MemoryInfo {
 }
 
 impl MemoryInfo {
-    fn get(ctx: &Context) -> Self {
+    fn get(ctx: Arc<Context>) -> Self {
         let mut free = 0;
         let mut total = 0;
         unsafe {
             contexted_call!(
-                ctx,
+                &ctx,
                 cuMemGetInfo_v2,
                 &mut free as *mut usize,
                 &mut total as *mut usize
@@ -30,7 +31,7 @@ impl MemoryInfo {
 /// Panic
 /// ------
 /// - when given context is not current
-pub fn total_memory(ctx: &Context) -> usize {
+pub fn total_memory(ctx: Arc<Context>) -> usize {
     MemoryInfo::get(ctx).total
 }
 
@@ -39,7 +40,7 @@ pub fn total_memory(ctx: &Context) -> usize {
 /// Panic
 /// ------
 /// - when given context is not current
-pub fn free_memory(ctx: &Context) -> usize {
+pub fn free_memory(ctx: Arc<Context>) -> usize {
     MemoryInfo::get(ctx).free
 }
 
@@ -52,7 +53,7 @@ mod tests {
     fn info() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mem_info = MemoryInfo::get(&ctx);
+        let mem_info = MemoryInfo::get(ctx);
         dbg!(&mem_info);
         assert!(mem_info.free > 0);
         assert!(mem_info.total > mem_info.free);

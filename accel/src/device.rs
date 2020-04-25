@@ -5,7 +5,7 @@
 
 use crate::{error::*, *};
 use cuda::*;
-use std::sync::Once;
+use std::sync::{Arc, Once};
 
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -71,8 +71,8 @@ impl Device {
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context();
     /// ```
-    pub fn create_context(&self) -> Context {
-        Context::create(self.device)
+    pub fn create_context(&self) -> Arc<Context> {
+        Arc::new(Context::create(self.device))
     }
 }
 
@@ -82,19 +82,19 @@ impl Device {
 /// it, and then pop it.
 ///
 /// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
-pub(crate) struct ContextGuard<'lock> {
-    ctx: &'lock Context,
+pub(crate) struct ContextGuard {
+    ctx: Arc<Context>,
 }
 
-impl<'lock> ContextGuard<'lock> {
+impl ContextGuard {
     /// Make context as current on this thread
-    pub fn guard_context(ctx: &'lock Context) -> Self {
+    pub fn guard_context(ctx: Arc<Context>) -> Self {
         ctx.push();
         Self { ctx }
     }
 }
 
-impl<'lock> Drop for ContextGuard<'lock> {
+impl Drop for ContextGuard {
     fn drop(&mut self) {
         self.ctx.pop();
     }
@@ -102,10 +102,10 @@ impl<'lock> Drop for ContextGuard<'lock> {
 
 /// Object tied up to a CUDA context
 pub(crate) trait Contexted {
-    fn get_context(&self) -> &Context;
+    fn get_context(&self) -> Arc<Context>;
 
     /// RAII utility for push/pop onto the thread-local context stack
-    fn guard_context(&self) -> ContextGuard<'_> {
+    fn guard_context(&self) -> ContextGuard {
         let ctx = self.get_context();
         ContextGuard::guard_context(ctx)
     }
@@ -183,17 +183,18 @@ impl Context {
 
     /// Block until all tasks to complete.
     pub fn sync(&self) -> Result<()> {
-        let _g = self.guard_context();
+        self.push();
         unsafe {
             ffi_call!(cuCtxSynchronize)?;
         }
+        self.pop();
         Ok(())
     }
 }
 
-impl Contexted for Context {
-    fn get_context(&self) -> &Context {
-        self
+impl Contexted for Arc<Context> {
+    fn get_context(&self) -> Arc<Context> {
+        self.clone()
     }
 }
 

@@ -3,7 +3,7 @@
 use crate::{contexted_call, contexted_new, device::*, error::*, stream::*, *};
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::{ffi::*, path::*, ptr::null_mut};
+use std::{ffi::*, path::*, ptr::null_mut, sync::Arc};
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 ///
@@ -347,13 +347,13 @@ impl Instruction {
 
 /// CUDA Kernel function
 #[derive(Debug)]
-pub struct Kernel<'ctx> {
+pub struct Kernel<'module> {
     func: CUfunction,
-    module: &'ctx Module<'ctx>,
+    module: &'module Module,
 }
 
-impl<'ctx> Contexted for Kernel<'ctx> {
-    fn get_context(&self) -> &Context {
+impl Contexted for Kernel<'_> {
+    fn get_context(&self) -> Arc<Context> {
         self.module.get_context()
     }
 }
@@ -503,7 +503,7 @@ pub trait Launchable<'arg> {
         let mut params = args.kernel_params();
         unsafe {
             contexted_call!(
-                kernel.get_context(),
+                &kernel.get_context(),
                 cuLaunchKernel,
                 kernel.func,
                 grid.x,
@@ -554,7 +554,7 @@ pub trait Launchable<'arg> {
         let mut params = args.kernel_params();
         unsafe {
             contexted_call!(
-                kernel.get_context(),
+                &kernel.get_context(),
                 cuLaunchKernel,
                 kernel.func,
                 grid.x,
@@ -575,49 +575,51 @@ pub trait Launchable<'arg> {
 
 /// OOP-like wrapper of `cuModule*` APIs
 #[derive(Debug)]
-pub struct Module<'ctx> {
+pub struct Module {
     module: CUmodule,
-    context: &'ctx Context,
+    context: Arc<Context>,
 }
 
-impl<'ctx> Drop for Module<'ctx> {
+impl Drop for Module {
     fn drop(&mut self) {
-        if let Err(e) = unsafe { contexted_call!(self.get_context(), cuModuleUnload, self.module) }
+        if let Err(e) = unsafe { contexted_call!(&self.get_context(), cuModuleUnload, self.module) }
         {
             log::error!("Failed to unload module: {:?}", e);
         }
     }
 }
 
-impl<'ctx> Contexted for Module<'ctx> {
-    fn get_context(&self) -> &Context {
-        self.context
+impl Contexted for Module {
+    fn get_context(&self) -> Arc<Context> {
+        self.context.clone()
     }
 }
 
-impl<'ctx> Module<'ctx> {
+impl Module {
     /// integrated loader of Instruction
-    pub fn load(context: &'ctx Context, data: &Instruction) -> Result<Self> {
+    pub fn load(context: Arc<Context>, data: &Instruction) -> Result<Self> {
         match *data {
             Instruction::PTX(ref ptx) => {
-                let module =
-                    unsafe { contexted_new!(context, cuModuleLoadData, ptx.as_ptr() as *const _)? };
+                let module = unsafe {
+                    contexted_new!(&context, cuModuleLoadData, ptx.as_ptr() as *const _)?
+                };
                 Ok(Module { module, context })
             }
             Instruction::Cubin(ref bin) => {
-                let module =
-                    unsafe { contexted_new!(context, cuModuleLoadData, bin.as_ptr() as *const _)? };
+                let module = unsafe {
+                    contexted_new!(&context, cuModuleLoadData, bin.as_ptr() as *const _)?
+                };
                 Ok(Module { module, context })
             }
             Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
-                let module = unsafe { contexted_new!(context, cuModuleLoad, filename.as_ptr())? };
+                let module = unsafe { contexted_new!(&context, cuModuleLoad, filename.as_ptr())? };
                 Ok(Module { module, context })
             }
         }
     }
 
-    pub fn from_str(context: &'ctx Context, ptx: &str) -> Result<Self> {
+    pub fn from_str(context: Arc<Context>, ptx: &str) -> Result<Self> {
         let data = Instruction::ptx(ptx);
         Self::load(context, &data)
     }
@@ -627,7 +629,7 @@ impl<'ctx> Module<'ctx> {
         let name = CString::new(name).expect("Invalid Kernel name");
         let func = unsafe {
             contexted_new!(
-                self.get_context(),
+                &self.get_context(),
                 cuModuleGetFunction,
                 self.module,
                 name.as_ptr()
@@ -659,7 +661,7 @@ mod tests {
         "#;
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _mod = Module::from_str(&ctx, ptx)?;
+        let _mod = Module::from_str(ctx, ptx)?;
         Ok(())
     }
 }

@@ -87,10 +87,27 @@ impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
             .expect("memcpy from Array to page-locked host memory failed");
     }
 
-    fn copy_to(&self, dest: &mut PageLockedMemory<T>) {
-        assert_ne!(self.head_addr(), dest.head_addr());
-        assert_eq!(self.num_elem(), dest.num_elem());
-        todo!()
+    fn copy_to(&self, dst: &mut PageLockedMemory<T>) {
+        assert_ne!(self.head_addr(), dst.head_addr());
+        assert_eq!(self.num_elem(), dst.num_elem());
+        let desc = self.dim.as_descriptor::<T>();
+        let param = CUDA_MEMCPY3D {
+            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+            srcArray: self.array,
+
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
+            dstHost: dst.as_ptr() as *mut _,
+            dstPitch: desc.Width * T::size_of(),
+            dstHeight: desc.Height,
+
+            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
+            Height: desc.Height,
+            Depth: desc.Depth,
+
+            ..Default::default()
+        };
+        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
+            .expect("memcpy from Array to page-locked host memory failed");
     }
 }
 
@@ -101,13 +118,47 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
     fn copy_from(&mut self, src: &DeviceMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        todo!()
+        let desc = self.dim.as_descriptor::<T>();
+        let param = CUDA_MEMCPY3D {
+            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
+            srcHost: src.as_ptr() as *mut _,
+            srcPitch: desc.Width * T::size_of(),
+            srcHeight: desc.Height,
+
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+            dstArray: self.array,
+
+            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
+            Height: desc.Height,
+            Depth: desc.Depth,
+
+            ..Default::default()
+        };
+        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
+            .expect("memcpy from Array to page-locked host memory failed");
     }
 
-    fn copy_to(&self, dest: &mut DeviceMemory<T>) {
-        assert_ne!(self.head_addr(), dest.head_addr());
-        assert_eq!(self.num_elem(), dest.num_elem());
-        todo!()
+    fn copy_to(&self, dst: &mut DeviceMemory<T>) {
+        assert_ne!(self.head_addr(), dst.head_addr());
+        assert_eq!(self.num_elem(), dst.num_elem());
+        let desc = self.dim.as_descriptor::<T>();
+        let param = CUDA_MEMCPY3D {
+            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+            srcArray: self.array,
+
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
+            dstHost: dst.as_ptr() as *mut _,
+            dstPitch: desc.Width * T::size_of(),
+            dstHeight: desc.Height,
+
+            WidthInBytes: desc.Width * T::size_of() * desc.NumChannels as usize,
+            Height: desc.Height,
+            Depth: desc.Depth,
+
+            ..Default::default()
+        };
+        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
+            .expect("memcpy from Array to page-locked host memory failed");
     }
 }
 
@@ -154,6 +205,38 @@ mod tests {
         let ctx = device.create_context();
         let _array1: Array<f32, Ix1> = Array::zeros(ctx.clone(), 10.into());
         let _array2: Array<f32, Ix1> = Array::zeros(ctx.clone(), (10,).into());
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_h2a2h_1d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 10;
+        let src = PageLockedMemory::from_elem(ctx.clone(), n, 2_u32);
+        let mut dst = PageLockedMemory::zeros(ctx.clone(), n);
+        let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn memcpy_d2a2d_1d() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let n = 10;
+        let src = DeviceMemory::from_elem(ctx.clone(), n, 2_u32);
+        let mut dst = DeviceMemory::zeros(ctx.clone(), n);
+        let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
+        array.copy_from(&src);
+        dst.copy_from(&array);
+        for i in 0..n {
+            assert_eq!(dst[i], 2_u32);
+        }
         Ok(())
     }
 

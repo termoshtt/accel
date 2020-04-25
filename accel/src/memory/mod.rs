@@ -25,6 +25,7 @@
 
 mod array;
 mod device;
+mod dimension;
 mod host;
 mod info;
 mod scalar;
@@ -32,6 +33,7 @@ mod slice;
 
 pub use array::*;
 pub use device::*;
+pub use dimension::*;
 pub use host::*;
 pub use info::*;
 pub use scalar::*;

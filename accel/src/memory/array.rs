@@ -146,8 +146,8 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             srcArray: self.array,
 
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            dstHost: dst.as_ptr() as *mut _,
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
+            dstHost: dst.as_mut_ptr() as *mut _,
             dstPitch: desc.Width * T::size_of(),
             dstHeight: desc.Height,
 
@@ -218,6 +218,7 @@ mod tests {
         let mut array = Array::<u32, Ix1>::zeros(ctx.clone(), n.into());
         array.copy_from(&src);
         dst.copy_from(&array);
+        dbg!(dst.as_slice());
         for i in 0..n {
             assert_eq!(dst[i], 2_u32);
         }

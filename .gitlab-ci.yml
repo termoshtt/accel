@@ -1,4 +1,4 @@
-image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:gpu-docker-base
+image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
 
 stages:
   - docker

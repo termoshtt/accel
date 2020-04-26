@@ -69,8 +69,10 @@ pages:
   script:
     - make -C docker ${TAG}
   only:
+    refs:
+      - master
+      - tags
     changes:
-      - .gitlab-ci.yml
       - docker/*
 
 centos7-cuda10.0:

@@ -76,9 +76,6 @@ pages:
   script:
     - make -C docker ${TAG}
   only:
-    refs:
-      - master
-      - tags
     changes:
       - docker/*
 

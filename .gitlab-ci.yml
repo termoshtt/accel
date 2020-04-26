@@ -82,4 +82,27 @@ pages:
     changes:
       - docker/*
 
-include: '/docker/ci.yml'
+centos7-cuda10.0:
+  extends: .build
+  variable:
+    TAG: centos7-cuda10.0
+centos7-cuda10.1:
+  extends: .build
+  variable:
+    TAG: centos7-cuda10.1
+centos7-cuda10.2:
+  extends: .build
+  variable:
+    TAG: centos7-cuda10.2
+ubuntu18.04-cuda10.0:
+  extends: .build
+  variable:
+    TAG: ubuntu18.04-cuda10.0
+ubuntu18.04-cuda10.1:
+  extends: .build
+  variable:
+    TAG: ubuntu18.04-cuda10.1
+ubuntu18.04-cuda10.2:
+  extends: .build
+  variable:
+    TAG: ubuntu18.04-cuda10.2

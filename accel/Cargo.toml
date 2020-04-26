@@ -21,6 +21,4 @@ cuda-driver-sys = "=0.3.0-alpha.1"
 bitflags = "1.2"
 derive-new = "0.5"
 paste = "*"
-
-[dev-dependencies]
-accel-derive = { path = "../accel-derive" }
+accel-derive = { version = "=0.3.0-alpha.2", path = "../accel-derive" }

@@ -28,7 +28,6 @@ toml = "0.5.5"
 failure = "0.1.6"
 anyhow = "1.0"
 
-accel = { version = "=0.3.0-alpha.2", path = "../accel" }
-
 [dev-dependencies]
 trybuild = "1.0.19"
+accel = { version = "=0.3.0-alpha.2", path = "../accel" }

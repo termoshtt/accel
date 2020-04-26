@@ -166,6 +166,8 @@
 
 extern crate cuda_driver_sys as cuda;
 
+pub use accel_derive::kernel;
+
 pub mod device;
 pub mod error;
 pub mod linker;

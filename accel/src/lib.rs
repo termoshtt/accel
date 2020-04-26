@@ -20,18 +20,16 @@
 //!
 //! ```toml
 //! [dependencies]
-//! accel        = "0.3.0-alpha.2"
-//! accel-derive = "0.3.0-alpha.2"
+//! accel = "=0.3.0-alpha.2"
 //! ```
 //!
 //! Do **NOT** add `accel-core` to `[dependencies]`.
-//! It will be linked automatically by `accel-derive` to the device code.
+//! It will be linked automatically into the device code.
 //!
 //! ### Vector Add
 //!
 //! ```
 //! use accel::*;
-//! use accel_derive::kernel;
 //!
 //! #[kernel]
 //! unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
@@ -75,7 +73,6 @@
 //!
 //! ```
 //! use accel::*;
-//! use accel_derive::kernel;
 //!
 //! #[kernel]
 //! fn assert() {
@@ -95,7 +92,6 @@
 //!
 //! ```
 //! use accel::*;
-//! use accel_derive::kernel;
 //!
 //! #[kernel]
 //! pub fn print() {
@@ -121,7 +117,7 @@
 //! Generated PTX string is embedded into proc-macro output as `{kernel_name}::PTX_STR`.
 //!
 //! ```
-//! use accel_derive::kernel;
+//! use accel::kernel;
 //!
 //! #[kernel]
 //! unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
@@ -145,7 +141,6 @@
 //!
 //! ```
 //! use accel::*;
-//! use accel_derive::kernel;
 //!
 //! #[kernel]
 //! fn assert() {

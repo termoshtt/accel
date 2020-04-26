@@ -68,6 +68,10 @@ pages:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - make -C docker ${TAG}
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - docker/*
 
 centos7-cuda10.0:
   extends: .build

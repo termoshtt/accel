@@ -1,4 +1,4 @@
-image: rust:1.42.0
+image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:gpu-docker-base
 
 stages:
   - docker
@@ -7,8 +7,6 @@ stages:
 
 test:cargo-clippy:
   stage: test
-  before_script:
-    - rustup component add clippy
   script:
     - cargo clippy
   cache:
@@ -17,13 +15,10 @@ test:cargo-clippy:
 
 test:cargo-fmt:
   stage: test
-  before_script:
-    - rustup component add rustfmt
   script:
     - cargo fmt -- --check
 
 .with_gpu:
-  image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
   before_script:
     - nvidia-smi
   tags:
@@ -49,8 +44,6 @@ test:ignored:
 
 pages:
   stage: deploy
-  before_script:
-    - ./setup_nvptx_toolchain.sh
   script:
     - rm -rf public
     - mkdir -p public
@@ -76,10 +69,31 @@ pages:
   script:
     - make -C docker ${TAG}
   only:
-    refs:
-      - master
-      - tags
     changes:
+      - .gitlab-ci.yml
       - docker/*
 
-include: '/docker/ci.yml'
+centos7-cuda10.0:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.0
+centos7-cuda10.1:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.1
+centos7-cuda10.2:
+  extends: .build
+  variables:
+    TAG: centos7-cuda10.2
+ubuntu18.04-cuda10.0:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.0
+ubuntu18.04-cuda10.1:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.1
+ubuntu18.04-cuda10.2:
+  extends: .build
+  variables:
+    TAG: ubuntu18.04-cuda10.2

@@ -14,8 +14,8 @@
 //!     curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh | bash
 //!     ```
 //!
-//! Basic Examples
-//! --------------
+//! Examples
+//! --------
 //! accel works with stable Rust
 //!
 //! ```toml
@@ -110,54 +110,6 @@
 //! Advanced Examples
 //! -----------------
 //!
-//! ### Get compiled PTX as `String`
-//!
-//! The proc-macro `#[kernel]` creates a submodule `add::` in addition to a function `add`.
-//! Kernel Rust code is compiled into PTX string using rustc's `nvptx64-nvidia-cuda` toolchain.
-//! Generated PTX string is embedded into proc-macro output as `{kernel_name}::PTX_STR`.
-//!
-//! ```
-//! use accel::kernel;
-//!
-//! #[kernel]
-//! unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
-//!     let i = accel_core::index();
-//!     if (i as usize) < n {
-//!         *c.offset(i) = *a.offset(i) + *b.offset(i);
-//!     }
-//! }
-//!
-//! // PTX assembler code is embedded as `add::PTX_STR`
-//! println!("{}", add::PTX_STR);
-//! ```
-//!
-//! ### Asynchronous launch
-//!
-//! `#[kernel]` creates `assert::Module` type definition which implements [Launchable] trait.
-//! This struct will read `PTX_STR` using [Module].
-//!
-//! [Module]:     ./module/struct.Module.html
-//! [Launchable]: ./module/trait.Launchable.html
-//!
-//! ```
-//! use accel::*;
-//!
-//! #[kernel]
-//! fn assert() {
-//!     accel_core::assert_eq!(1 + 2, 4);
-//! }
-//!
-//! fn main() -> error::Result<()> {
-//!     let device = Device::nth(0)?;
-//!     let ctx = device.create_context();
-//!     let stream = Stream::new(ctx.clone());
-//!
-//!     let module = assert::Module::new(ctx)?;
-//!     module.stream_launch(&stream, 1, 4, &())?; // lanch will succeed
-//!     assert!(stream.sync().is_err()); // assertion failed is detected in next sync
-//!     Ok(())
-//! }
-//! ```
 
 extern crate cuda_driver_sys as cuda;
 

@@ -1,6 +1,6 @@
 //! CUDA Module (i.e. loaded PTX or cubin)
 
-use crate::{contexted_call, contexted_new, device::*, error::*, stream::*, *};
+use crate::{contexted_call, contexted_new, device::*, error::*, *};
 use cuda::*;
 use num_traits::ToPrimitive;
 use std::{ffi::*, path::*, ptr::null_mut, sync::Arc};
@@ -519,56 +519,6 @@ pub trait Launchable<'arg> {
             )?;
         }
         kernel.sync_context()?;
-        Ok(())
-    }
-
-    /// Launch CUDA Kernel asynchronously
-    ///
-    /// ```
-    /// use accel::*;
-    ///
-    /// #[accel_derive::kernel]
-    /// fn f(a: i32) {}
-    ///
-    /// let device = Device::nth(0)?;
-    /// let ctx = device.create_context();
-    /// let stream = Stream::new(ctx.clone());
-    ///
-    /// let module = f::Module::new(ctx)?;
-    ///
-    /// let a = 12;
-    /// module.stream_launch(&stream, (1,) /* grid */, (4,) /* block */, &(&a,))?;
-    /// stream.sync()?;
-    /// # Ok::<(), ::accel::error::AccelError>(())
-    /// ```
-    fn stream_launch<G: Into<Grid>, B: Into<Block>>(
-        &self,
-        stream: &Stream,
-        grid: G,
-        block: B,
-        args: &Self::Args,
-    ) -> Result<()> {
-        let grid = grid.into();
-        let block = block.into();
-        let kernel = self.get_kernel()?;
-        let mut params = args.kernel_params();
-        unsafe {
-            contexted_call!(
-                &kernel.get_context(),
-                cuLaunchKernel,
-                kernel.func,
-                grid.x,
-                grid.y,
-                grid.z,
-                block.x,
-                block.y,
-                block.z,
-                0, /* FIXME: no shared memory */
-                stream.stream,
-                params.as_mut_ptr(),
-                null_mut() /* no extra */
-            )?;
-        }
         Ok(())
     }
 }

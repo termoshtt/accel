@@ -57,128 +57,79 @@ impl<T: Scalar> Memory for DeviceMemory<T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Device
     }
-
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self.as_slice())
-    }
-
-    fn try_as_mut_slice(&mut self) -> Option<&mut [T]> {
-        Some(self.as_mut_slice())
-    }
-
-    fn try_get_context(&self) -> Option<Arc<Context>> {
-        Some(self.get_context())
-    }
-}
-
-/// Safety
-/// ------
-/// - This works only when `mem` is device memory
-pub(super) unsafe fn memset_device<T, Mem>(mem: &mut Mem, value: T) -> error::Result<()>
-where
-    T: Scalar,
-    Mem: Continuous<Elem = T> + ?Sized,
-{
-    assert_eq!(mem.memory_type(), MemoryType::Device);
-    match T::size_of() {
-        bytes @ 1 | bytes @ 2 | bytes @ 4 => {
-            let ptr = mem.head_addr_mut() as _;
-            let size = mem.num_elem();
-            let ctx = mem.try_get_context().unwrap();
-            match bytes {
-                1 => {
-                    let value = value.to_le_u8().unwrap();
-                    contexted_call!(&ctx, cuMemsetD8_v2, ptr, value, size)?;
-                }
-                2 => {
-                    let value = value.to_le_u16().unwrap();
-                    contexted_call!(&ctx, cuMemsetD16_v2, ptr, value, size)?;
-                }
-                4 => {
-                    let value = value.to_le_u32().unwrap();
-                    contexted_call!(&ctx, cuMemsetD32_v2, ptr, value, size)?;
-                }
-                _ => unreachable!(),
-            }
-        }
-        _ => mem.as_mut_slice().iter_mut().for_each(|v| *v = value),
-    }
-    Ok(())
-}
-
-/// Safety
-/// ------
-/// - This works only when `dest` is device memory
-pub(super) unsafe fn copy_to_device<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
-where
-    Dest: Memory<Elem = T> + ?Sized,
-    Src: Memory<Elem = T> + ?Sized,
-{
-    assert_eq!(dest.memory_type(), MemoryType::Device);
-    assert_ne!(dest.head_addr(), src.head_addr());
-    assert_eq!(dest.num_elem(), src.num_elem());
-
-    let dest_ptr = dest.head_addr_mut();
-    let src_ptr = src.head_addr();
-
-    // context guard
-    let _g = match (dest.try_get_context(), src.try_get_context()) {
-        (Some(d_ctx), Some(s_ctx)) => {
-            assert_eq!(d_ctx, s_ctx);
-            Some(d_ctx.guard_context())
-        }
-        (Some(ctx), None) => Some(ctx.guard_context()),
-        (None, Some(ctx)) => Some(ctx.guard_context()),
-        (None, None) => None,
-    };
-
-    match src.memory_type() {
-        // From host
-        MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-            ffi_call!(
-                cuMemcpyHtoD_v2,
-                dest_ptr as _,
-                src_ptr as _,
-                dest.num_elem() * std::mem::size_of::<T>()
-            )
-            .expect("memcpy from Host to Device failed");
-        }
-        // From device
-        MemoryType::Device => {
-            ffi_call!(
-                cuMemcpyDtoD_v2,
-                dest_ptr as _,
-                src_ptr as _,
-                dest.num_elem() * std::mem::size_of::<T>()
-            )
-            .expect("memcpy from Device to Device failed");
-        }
-        // From array
-        MemoryType::Array => unimplemented!("Array memory is not supported yet"),
-    }
 }
 
 impl<T: Scalar> Memcpy<Self> for DeviceMemory<T> {
     fn copy_from(&mut self, src: &Self) {
-        unsafe { copy_to_device(self, src) }
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        unsafe {
+            contexted_call!(
+                &self.get_context(),
+                cuMemcpyDtoD_v2,
+                self.as_mut_ptr() as CUdeviceptr,
+                src.as_ptr() as CUdeviceptr,
+                self.num_elem() * T::size_of()
+            )
+        }
+        .expect("memcpy between Device memories failed")
     }
 }
 
 impl<T: Scalar> Memcpy<PageLockedMemory<T>> for DeviceMemory<T> {
     fn copy_from(&mut self, src: &PageLockedMemory<T>) {
-        unsafe { copy_to_device(self, src) }
-    }
-}
-
-impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
-    fn copy_from(&mut self, src: &[T]) {
-        unsafe { copy_to_device(self, src) }
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        unsafe {
+            contexted_call!(
+                &self.get_context(),
+                cuMemcpyHtoD_v2,
+                self.as_mut_ptr() as CUdeviceptr,
+                src.as_ptr() as *mut _,
+                self.num_elem() * T::size_of()
+            )
+        }
+        .expect("memcpy from Page-locked host memory to Device memory failed")
     }
 }
 
 impl<T: Scalar> Memset for DeviceMemory<T> {
-    fn set(&mut self, value: Self::Elem) {
-        unsafe { memset_device(self, value).expect("memset failed") };
+    fn set(&mut self, value: T) {
+        match T::size_of() {
+            1 => unsafe {
+                contexted_call!(
+                    &self.get_context(),
+                    cuMemsetD8_v2,
+                    self.head_addr_mut() as CUdeviceptr,
+                    value.to_le_u8().unwrap(),
+                    self.num_elem()
+                )
+            }
+            .expect("memset failed for 8-bit scalar"),
+            2 => unsafe {
+                contexted_call!(
+                    &self.get_context(),
+                    cuMemsetD16_v2,
+                    self.head_addr_mut() as CUdeviceptr,
+                    value.to_le_u16().unwrap(),
+                    self.num_elem()
+                )
+            }
+            .expect("memset failed for 16-bit scalar"),
+            4 => unsafe {
+                contexted_call!(
+                    &self.get_context(),
+                    cuMemsetD32_v2,
+                    self.head_addr_mut() as CUdeviceptr,
+                    value.to_le_u32().unwrap(),
+                    self.num_elem()
+                )
+            }
+            .expect("memset failed for 64-bit scalar"),
+            _ => {
+                unimplemented!("memset for Device memory is only supported for 8/16/32-bit scalars")
+            }
+        }
     }
 }
 

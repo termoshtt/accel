@@ -82,18 +82,6 @@ pub trait Memory {
 
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
-
-    /// Try to convert into a slice.
-    /// Return None if the memory is not continuous
-    fn try_as_slice(&self) -> Option<&[Self::Elem]>;
-
-    /// Try to convert into a mutable slice.
-    /// Return None if the memory is not continuous
-    fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]>;
-
-    /// Try to get CUDA context.
-    /// Return None if the memory is not `Contexted`
-    fn try_get_context(&self) -> Option<Arc<Context>>;
 }
 
 /// Copy data from one to another
@@ -217,26 +205,13 @@ where
 /// ```
 ///
 /// - Set `f32`
+///   - Be sure that `f64` is not supported yet because CUDA does not support 64-bit memset.
 ///
 /// ```
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut mem = DeviceMemory::<f32>::zeros(ctx.clone(), 12);
-/// mem.set(1.0);
-/// for &val in mem.as_slice() {
-///   assert_eq!(val, 1.0);
-/// }
-/// ```
-///
-/// - Set `f64`. CUDA memset does not support `f64`.
-///   `set` uses direct access and this will be slow.
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<f64>::zeros(ctx.clone(), 12);
 /// mem.set(1.0);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1.0);

@@ -26,16 +26,16 @@
 mod array;
 mod device;
 mod dimension;
-mod host;
 mod info;
+mod page_locked;
 mod scalar;
 mod slice;
 
 pub use array::*;
 pub use device::*;
 pub use dimension::*;
-pub use host::*;
 pub use info::*;
+pub use page_locked::*;
 pub use scalar::*;
 
 use crate::*;

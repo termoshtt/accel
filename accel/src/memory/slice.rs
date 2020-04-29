@@ -66,6 +66,18 @@ where
     }
 }
 
+impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
+    fn copy_from(&mut self, src: &[T]) {
+        unsafe { copy_to_host(self, src) }
+    }
+}
+
+impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
+    fn copy_from(&mut self, src: &[T]) {
+        unsafe { copy_to_device(self, src) }
+    }
+}
+
 impl<T: Scalar> Memset for [T] {
     fn set(&mut self, value: Self::Elem) {
         match self.memory_type() {
@@ -88,6 +100,105 @@ impl<T: Scalar> Continuous for [T] {
 
     fn as_mut_slice(&mut self) -> &mut [Self::Elem] {
         self
+    }
+}
+
+/// Safety
+/// ------
+/// - This works only when `dest` is host memory
+#[allow(unused_unsafe)]
+unsafe fn copy_to_host<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
+where
+    Dest: Memory<Elem = T> + ?Sized,
+    Src: Memory<Elem = T> + ?Sized,
+{
+    assert_ne!(dest.head_addr(), src.head_addr());
+    assert_eq!(dest.num_elem(), src.num_elem());
+
+    match src.memory_type() {
+        // From host
+        MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => dest
+            .try_as_mut_slice()
+            .unwrap()
+            .copy_from_slice(src.try_as_slice().unwrap()),
+        // From device
+        MemoryType::Device => {
+            let dest_ptr = dest.head_addr_mut();
+            let src_ptr = src.head_addr();
+            // context guard
+            let _g = match (dest.try_get_context(), src.try_get_context()) {
+                (Some(d_ctx), Some(s_ctx)) => {
+                    assert_eq!(d_ctx, s_ctx);
+                    Some(d_ctx.guard_context())
+                }
+                (Some(ctx), None) => Some(ctx.guard_context()),
+                (None, Some(ctx)) => Some(ctx.guard_context()),
+                (None, None) => None,
+            };
+            unsafe {
+                ffi_call!(
+                    cuMemcpyDtoH_v2,
+                    dest_ptr as _,
+                    src_ptr as _,
+                    dest.num_elem() * std::mem::size_of::<T>()
+                )
+            }
+            .expect("memcpy from Device to Host failed");
+        }
+        // From array
+        MemoryType::Array => unimplemented!("Array memory is not supported yet"),
+    }
+}
+
+/// Safety
+/// ------
+/// - This works only when `dest` is device memory
+unsafe fn copy_to_device<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
+where
+    Dest: Memory<Elem = T> + ?Sized,
+    Src: Memory<Elem = T> + ?Sized,
+{
+    assert_eq!(dest.memory_type(), MemoryType::Device);
+    assert_ne!(dest.head_addr(), src.head_addr());
+    assert_eq!(dest.num_elem(), src.num_elem());
+
+    let dest_ptr = dest.head_addr_mut();
+    let src_ptr = src.head_addr();
+
+    // context guard
+    let _g = match (dest.try_get_context(), src.try_get_context()) {
+        (Some(d_ctx), Some(s_ctx)) => {
+            assert_eq!(d_ctx, s_ctx);
+            Some(d_ctx.guard_context())
+        }
+        (Some(ctx), None) => Some(ctx.guard_context()),
+        (None, Some(ctx)) => Some(ctx.guard_context()),
+        (None, None) => None,
+    };
+
+    match src.memory_type() {
+        // From host
+        MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+            ffi_call!(
+                cuMemcpyHtoD_v2,
+                dest_ptr as _,
+                src_ptr as _,
+                dest.num_elem() * std::mem::size_of::<T>()
+            )
+            .expect("memcpy from Host to Device failed");
+        }
+        // From device
+        MemoryType::Device => {
+            ffi_call!(
+                cuMemcpyDtoD_v2,
+                dest_ptr as _,
+                src_ptr as _,
+                dest.num_elem() * std::mem::size_of::<T>()
+            )
+            .expect("memcpy from Device to Device failed");
+        }
+        // From array
+        MemoryType::Array => unimplemented!("Array memory is not supported yet"),
     }
 }
 

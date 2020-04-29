@@ -81,68 +81,28 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
     }
 }
 
-/// Safety
-/// ------
-/// - This works only when `dest` is host memory
-#[allow(unused_unsafe)]
-pub(super) unsafe fn copy_to_host<T: Scalar, Dest, Src>(dest: &mut Dest, src: &Src)
-where
-    Dest: Memory<Elem = T> + ?Sized,
-    Src: Memory<Elem = T> + ?Sized,
-{
-    assert_ne!(dest.head_addr(), src.head_addr());
-    assert_eq!(dest.num_elem(), src.num_elem());
-
-    match src.memory_type() {
-        // From host
-        MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => dest
-            .try_as_mut_slice()
-            .unwrap()
-            .copy_from_slice(src.try_as_slice().unwrap()),
-        // From device
-        MemoryType::Device => {
-            let dest_ptr = dest.head_addr_mut();
-            let src_ptr = src.head_addr();
-            // context guard
-            let _g = match (dest.try_get_context(), src.try_get_context()) {
-                (Some(d_ctx), Some(s_ctx)) => {
-                    assert_eq!(d_ctx, s_ctx);
-                    Some(d_ctx.guard_context())
-                }
-                (Some(ctx), None) => Some(ctx.guard_context()),
-                (None, Some(ctx)) => Some(ctx.guard_context()),
-                (None, None) => None,
-            };
-            unsafe {
-                ffi_call!(
-                    cuMemcpyDtoH_v2,
-                    dest_ptr as _,
-                    src_ptr as _,
-                    dest.num_elem() * std::mem::size_of::<T>()
-                )
-            }
-            .expect("memcpy from Device to Host failed");
-        }
-        // From array
-        MemoryType::Array => unimplemented!("Array memory is not supported yet"),
-    }
-}
-
 impl<T: Scalar> Memcpy<Self> for PageLockedMemory<T> {
     fn copy_from(&mut self, src: &Self) {
-        unsafe { copy_to_host(self, src) }
-    }
-}
-
-impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &[T]) {
-        unsafe { copy_to_host(self, src) }
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        self.copy_from_slice(src)
     }
 }
 
 impl<T: Scalar> Memcpy<DeviceMemory<T>> for PageLockedMemory<T> {
     fn copy_from(&mut self, src: &DeviceMemory<T>) {
-        unsafe { copy_to_host(self, src) }
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        unsafe {
+            contexted_call!(
+                &self.get_context(),
+                cuMemcpyDtoH_v2,
+                self.as_mut_ptr() as *mut _,
+                src.as_ptr() as CUdeviceptr,
+                self.num_elem() * T::size_of()
+            )
+        }
+        .expect("memcpy from Device to Page-locked memory failed")
     }
 }
 

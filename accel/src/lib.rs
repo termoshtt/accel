@@ -32,7 +32,7 @@
 //! use accel::*;
 //!
 //! #[kernel]
-//! unsafe fn add(a: *const f64, b: *const f64, c: *mut f64, n: usize) {
+//! unsafe fn add(a: *const f32, b: *const f32, c: *mut f32, n: usize) {
 //!     let i = accel_core::index();
 //!     if (i as usize) < n {
 //!         *c.offset(i) = *a.offset(i) + *b.offset(i);
@@ -45,14 +45,14 @@
 //!
 //!     // Allocate memories on GPU
 //!     let n = 32;
-//!     let mut a = DeviceMemory::<f64>::zeros(ctx.clone(), n);
-//!     let mut b = DeviceMemory::<f64>::zeros(ctx.clone(), n);
-//!     let mut c = DeviceMemory::<f64>::zeros(ctx.clone(), n);
+//!     let mut a = DeviceMemory::<f32>::zeros(ctx.clone(), n);
+//!     let mut b = DeviceMemory::<f32>::zeros(ctx.clone(), n);
+//!     let mut c = DeviceMemory::<f32>::zeros(ctx.clone(), n);
 //!
 //!     // Accessible from CPU as usual Rust slice (though this will be slow)
 //!     for i in 0..n {
-//!         a[i] = i as f64;
-//!         b[i] = 2.0 * i as f64;
+//!         a[i] = i as f32;
+//!         b[i] = 2.0 * i as f32;
 //!     }
 //!     println!("a = {:?}", a.as_slice());
 //!     println!("b = {:?}", b.as_slice());
@@ -106,10 +106,6 @@
 //!     Ok(())
 //! }
 //! ```
-//!
-//! Advanced Examples
-//! -----------------
-//!
 
 extern crate cuda_driver_sys as cuda;
 

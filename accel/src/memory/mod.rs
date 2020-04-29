@@ -28,6 +28,7 @@ mod device;
 mod dimension;
 mod info;
 mod page_locked;
+mod registered;
 mod scalar;
 mod slice;
 
@@ -36,6 +37,7 @@ pub use device::*;
 pub use dimension::*;
 pub use info::*;
 pub use page_locked::*;
+pub use registered::*;
 pub use scalar::*;
 
 use crate::*;

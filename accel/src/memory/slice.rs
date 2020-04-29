@@ -32,18 +32,6 @@ impl<T: Scalar> Memory for [T] {
     fn memory_type(&self) -> MemoryType {
         memory_type(self.as_ptr())
     }
-
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self)
-    }
-
-    fn try_as_mut_slice(&mut self) -> Option<&mut [T]> {
-        Some(self)
-    }
-
-    fn try_get_context(&self) -> Option<Arc<Context>> {
-        None
-    }
 }
 
 impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
@@ -164,21 +152,6 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
             .expect("memcpy from Device to Page-locked memory failed"),
             // A -> D
             MemoryType::Array => unreachable!("Array cannot be casted to a slice"),
-        }
-    }
-}
-
-impl<T: Scalar> Memset for [T] {
-    fn set(&mut self, value: Self::Elem) {
-        match self.memory_type() {
-            // To host
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                self.iter_mut().for_each(|v| *v = value);
-            }
-            // To device
-            MemoryType::Device => unsafe { memset_device(self, value).expect("memset failed") },
-            // To array
-            MemoryType::Array => unimplemented!("Array memory is not supported yet"),
         }
     }
 }

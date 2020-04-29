@@ -67,18 +67,6 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::PageLocked
     }
-
-    fn try_as_slice(&self) -> Option<&[T]> {
-        Some(self.as_slice())
-    }
-
-    fn try_as_mut_slice(&mut self) -> Option<&mut [T]> {
-        Some(self.as_mut_slice())
-    }
-
-    fn try_get_context(&self) -> Option<Arc<Context>> {
-        Some(self.get_context())
-    }
 }
 
 impl<T: Scalar> Memcpy<Self> for PageLockedMemory<T> {

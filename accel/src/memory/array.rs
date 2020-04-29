@@ -50,18 +50,6 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Array
     }
-
-    fn try_as_slice(&self) -> Option<&[Self::Elem]> {
-        None
-    }
-
-    fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]> {
-        None
-    }
-
-    fn try_get_context(&self) -> Option<Arc<Context>> {
-        Some(self.get_context())
-    }
 }
 
 impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {

@@ -82,18 +82,6 @@ pub trait Memory {
 
     /// Get memory type
     fn memory_type(&self) -> MemoryType;
-
-    /// Try to convert into a slice.
-    /// Return None if the memory is not continuous
-    fn try_as_slice(&self) -> Option<&[Self::Elem]>;
-
-    /// Try to convert into a mutable slice.
-    /// Return None if the memory is not continuous
-    fn try_as_mut_slice(&mut self) -> Option<&mut [Self::Elem]>;
-
-    /// Try to get CUDA context.
-    /// Return None if the memory is not `Contexted`
-    fn try_get_context(&self) -> Option<Arc<Context>>;
 }
 
 /// Copy data from one to another

@@ -39,6 +39,20 @@ curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh
 
 Or, you can use [docekr container](./docker)
 
+Limitations
+------------
+This project is still in early stage. There are several limitations as following:
+
+- For runtime on CPU
+  - [Windows](https://gitlab.com/termoshtt/accel/-/issues/25) and macOS are not supported
+  - [f64](https://gitlab.com/termoshtt/accel/-/issues/53) and [Complex number](https://gitlab.com/termoshtt/accel/-/issues/54) supports are missing
+  - [Texture/Surface object handling](https://gitlab.com/termoshtt/accel/-/issues/40) is missing
+ 
+- For writting GPU kernel code
+  - [libstd cannot be used in writting kernel](https://gitlab.com/termoshtt/accel/-/issues/38)
+  - [Rust slice cannot be used in writing kernel](https://gitlab.com/termoshtt/accel/-/issues/7)
+  - [Shared memory](https://gitlab.com/termoshtt/accel/-/issues/39) cannot be used
+
 Contribution
 ------------
 This project is developed on [GitLab](https://gitlab.com/termoshtt/accel) and mirrored to [GitHub](https://github.com/rust-accel/accel).

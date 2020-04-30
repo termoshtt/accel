@@ -17,7 +17,7 @@
 //! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
 //! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
 //!
-//! [Registered Host memory]:  ./struct.RegisterdMemory.html
+//! [Registered Host memory]:  ./struct.RegisteredMemory.html
 //! [Page-locked Host memory]: ./struct.PageLockedMemory.html
 //! [Device memory]:           ./struct.DeviceMemory.html
 //! [Array]:                   ./struct.Array.html

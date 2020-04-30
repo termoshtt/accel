@@ -1,5 +1,4 @@
 use accel::*;
-use accel_derive::kernel;
 
 #[kernel]
 pub unsafe fn read_host_memory(a: *const i32) {
@@ -8,7 +7,7 @@ pub unsafe fn read_host_memory(a: *const i32) {
 }
 
 #[test]
-fn main() -> error::Result<()> {
+fn page_locked() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
 
@@ -18,5 +17,20 @@ fn main() -> error::Result<()> {
     a[2] = 2;
     a[3] = 3;
     read_host_memory(ctx, 1, 4, &(&a.as_ptr(),))?;
+    Ok(())
+}
+
+#[test]
+fn registered() -> error::Result<()> {
+    let device = Device::nth(0)?;
+    let ctx = device.create_context();
+
+    let mut a = vec![0; 4];
+    let mut mem = RegisteredMemory::new(ctx.clone(), &mut a);
+    mem[0] = 0;
+    mem[1] = 1;
+    mem[2] = 2;
+    mem[3] = 3;
+    read_host_memory(ctx, 1, 4, &(&mem.as_ptr(),))?;
     Ok(())
 }

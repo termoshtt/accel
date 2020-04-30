@@ -17,7 +17,7 @@
 //! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
 //! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
 //!
-//! [Registered Host memory]:  ./struct.RegisterdMemory.html
+//! [Registered Host memory]:  ./struct.RegisteredMemory.html
 //! [Page-locked Host memory]: ./struct.PageLockedMemory.html
 //! [Device memory]:           ./struct.DeviceMemory.html
 //! [Array]:                   ./struct.Array.html
@@ -26,16 +26,18 @@
 mod array;
 mod device;
 mod dimension;
-mod host;
 mod info;
+mod page_locked;
+mod registered;
 mod scalar;
 mod slice;
 
 pub use array::*;
 pub use device::*;
 pub use dimension::*;
-pub use host::*;
 pub use info::*;
+pub use page_locked::*;
+pub use registered::*;
 pub use scalar::*;
 
 use crate::*;
@@ -46,7 +48,6 @@ use std::{mem::MaybeUninit, sync::Arc};
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
     Host,
-    Registered,
     PageLocked,
     Device,
     Array,
@@ -178,9 +179,7 @@ pub trait Memcpy<Target: ?Sized>: Memory
 where
     Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
 {
-    fn copy_from(&mut self, source: &Target) {
-        source.copy_to(self);
-    }
+    fn copy_from(&mut self, source: &Target);
     fn copy_to(&self, destination: &mut Target) {
         destination.copy_from(self);
     }

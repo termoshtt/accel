@@ -93,6 +93,23 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for DeviceMemory<T> {
     }
 }
 
+impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for DeviceMemory<T> {
+    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        unsafe {
+            contexted_call!(
+                &self.get_context(),
+                cuMemcpyHtoD_v2,
+                self.as_mut_ptr() as CUdeviceptr,
+                src.as_ptr() as *mut _,
+                self.num_elem() * T::size_of()
+            )
+        }
+        .expect("memcpy from registered host memory to Device memory failed")
+    }
+}
+
 impl<T: Scalar> Memset for DeviceMemory<T> {
     fn set(&mut self, value: T) {
         match T::size_of() {

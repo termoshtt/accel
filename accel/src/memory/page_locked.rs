@@ -77,6 +77,14 @@ impl<T: Scalar> Memcpy<Self> for PageLockedMemory<T> {
     }
 }
 
+impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for PageLockedMemory<T> {
+    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        self.copy_from_slice(src)
+    }
+}
+
 impl<T: Scalar> Memcpy<DeviceMemory<T>> for PageLockedMemory<T> {
     fn copy_from(&mut self, src: &DeviceMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());

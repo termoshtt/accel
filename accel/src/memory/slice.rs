@@ -88,6 +88,60 @@ impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
     }
 }
 
+impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for [T] {
+    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        match self.memory_type() {
+            // H -> H
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+                self.copy_from(src)
+            }
+            // H -> D
+            MemoryType::Device => unsafe {
+                contexted_call!(
+                    &src.get_context(),
+                    cuMemcpyHtoD_v2,
+                    self.head_addr_mut() as CUdeviceptr,
+                    src.as_ptr() as *mut c_void,
+                    self.num_elem() * T::size_of()
+                )
+            }
+            .expect("memcpy from registered host memory to Device failed"),
+            // H -> A
+            MemoryType::Array => {
+                unimplemented!("Dynamical cast from slice to CUDA Array is not supported yet")
+            }
+        }
+    }
+}
+
+impl<T: Scalar> Memcpy<[T]> for RegisteredMemory<'_, T> {
+    fn copy_from(&mut self, src: &[T]) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        match src.memory_type() {
+            // H -> H
+            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
+                self.copy_from_slice(src)
+            }
+            // D -> H
+            MemoryType::Device => unsafe {
+                contexted_call!(
+                    &self.get_context(),
+                    cuMemcpyDtoH_v2,
+                    self.head_addr_mut() as *mut c_void,
+                    src.as_ptr() as CUdeviceptr,
+                    self.num_elem() * T::size_of()
+                )
+            }
+            .expect("memcpy from Device to registered host memory failed"),
+            // A -> H
+            MemoryType::Array => unreachable!("Array cannot be casted to a slice"),
+        }
+    }
+}
+
 impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
     fn copy_from(&mut self, src: &DeviceMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());

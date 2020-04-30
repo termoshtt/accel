@@ -180,9 +180,7 @@ pub trait Memcpy<Target: ?Sized>: Memory
 where
     Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
 {
-    fn copy_from(&mut self, source: &Target) {
-        source.copy_to(self);
-    }
+    fn copy_from(&mut self, source: &Target);
     fn copy_to(&self, destination: &mut Target) {
         destination.copy_from(self);
     }

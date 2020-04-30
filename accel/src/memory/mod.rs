@@ -48,7 +48,6 @@ use std::{mem::MaybeUninit, sync::Arc};
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
     Host,
-    Registered,
     PageLocked,
     Device,
     Array,

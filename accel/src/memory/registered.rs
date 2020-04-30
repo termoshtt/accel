@@ -71,7 +71,7 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
     }
 
     fn memory_type(&self) -> MemoryType {
-        MemoryType::Registered
+        MemoryType::Host
     }
 }
 
@@ -129,4 +129,19 @@ impl<T: Scalar> Continuous for RegisteredMemory<'_, T> {
     }
 }
 
-impl<T: Scalar> Managed for RegisteredMemory<'_, T> {}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::*;
+
+    #[test]
+    fn memory_type() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mut a = vec![0_i32; 12];
+        let mem = RegisteredMemory::<i32>::new(ctx, &mut a);
+        let sl = mem.as_slice();
+        assert_eq!(sl.memory_type(), MemoryType::Host);
+        Ok(())
+    }
+}

@@ -10,8 +10,7 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::PageLocked,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_DEVICE) => MemoryType::Device,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_ARRAY) => MemoryType::Array,
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED) => MemoryType::Registered,
-        Err(_) => MemoryType::Host,
+        _ => MemoryType::Host,
     }
 }
 
@@ -40,9 +39,7 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
         assert_eq!(self.num_elem(), src.num_elem());
         match self.memory_type() {
             // H -> H
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                self.copy_from(src)
-            }
+            MemoryType::Host | MemoryType::PageLocked => self.copy_from(src),
             // H -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
@@ -68,9 +65,7 @@ impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         match src.memory_type() {
             // H -> H
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                self.copy_from_slice(src)
-            }
+            MemoryType::Host | MemoryType::PageLocked => self.copy_from_slice(src),
             // D -> H
             MemoryType::Device => unsafe {
                 contexted_call!(
@@ -94,9 +89,7 @@ impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for [T] {
         assert_eq!(self.num_elem(), src.num_elem());
         match self.memory_type() {
             // H -> H
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                self.copy_from(src)
-            }
+            MemoryType::Host | MemoryType::PageLocked => self.copy_from(src),
             // H -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
@@ -122,9 +115,7 @@ impl<T: Scalar> Memcpy<[T]> for RegisteredMemory<'_, T> {
         assert_eq!(self.num_elem(), src.num_elem());
         match src.memory_type() {
             // H -> H
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => {
-                self.copy_from_slice(src)
-            }
+            MemoryType::Host | MemoryType::PageLocked => self.copy_from_slice(src),
             // D -> H
             MemoryType::Device => unsafe {
                 contexted_call!(
@@ -148,7 +139,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
         assert_eq!(self.num_elem(), src.num_elem());
         match self.memory_type() {
             // D -> H
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => unsafe {
+            MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
                     &src.get_context(),
                     cuMemcpyDtoH_v2,
@@ -183,7 +174,7 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         match src.memory_type() {
             // H -> D
-            MemoryType::Host | MemoryType::Registered | MemoryType::PageLocked => unsafe {
+            MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
                     &self.get_context(),
                     cuMemcpyHtoD_v2,

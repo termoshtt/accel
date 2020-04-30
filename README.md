@@ -47,6 +47,7 @@ This project is still in early stage. There are several limitations as following
   - [Windows](https://gitlab.com/termoshtt/accel/-/issues/25) and macOS are not supported
   - [f64](https://gitlab.com/termoshtt/accel/-/issues/53) and [Complex number](https://gitlab.com/termoshtt/accel/-/issues/54) supports are missing
   - [Texture/Surface object handling](https://gitlab.com/termoshtt/accel/-/issues/40) is missing
+  - Async features based on CUDA Stream and Events are disabled until [async/.await support](https://gitlab.com/termoshtt/accel/-/issues/4)
  
 - For writting GPU kernel code
   - [libstd cannot be used in writting kernel](https://gitlab.com/termoshtt/accel/-/issues/38)

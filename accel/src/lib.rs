@@ -116,10 +116,12 @@ pub mod error;
 pub mod linker;
 pub mod memory;
 pub mod module;
+pub mod profiler;
 pub mod stream;
 
 pub use device::*;
 pub use linker::*;
 pub use memory::*;
 pub use module::*;
+pub use profiler::*;
 pub use stream::*;

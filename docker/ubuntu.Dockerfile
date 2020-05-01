@@ -13,7 +13,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.42.0
 ENV PATH /root/.cargo/bin:$PATH
 
 RUN cargo install ptx-linker
-RUN rustup toolchain add nightly-2020-01-02
-RUN rustup target add nvptx64-nvidia-cuda --toolchain nightly-2020-01-02
+RUN rustup toolchain add nightly-NIGHTLY_VERSION
+RUN rustup target add nvptx64-nvidia-cuda --toolchain nightly-NIGHTLY_VERSION
 
 RUN rustup component add rustfmt clippy

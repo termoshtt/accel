@@ -123,4 +123,5 @@ pub use device::*;
 pub use linker::*;
 pub use memory::*;
 pub use module::*;
+pub use profiler::*;
 pub use stream::*;

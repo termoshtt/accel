@@ -12,7 +12,7 @@ fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
 
-    profiler::start(ctx.clone())?;
+    let _pf = Profiler::start(ctx.clone());
 
     // Allocate memories on GPU
     let n = 1024;
@@ -35,6 +35,5 @@ fn main() -> error::Result<()> {
     )
     .expect("Kernel call failed");
 
-    profiler::stop(ctx.clone())?;
     Ok(())
 }

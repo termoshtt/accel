@@ -74,6 +74,7 @@ pages:
       # - tags
     changes:
       - docker/*
+      - .gitlab-ci.yml
 
 centos7-cuda10.0-nightly-2020-01-02:
   extends: .build

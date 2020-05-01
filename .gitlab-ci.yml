@@ -72,6 +72,8 @@ pages:
     refs:
       - master
       - tags
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[docker-build\]/
     changes:
       - docker/*
 

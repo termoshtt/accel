@@ -69,12 +69,11 @@ pages:
   script:
     - make -C docker ${CI_JOB_NAME}
   only:
-    # refs:
-      # - master
-      # - tags
+    refs:
+      - master
+      - tags
     changes:
       - docker/*
-      - .gitlab-ci.yml
 
 centos7-cuda10.0-nightly2020-01-02:
   extends: .build

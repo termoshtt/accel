@@ -1,0 +1,2 @@
+ubuntu*-cuda*-nightly*.Dockerfile
+centos*-cuda*-nightly*.Dockerfile

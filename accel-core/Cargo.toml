@@ -11,3 +11,6 @@ keywords      = ["GPGPU", "CUDA", "platform-intrinsic"]
 license       = "MIT/Apache-2.0"
 readme        = "README.md"
 categories    = []
+
+[package.metadata.docs.rs]
+targets = ["nvptx64-nvidia-cuda"]

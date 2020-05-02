@@ -1,3 +1,11 @@
+//! Support crate for writting GPU kernel in Rust
+//!
+//! - This crate works only for `nvptx64-nvidia-cuda` target
+//! - There is no support of `libstd` for `nvptx64-nvidia-cuda` target,
+//!   i.e. You need to write `#![no_std]` Rust code.
+//! - `alloc` crate is supported by `accel_core::PTXAllocator` which utilizes CUDA malloc/free system-calls
+//!   - You can use `println!` and `assert_eq!` throught it.
+
 #![feature(stdsimd)]
 #![no_std]
 
@@ -6,6 +14,7 @@ extern crate alloc;
 use alloc::alloc::*;
 use core::arch::nvptx;
 
+/// Memory allocator using CUDA malloc/free
 pub struct PTXAllocator;
 
 unsafe impl GlobalAlloc for PTXAllocator {
@@ -17,6 +26,7 @@ unsafe impl GlobalAlloc for PTXAllocator {
     }
 }
 
+/// Alternative of [std::print!](https://doc.rust-lang.org/std/macro.print.html) using CUDA `vprintf` system-call
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {
@@ -27,6 +37,7 @@ macro_rules! print {
     }
 }
 
+/// Alternative of [std::println!](https://doc.rust-lang.org/std/macro.println.html) using CUDA `vprintf` system-call
 #[macro_export]
 macro_rules! println {
     () => ($crate::print!("\n"));
@@ -34,6 +45,9 @@ macro_rules! println {
     ($fmt:expr, $($arg:tt)*) => ($crate::print!(concat!($fmt, "\n"), $($arg)*));
 }
 
+/// Assertion in GPU kernel for two expressions are equal.
+///
+/// If assertion failed, accel API will return [accel::error::AccelError::DeviceAssertionFailed](https://docs.rs/accel/0.3.0-alpha.2/accel/error/enum.AccelError.html#variant.DeviceAssertionFailed)
 #[macro_export]
 macro_rules! assert_eq {
     ($a:expr, $b:expr) => {
@@ -59,6 +73,9 @@ macro_rules! assert_eq {
     };
 }
 
+/// Assertion in GPU kernel for two expressions are not equal.
+///
+/// If assertion failed, accel API will return [accel::error::AccelError::DeviceAssertionFailed](https://docs.rs/accel/0.3.0-alpha.2/accel/error/enum.AccelError.html#variant.DeviceAssertionFailed)
 #[macro_export]
 macro_rules! assert_ne {
     ($a:expr, $b:expr) => {
@@ -84,12 +101,14 @@ macro_rules! assert_ne {
     };
 }
 
+/// Dimension specified in kernel launching
 pub struct Dim3 {
     pub x: i32,
     pub y: i32,
     pub z: i32,
 }
 
+/// Indices where the kernel code running on
 pub struct Idx3 {
     pub x: i32,
     pub y: i32,

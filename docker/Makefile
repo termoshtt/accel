@@ -10,9 +10,9 @@ ubuntu$(1)-cuda$(2)-nightly$(3):
 	    -e "s/CUDA_VERSION/$(2)/"    \
 	    -e "s/NIGHTLY_VERSION/$(3)/" \
 	    < ubuntu.Dockerfile          \
-	    > ubuntu$(1)-cuda$(2)-nightly$(3).Dockerfile
-	docker build -f ubuntu$(1)-cuda$(2)-nightly$(3).Dockerfile -t $(CI_REGISTRY_IMAGE)/ubuntu$(1)/cuda$(2)/nightly$(3):$(CI_COMMIT_REF_SLUG) .
-	docker push $(CI_REGISTRY_IMAGE)/ubuntu$(1)/cuda$(2)/nightly$(3):$(CI_COMMIT_REF_SLUG)
+	    > $$@.Dockerfile
+	docker build -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
+	docker push $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG)
 endef
 
 define centos
@@ -21,9 +21,9 @@ centos$(1)-cuda$(2)-nightly$(3):
 	    -e "s/CUDA_VERSION/$(2)/"    \
 	    -e "s/NIGHTLY_VERSION/$(3)/" \
 	    < centos.Dockerfile          \
-	    > centos$(1)-cuda$(2)-nightly$(3).Dockerfile
-	docker build -f centos$(1)-cuda$(2)-nightly$(3).Dockerfile -t $(CI_REGISTRY_IMAGE)/centos$(1)/cuda$(2)/nightly$(3):$(CI_COMMIT_REF_SLUG) .
-	docker push $(CI_REGISTRY_IMAGE)/centos$(1)/cuda$(2)/nightly$(3):$(CI_COMMIT_REF_SLUG)
+	    > $$@.Dockerfile
+	docker build -f $$@.Dockerfile -t $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG) .
+	docker push $(CI_REGISTRY_IMAGE)/$$@:$(CI_COMMIT_REF_SLUG)
 endef
 
 .PHONY: clean

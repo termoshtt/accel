@@ -1,13 +1,13 @@
 use accel_derive::kernel;
 
 #[kernel]
-#[dependencies("accel-core" = "0.3.0-alpha.3")]
+#[dependencies("accel-core" = "0.3.0-alpha.4")]
 unsafe fn version() {
     let _i = accel_core::index();
 }
 
 #[kernel]
-#[dependencies("accel-core" = { version = "0.3.0-alpha.3" })]
+#[dependencies("accel-core" = { version = "0.3.0-alpha.4" })]
 unsafe fn version_table() {
     let _i = accel_core::index();
 }

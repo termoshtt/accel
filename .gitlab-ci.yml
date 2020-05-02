@@ -1,4 +1,4 @@
-image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2:master
+image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2-nightly2020-05-01:master
 
 stages:
   - docker

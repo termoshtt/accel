@@ -67,37 +67,35 @@ pages:
     - apk add make
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - make -C docker ${TAG}
+    - make -C docker ${CI_JOB_NAME}
   only:
     refs:
       - master
       - tags
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /[docker-build]/
     changes:
       - docker/*
 
-centos7-cuda10.0:
+centos7-cuda10.0-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: centos7-cuda10.0
-centos7-cuda10.1:
+centos7-cuda10.1-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: centos7-cuda10.1
-centos7-cuda10.2:
+centos7-cuda10.2-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: centos7-cuda10.2
-ubuntu18.04-cuda10.0:
+ubuntu18.04-cuda10.0-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: ubuntu18.04-cuda10.0
-ubuntu18.04-cuda10.1:
+ubuntu18.04-cuda10.1-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: ubuntu18.04-cuda10.1
-ubuntu18.04-cuda10.2:
+ubuntu18.04-cuda10.2-nightly2020-01-02:
   extends: .build
-  variables:
-    TAG: ubuntu18.04-cuda10.2
+centos7-cuda10.0-nightly2020-05-01:
+  extends: .build
+centos7-cuda10.1-nightly2020-05-01:
+  extends: .build
+centos7-cuda10.2-nightly2020-05-01:
+  extends: .build
+ubuntu18.04-cuda10.0-nightly2020-05-01:
+  extends: .build
+ubuntu18.04-cuda10.1-nightly2020-05-01:
+  extends: .build
+ubuntu18.04-cuda10.2-nightly2020-05-01:
+  extends: .build

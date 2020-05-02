@@ -10,11 +10,11 @@ Accel: GPGPU Framework for Rust
 |accel-derive|[![Crate](http://meritbadge.herokuapp.com/accel-derive)][crate/accel-derive]|[![docs.rs](https://docs.rs/accel-derive/badge.svg)][docs/accel-derive]|[![cargo-doc](https://img.shields.io/badge/doc-master-blue)][dev/accel-derive]|Procedural macro for generating kernel code|
 
 [crate/accel]:        https://crates.io/crates/accel/0.3.0-alpha.2
-[crate/accel-core]:   https://crates.io/crates/accel-core/0.3.0-alpha.3
+[crate/accel-core]:   https://crates.io/crates/accel-core/0.3.0-alpha.4
 [crate/accel-derive]: https://crates.io/crates/accel-derive/0.3.0-alpha.2
 
 [docs/accel]:        https://docs.rs/accel/0.3.0-alpha.2
-[docs/accel-core]:   https://docs.rs/accel-core/0.3.0-alpha.3
+[docs/accel-core]:   https://docs.rs/accel-core/0.3.0-alpha.4
 [docs/accel-derive]: https://docs.rs/accel-derive/0.3.0-alpha.2
 
 [dev/accel]:        https://termoshtt.gitlab.io/accel/accel/accel

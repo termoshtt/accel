@@ -8,3 +8,5 @@ Procedural-macro crate for `#[kernel]`. `#[kernel]` function will be converted t
 
 - Device code will be compiled into PTX assembler
 - Host code which call the generated device code (PTX asm) using `accel::module` API
+
+![Compile flow graph](../diagrams/compile_flow.svg)

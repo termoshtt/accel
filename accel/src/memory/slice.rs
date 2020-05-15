@@ -216,9 +216,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn memory_for_slice() -> error::Result<()> {
+    fn memory_type_host_vec() -> error::Result<()> {
         let a = vec![0_u32; 12];
-        assert!(matches!(a.as_slice().memory_type(), MemoryType::Host));
+        assert_eq!(a.as_slice().memory_type(), MemoryType::Host);
+        assert_eq!(a.as_slice().num_elem(), 12);
+        Ok(())
+    }
+
+    #[test]
+    fn memory_type_host_vec_with_context() -> error::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context();
+        let a = vec![0_u32; 12];
+        assert_eq!(a.as_slice().memory_type(), MemoryType::Host);
         assert_eq!(a.as_slice().num_elem(), 12);
         Ok(())
     }

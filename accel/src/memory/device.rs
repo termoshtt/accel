@@ -193,13 +193,23 @@ mod tests {
     use crate::error::*;
 
     #[test]
-    fn device() -> Result<()> {
+    fn as_mut_slice() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let mut mem = DeviceMemory::<i32>::zeros(ctx, 12);
-        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
-        sl[0] = 3;
+        sl[0] = 3; // test if accessible from host
+        assert_eq!(sl.num_elem(), 12);
+        Ok(())
+    }
+
+    #[test]
+    fn memory_type() -> Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let mem = DeviceMemory::<i32>::zeros(ctx, 12);
+        let sl = mem.as_slice();
+        assert_eq!(sl.memory_type(), MemoryType::Device);
         Ok(())
     }
 

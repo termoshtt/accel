@@ -43,7 +43,7 @@ pub use scalar::*;
 use crate::*;
 use cuda::*;
 use num_traits::Zero;
-use std::{mem::MaybeUninit, sync::Arc};
+use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
@@ -55,15 +55,15 @@ pub enum MemoryType {
 
 /// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
-    let data = MaybeUninit::uninit();
+    let mut data = MaybeUninit::<Attr>::uninit();
     unsafe {
         ffi_call!(
             cuPointerGetAttribute,
-            data.as_ptr() as *mut _,
+            data.as_mut_ptr() as *mut c_void,
             attr,
             ptr as CUdeviceptr
         )?;
-        data.assume_init()
+        Ok(data.assume_init())
     }
 }
 

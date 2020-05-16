@@ -128,20 +128,3 @@ impl<T: Scalar> Continuous for RegisteredMemory<'_, T> {
         self
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::error::*;
-
-    #[test]
-    fn memory_type() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mut a = vec![0_i32; 12];
-        let mem = RegisteredMemory::<i32>::new(ctx, &mut a);
-        let sl = mem.as_slice();
-        assert_eq!(sl.memory_type(), MemoryType::Host);
-        Ok(())
-    }
-}

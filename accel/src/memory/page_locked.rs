@@ -139,13 +139,14 @@ mod tests {
     use crate::error::*;
 
     #[test]
-    fn page_locked() -> Result<()> {
+    fn as_mut_slice() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let mut mem = PageLockedMemory::<i32>::zeros(ctx, 12);
-        assert_eq!(mem.num_elem(), 12);
         let sl = mem.as_mut_slice();
-        sl[0] = 3;
+
+        sl[0] = 3; // test if accessible
+        assert_eq!(sl.num_elem(), 12);
         Ok(())
     }
 
@@ -155,24 +156,5 @@ mod tests {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
         let _a = PageLockedMemory::<i32>::zeros(ctx, 0);
-    }
-
-    #[test]
-    fn device() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::zeros(ctx, 12);
-        assert_eq!(mem.num_elem(), 12);
-        let sl = mem.as_mut_slice();
-        sl[0] = 3;
-        Ok(())
-    }
-
-    #[should_panic(expected = "Zero-sized malloc is forbidden")]
-    #[test]
-    fn device_new_zero() {
-        let device = Device::nth(0).unwrap();
-        let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::zeros(ctx, 0);
     }
 }

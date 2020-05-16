@@ -10,7 +10,13 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::PageLocked,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_DEVICE) => MemoryType::Device,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_ARRAY) => MemoryType::Array,
-        _ => MemoryType::Host,
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED) => {
+            unreachable!("CU_POINTER_ATTRIBUTE_MEMORY_TYPE never be UNIFED")
+        }
+        Err(_) => {
+            // unmanaged by CUDA memory system, i.e. host memory
+            MemoryType::Host
+        }
     }
 }
 
@@ -216,9 +222,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn memory_for_slice() -> error::Result<()> {
+    fn memory_type_host_vec() -> error::Result<()> {
         let a = vec![0_u32; 12];
-        assert!(matches!(a.as_slice().memory_type(), MemoryType::Host));
+        assert_eq!(a.as_slice().memory_type(), MemoryType::Host);
+        assert_eq!(a.as_slice().num_elem(), 12);
+        Ok(())
+    }
+
+    #[test]
+    fn memory_type_host_vec_with_context() -> error::Result<()> {
+        let device = Device::nth(0)?;
+        let _ctx = device.create_context();
+        let a = vec![0_u32; 12];
+        assert_eq!(a.as_slice().memory_type(), MemoryType::Host);
         assert_eq!(a.as_slice().num_elem(), 12);
         Ok(())
     }

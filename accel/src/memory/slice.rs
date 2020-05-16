@@ -7,7 +7,7 @@ use std::ffi::c_void;
 /// input slice may represents any type of memory.
 fn memory_type<T>(ptr: *const T) -> MemoryType {
     match get_attr(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_MEMORY_TYPE) {
-        Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::Host,
+        Ok(CUmemorytype_enum::CU_MEMORYTYPE_HOST) => MemoryType::PageLocked,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_DEVICE) => MemoryType::Device,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_ARRAY) => MemoryType::Array,
         Ok(CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED) => {

@@ -45,11 +45,64 @@ use cuda::*;
 use num_traits::Zero;
 use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
 
+/// Memory type
+///
+/// Because of [unified addressing], we can get the memory type after casted into slice:
+///
+/// - [DeviceMemory]
+///
+/// ```
+/// # use accel::{*, memory::*};
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mem = DeviceMemory::<i32>::zeros(ctx, 12);
+/// let sl = mem.as_slice();
+/// assert_eq!(sl.memory_type(), MemoryType::Device);
+/// ```
+///
+/// - [PageLockedMemory]
+///
+/// ```
+/// # use accel::{*, memory::*};
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mem = PageLockedMemory::<i32>::zeros(ctx, 12);
+/// let sl = mem.as_slice();
+/// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
+/// ```
+///
+/// - [RegisteredMemory]
+///   - Be sure that [RegisteredMemory] and [PageLockedMemory] are indistinguishable
+///
+/// ```
+/// # use accel::{*, memory::*};
+/// # let device = Device::nth(0).unwrap();
+/// # let ctx = device.create_context();
+/// let mut a = vec![0_i32; 12];
+/// let mem = RegisteredMemory::<i32>::new(ctx, &mut a);
+/// let sl = mem.as_slice();
+/// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
+/// ```
+///
+/// - [Array] cannot be casted into a slice
+///
+/// [unified addressing]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__UNIFIED.html#group__CUDA__UNIFIED
+/// [Array]: ./struct.Array.html
+/// [DeviceMemory]: ./struct.DeviceMemory.html
+/// [RegisteredMemory]: ./struct.RegisteredMemory.html
+/// [PageLockedMemory]: ./struct.PageLockedMemory.html
+///
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum MemoryType {
+    /// Host memory **not** managed by CUDA memory system
     Host,
+    /// Host memory managed by CUDA memory system, i.e.
+    /// [RegisteredMemory](./struct.RegisteredMemory.html), and
+    /// [PageLockedMemory](./struct.PageLockedMemory.html)
     PageLocked,
+    /// Device memory
     Device,
+    /// Array memory
     Array,
 }
 
@@ -81,7 +134,7 @@ pub trait Memory {
     /// Number of elements
     fn num_elem(&self) -> usize;
 
-    /// Get memory type
+    /// Get memory type, See [MemoryType](./enum.MemoryType.html) for detail.
     fn memory_type(&self) -> MemoryType;
 }
 

@@ -203,16 +203,6 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn memory_type() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mem = DeviceMemory::<i32>::zeros(ctx, 12);
-        let sl = mem.as_slice();
-        assert_eq!(sl.memory_type(), MemoryType::Device);
-        Ok(())
-    }
-
     #[should_panic(expected = "Zero-sized malloc is forbidden")]
     #[test]
     fn device_new_zero() {

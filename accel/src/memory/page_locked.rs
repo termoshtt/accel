@@ -150,16 +150,6 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn memory_type() -> Result<()> {
-        let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mem = PageLockedMemory::<i32>::zeros(ctx, 12);
-        let sl = mem.as_slice();
-        assert_eq!(sl.memory_type(), MemoryType::Host);
-        Ok(())
-    }
-
     #[should_panic(expected = "Zero-sized malloc is forbidden")]
     #[test]
     fn page_locked_new_zero() {

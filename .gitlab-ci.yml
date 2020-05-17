@@ -3,6 +3,7 @@ image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2-nightly2020-05-0
 stages:
   - docker
   - test
+  - bench
   - deploy
 
 test:cargo-clippy:
@@ -42,16 +43,37 @@ test:ignored:
     - cargo test -- --ignored
   allow_failure: true
 
+bench:
+  stage: bench
+  script:
+    - cargo bench
+  tags:
+    - gpu
+  artifacts:
+    paths:
+      - accel/target/criterion
+  only:
+    - master
+    - /^gpu-.*/
+
 pages:
   stage: deploy
   script:
     - rm -rf public
     - mkdir -p public
+
+    # Document of accel, accel-derive
     - cargo doc --no-deps --document-private-items
     - mv target/doc public/accel
+
+    # Document of accel-core
     - cd accel-core
     - cargo doc
     - mv ./target/nvptx64-nvidia-cuda/doc ../public/accel-core
+    - cd -
+
+    # Benchmark result
+    - mv accel/target/criterion public/benchmark
   artifacts:
     paths:
       - public

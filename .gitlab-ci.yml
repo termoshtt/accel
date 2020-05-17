@@ -110,7 +110,7 @@ deploy_s3:
     - aws s3 cp public s3://${BUCKET_NAME}/${CI_COMMIT_REF_SLUG} --recursive --acl public-read
   environment:
     name: ${CI_COMMIT_REF_SLUG}
-    url: http://${BUCKET_NAME}.s3-website.${AWS_DEFAULT_REGION}.amazonaws.com/${CI_COMMIT_REF_SLUG}
+    url: https://${BUCKET_NAME}.s3-${AWS_DEFAULT_REGION}.amazonaws.com/${CI_COMMIT_REF_SLUG}
     on_stop: clean_s3
 
 clean_s3:

@@ -75,7 +75,7 @@ package:
     - cd -
 
     # Benchmark result
-    - [ -d accel/target/criterion ] && mv accel/target/criterion public/benchmark
+    - "[ -d accel/target/criterion ] && mv accel/target/criterion public/benchmark"
   artifacts:
     paths:
       - public

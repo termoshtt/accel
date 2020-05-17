@@ -61,9 +61,6 @@ bench:
 package:
   stage: package
   script:
-    - rm -rf public
-    - mkdir -p public
-
     # Document of accel, accel-derive
     - cargo doc --no-deps --document-private-items
     - mv target/doc public/accel

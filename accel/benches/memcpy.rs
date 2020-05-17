@@ -1,65 +1,99 @@
 use accel::*;
 use criterion::*;
 
-fn host_to_device(c: &mut Criterion) {
+fn h2d(c: &mut Criterion) {
     let device = Device::nth(0).unwrap();
     let ctx = device.create_context();
+    let mut group = c.benchmark_group("h2d");
 
-    let mut group = c.benchmark_group("host_to_device");
-    for &n in &[100, 1000, 10_000, 100_000] {
-        {
-            let host = vec![0_u32; n];
+    macro_rules! impl_HtoD {
+        ($host:expr, $id:expr) => {
+            let host = $host;
+            let n = host.len();
             let mut dev = DeviceMemory::zeros(ctx.clone(), n);
-            group.bench_with_input(BenchmarkId::new("direct_vec", n), &n, |b, _| {
-                b.iter(|| {
-                    for i in 0..n {
-                        dev[i] = host[i];
-                    }
-                })
-            });
-            group.bench_with_input(BenchmarkId::new("memcpy_vec", n), &n, |b, _| {
-                b.iter(|| {
-                    dev.copy_from(host.as_slice());
-                })
-            });
-        }
+            group.bench_with_input(
+                BenchmarkId::new(&format!("direct_{}", $id), n),
+                &n,
+                |b, _| {
+                    b.iter(|| {
+                        for i in 0..n {
+                            dev[i] = host[i];
+                        }
+                    })
+                },
+            );
+            group.bench_with_input(
+                BenchmarkId::new(format!("memcpy_{}", $id), n),
+                &n,
+                |b, _| {
+                    b.iter(|| {
+                        dev.copy_from(&host);
+                    })
+                },
+            );
+        };
+    }
 
-        {
-            let host = PageLockedMemory::<u32>::zeros(ctx.clone(), n);
-            let mut dev = DeviceMemory::zeros(ctx.clone(), n);
-            group.bench_with_input(BenchmarkId::new("direct_page_locked", n), &n, |b, _| {
-                b.iter(|| {
-                    for i in 0..n {
-                        dev[i] = host[i];
-                    }
-                })
-            });
-            group.bench_with_input(BenchmarkId::new("memcpy_page_locked", n), &n, |b, _| {
-                b.iter(|| {
-                    dev.copy_from(host.as_slice());
-                })
-            });
-        }
-
-        {
-            let mut vec = vec![0_u32; n];
-            let host = RegisteredMemory::new(ctx.clone(), &mut vec);
-            let mut dev = DeviceMemory::zeros(ctx.clone(), n);
-            group.bench_with_input(BenchmarkId::new("direct_registered", n), &n, |b, _| {
-                b.iter(|| {
-                    for i in 0..n {
-                        dev[i] = host[i];
-                    }
-                })
-            });
-            group.bench_with_input(BenchmarkId::new("memcpy_registered", n), &n, |b, _| {
-                b.iter(|| {
-                    dev.copy_from(host.as_slice());
-                })
-            });
-        }
+    for &n in &[1000, 10_000, 100_000] {
+        // impl_HtoD!(vec![0_u32; n], "vec");
+        impl_HtoD!(
+            PageLockedMemory::<u32>::zeros(ctx.clone(), n),
+            "page_locked"
+        );
+        let mut vec_tmp = vec![0_u32; n];
+        impl_HtoD!(
+            RegisteredMemory::new(ctx.clone(), &mut vec_tmp),
+            "registered"
+        );
     }
 }
 
-criterion_group!(benches, host_to_device);
+fn d2h(c: &mut Criterion) {
+    let device = Device::nth(0).unwrap();
+    let ctx = device.create_context();
+    let mut group = c.benchmark_group("d2h");
+
+    macro_rules! impl_DtoH {
+        ($host:expr, $id:expr) => {
+            let mut host = $host;
+            let n = host.len();
+            let dev = DeviceMemory::zeros(ctx.clone(), n);
+            group.bench_with_input(
+                BenchmarkId::new(&format!("direct_{}", $id), n),
+                &n,
+                |b, _| {
+                    b.iter(|| {
+                        for i in 0..n {
+                            host[i] = dev[i];
+                        }
+                    })
+                },
+            );
+            group.bench_with_input(
+                BenchmarkId::new(format!("memcpy_{}", $id), n),
+                &n,
+                |b, _| {
+                    b.iter(|| {
+                        host.copy_from(&dev);
+                    })
+                },
+            );
+        };
+    }
+
+    for &n in &[1000, 10_000, 100_000] {
+        impl_DtoH!(vec![0_u32; n], "vec");
+        impl_DtoH!(
+            PageLockedMemory::<u32>::zeros(ctx.clone(), n),
+            "page_locked"
+        );
+        let mut vec_tmp = vec![0_u32; n];
+        impl_DtoH!(
+            RegisteredMemory::new(ctx.clone(), &mut vec_tmp),
+            "registered"
+        );
+    }
+}
+
+criterion_group!(benches, h2d, d2h);
 criterion_main!(benches);

@@ -4,6 +4,7 @@ stages:
   - docker
   - test
   - bench
+  - package
   - deploy
 
 test:cargo-clippy:
@@ -44,20 +45,17 @@ test:ignored:
   allow_failure: true
 
 bench:
+  extends: .with_gpu
   stage: bench
   script:
+    - rm -rf accel/target/criterion
     - cargo bench
-  tags:
-    - gpu
   artifacts:
     paths:
       - accel/target/criterion
-  only:
-    - master
-    - /^gpu-.*/
 
-pages:
-  stage: deploy
+package:
+  stage: package
   script:
     - rm -rf public
     - mkdir -p public
@@ -73,7 +71,15 @@ pages:
     - cd -
 
     # Benchmark result
-    - mv accel/target/criterion public/benchmark
+    - [ -d accel/target/criterion ] && mv accel/target/criterion public/benchmark
+  artifacts:
+    paths:
+      - public
+
+pages:
+  stage: deploy
+  dependencies:
+    - package
   artifacts:
     paths:
       - public

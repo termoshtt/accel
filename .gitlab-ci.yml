@@ -24,18 +24,15 @@ test:cargo-fmt:
   script:
     - cargo fmt -- --check
 
-.protected:
-  only:
-    - master
-    - tags
-    - /^gpu-.*/
-
 .with_gpu:
-  extends: .protected
   before_script:
     - nvidia-smi
   tags:
     - gpu
+  only:
+    - master
+    - tags
+    - /^gpu-.*/
 
 test:accel:
   extends: .with_gpu
@@ -94,15 +91,18 @@ pages:
     - master
 
 .s3:
-  extends: .protected
   image: python
   stage: deploy
   dependencies:
     - package
   before_script:
     - pip install awscli
+  only:
+    - master
+    - tags
+    - /^gpu-.*/
 
-deploy-s3:
+deploy_s3:
   extends: .s3
   script:
     - aws s3 cp public s3://${BUCKET_NAME}/${CI_COMMIT_REF_SLUG} --recursive --acl public-read

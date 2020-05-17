@@ -84,6 +84,8 @@ pages:
   stage: deploy
   dependencies:
     - package
+  script:
+    - find public
   artifacts:
     paths:
       - public

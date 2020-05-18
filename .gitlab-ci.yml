@@ -54,9 +54,10 @@ bench:
   script:
     - rm -rf accel/target/criterion
     - cargo bench
+    - mv accel/target/criterion public/benchmark
   artifacts:
     paths:
-      - accel/target/criterion
+      - public/benchmark
   only:
     variables:
       - $CI_COMMIT_MESSAGE =~ /\[bench\]/
@@ -68,15 +69,11 @@ package:
     # Document of accel, accel-derive
     - cargo doc --no-deps --document-private-items
     - mv target/doc public/accel
-
     # Document of accel-core
     - cd accel-core
     - cargo doc
     - mv ./target/nvptx64-nvidia-cuda/doc ../public/accel-core
     - cd -
-
-    # Benchmark result
-    - "[ -d accel/target/criterion ] && mv accel/target/criterion public/benchmark"
   artifacts:
     paths:
       - public

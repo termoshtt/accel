@@ -57,6 +57,10 @@ bench:
   artifacts:
     paths:
       - accel/target/criterion
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[bench\]/
+      - $CI_RUN_BENCHMARK
 
 package:
   stage: package

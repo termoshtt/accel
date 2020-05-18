@@ -1,8 +1,14 @@
 image: registry.gitlab.com/termoshtt/accel/ubuntu18.04-cuda10.2-nightly2020-05-01:master
 
+variables:
+  AWS_DEFAULT_REGION: ap-northeast-1
+  BUCKET_NAME: accel-gitlab-ci
+
 stages:
   - docker
   - test
+  - bench
+  - package
   - deploy
 
 test:cargo-clippy:
@@ -42,21 +48,77 @@ test:ignored:
     - cargo test -- --ignored
   allow_failure: true
 
-pages:
-  stage: deploy
+bench:
+  extends: .with_gpu
+  stage: bench
   script:
-    - rm -rf public
-    - mkdir -p public
+    - rm -rf accel/target/criterion
+    - cargo bench
+    - mv accel/target/criterion public/benchmark
+  artifacts:
+    paths:
+      - public/benchmark
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[bench\]/
+      - $CI_RUN_BENCHMARK
+
+package:
+  stage: package
+  script:
+    # Document of accel, accel-derive
     - cargo doc --no-deps --document-private-items
     - mv target/doc public/accel
+    # Document of accel-core
     - cd accel-core
     - cargo doc
     - mv ./target/nvptx64-nvidia-cuda/doc ../public/accel-core
+    - cd -
+  artifacts:
+    paths:
+      - public
+
+pages:
+  stage: deploy
+  dependencies:
+    - package
+  script:
+    - find public
   artifacts:
     paths:
       - public
   only:
     - master
+
+.s3:
+  image: python
+  stage: deploy
+  dependencies:
+    - package
+  before_script:
+    - pip install awscli
+  only:
+    - master
+    - tags
+    - /^gpu-.*/
+
+deploy_s3:
+  extends: .s3
+  script:
+    - aws s3 cp public s3://${BUCKET_NAME}/${CI_COMMIT_REF_SLUG} --recursive --acl public-read
+  environment:
+    name: ${CI_COMMIT_REF_SLUG}
+    url: https://${BUCKET_NAME}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/${CI_COMMIT_REF_SLUG}
+    on_stop: clean_s3
+
+clean_s3:
+  extends: .s3
+  script:
+    - aws s3 rm s3://${BUCKET_NAME}/${CI_COMMIT_REF_SLUG} --recursive
+  environment:
+    name: ${CI_COMMIT_REF_SLUG}
+    action: stop
+  when: manual
 
 .build:
   image: docker:stable

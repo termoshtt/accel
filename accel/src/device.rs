@@ -102,6 +102,9 @@ impl Drop for ContextGuard {
 
 /// Object tied up to a CUDA context
 pub trait Contexted {
+    /// Create a dynamically managed, counted reference to Context
+    ///
+    /// See https://gitlab.com/termoshtt/accel/-/merge_requests/66
     fn get_context(&self) -> Arc<Context>;
 
     /// RAII utility for push/pop onto the thread-local context stack
@@ -118,15 +121,15 @@ pub trait Contexted {
     }
 }
 
-/// CUDA context handler
+/// Owend handler for CUDA context
 #[derive(Debug, PartialEq)]
 pub struct Context {
-    context_ptr: CUcontext,
+    ptr: CUcontext,
 }
 
 impl Drop for Context {
     fn drop(&mut self) {
-        if let Err(e) = unsafe { ffi_call!(cuCtxDestroy_v2, self.context_ptr) } {
+        if let Err(e) = unsafe { ffi_call!(cuCtxDestroy_v2, self.ptr) } {
             log::error!("Context remove failed: {:?}", e);
         }
     }
@@ -135,30 +138,90 @@ impl Drop for Context {
 unsafe impl Send for Context {}
 unsafe impl Sync for Context {}
 
-impl Context {
+/// Non-Owend handler for CUDA context
+///
+/// The validity of reference is checked dynamically.
+/// CUDA APIs (e.g. [cuPointerGetAttribute]) allow us to get a pointer to CUDA context,
+/// but its validity cannot be assured by Rust lifetime system.
+///
+/// [cuPointerGetAttribute]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__UNIFIED.html#group__CUDA__UNIFIED_1g0c28ed0aff848042bc0533110e45820c
+///
+#[derive(Debug, PartialEq)]
+pub struct ContextRef {
+    ptr: CUcontext,
+}
+
+impl std::cmp::PartialEq<ContextRef> for Context {
+    fn eq(&self, ctx: &ContextRef) -> bool {
+        self.ptr == ctx.ptr
+    }
+}
+
+impl std::cmp::PartialEq<Context> for ContextRef {
+    fn eq(&self, ctx: &Context) -> bool {
+        self.ptr == ctx.ptr
+    }
+}
+
+unsafe impl Send for ContextRef {}
+unsafe impl Sync for ContextRef {}
+
+/// Common implementations for Context, ContextRef
+pub(crate) trait ContextImpl {
+    fn get_ptr(&self) -> CUcontext;
+
     /// Push to the context stack of this thread
     fn push(&self) {
         unsafe {
-            ffi_call!(cuCtxPushCurrent_v2, self.context_ptr).expect("Failed to push context");
+            ffi_call!(cuCtxPushCurrent_v2, self.get_ptr()).expect("Failed to push context");
         }
     }
 
     /// Pop from the context stack of this thread
     fn pop(&self) {
-        let context_ptr =
-            unsafe { ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context") };
-        if context_ptr.is_null() {
+        let ptr = unsafe { ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context") };
+        if ptr.is_null() {
             panic!("No current context");
         }
-        assert!(
-            context_ptr == self.context_ptr,
-            "Pop must return same pointer"
-        );
+        assert!(ptr == self.get_ptr(), "Pop must return same pointer");
     }
 
+    /// Get API version
+    fn version(&self) -> u32 {
+        let mut version: u32 = 0;
+        unsafe { ffi_call!(cuCtxGetApiVersion, self.get_ptr(), &mut version as *mut _) }
+            .expect("Failed to get Driver API version");
+        version
+    }
+
+    /// Block until all tasks in this context to be complete.
+    fn sync(&self) -> Result<()> {
+        self.push();
+        unsafe {
+            ffi_call!(cuCtxSynchronize)?;
+        }
+        self.pop();
+        Ok(())
+    }
+}
+
+impl ContextImpl for Context {
+    fn get_ptr(&self) -> CUcontext {
+        self.ptr
+    }
+}
+
+impl ContextImpl for ContextRef {
+    fn get_ptr(&self) -> CUcontext {
+        // FIXME Check pointer is still valid
+        self.ptr
+    }
+}
+
+impl Context {
     /// Create on the top of context stack
     fn create(device: CUdevice) -> Self {
-        let context_ptr = unsafe {
+        let ptr = unsafe {
             ffi_new!(
                 cuCtxCreate_v2,
                 CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
@@ -166,29 +229,21 @@ impl Context {
             )
         }
         .expect("Failed to create a new context");
-        if context_ptr.is_null() {
+        if ptr.is_null() {
             panic!("Cannot crate a new context");
         }
-        let ctx = Context { context_ptr };
+        let ctx = Context { ptr };
         ctx.pop();
         ctx
     }
 
-    pub fn version(&self) -> u32 {
-        let mut version: u32 = 0;
-        unsafe { ffi_call!(cuCtxGetApiVersion, self.context_ptr, &mut version as *mut _) }
-            .expect("Failed to get Driver API version");
-        version
-    }
-
-    /// Block until all tasks to complete.
-    pub fn sync(&self) -> Result<()> {
-        self.push();
-        unsafe {
-            ffi_call!(cuCtxSynchronize)?;
-        }
-        self.pop();
-        Ok(())
+    /// Get a reference
+    ///
+    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
+    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
+    ///
+    pub fn get_ref(&self) -> ContextRef {
+        ContextRef { ptr: self.ptr }
     }
 }
 
@@ -226,5 +281,15 @@ mod tests {
         let ctx = device.create_context();
         dbg!(&ctx);
         Ok(())
+    }
+
+    #[should_panic]
+    #[test]
+    fn expired_context_ref() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let ctx_ref = ctx.get_ref();
+        drop(ctx);
+        let _version = ctx_ref.version(); // ctx has been expired
     }
 }

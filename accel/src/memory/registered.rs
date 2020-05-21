@@ -104,8 +104,8 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for RegisteredMemory<'_, T> {
         unsafe {
             contexted_call!(
                 &self.get_context(),
-                cuMemcpyDtoH_v2,
-                self.as_mut_ptr() as *mut _,
+                cuMemcpy,
+                self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
                 self.num_elem() * T::size_of()
             )

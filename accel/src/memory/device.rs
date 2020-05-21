@@ -66,7 +66,7 @@ impl<T: Scalar> Memcpy<Self> for DeviceMemory<T> {
         unsafe {
             contexted_call!(
                 &self.get_context(),
-                cuMemcpyDtoD_v2,
+                cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
                 self.num_elem() * T::size_of()
@@ -83,9 +83,9 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for DeviceMemory<T> {
         unsafe {
             contexted_call!(
                 &self.get_context(),
-                cuMemcpyHtoD_v2,
+                cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as *mut _,
+                src.as_ptr() as CUdeviceptr,
                 self.num_elem() * T::size_of()
             )
         }
@@ -100,9 +100,9 @@ impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for DeviceMemory<T> {
         unsafe {
             contexted_call!(
                 &self.get_context(),
-                cuMemcpyHtoD_v2,
+                cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as *mut _,
+                src.as_ptr() as CUdeviceptr,
                 self.num_elem() * T::size_of()
             )
         }

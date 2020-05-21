@@ -1,5 +1,4 @@
 use super::*;
-use std::ffi::c_void;
 
 /// Determine actual memory type dynamically
 ///
@@ -50,9 +49,9 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &src.get_context(),
-                    cuMemcpyHtoD_v2,
+                    cuMemcpy,
                     self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as *mut c_void,
+                    src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
             }
@@ -76,8 +75,8 @@ impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &self.get_context(),
-                    cuMemcpyDtoH_v2,
-                    self.head_addr_mut() as *mut c_void,
+                    cuMemcpy,
+                    self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
@@ -100,9 +99,9 @@ impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for [T] {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &src.get_context(),
-                    cuMemcpyHtoD_v2,
+                    cuMemcpy,
                     self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as *mut c_void,
+                    src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
             }
@@ -126,8 +125,8 @@ impl<T: Scalar> Memcpy<[T]> for RegisteredMemory<'_, T> {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &self.get_context(),
-                    cuMemcpyDtoH_v2,
-                    self.head_addr_mut() as *mut c_void,
+                    cuMemcpy,
+                    self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
@@ -148,8 +147,8 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
             MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
                     &src.get_context(),
-                    cuMemcpyDtoH_v2,
-                    self.head_addr_mut() as *mut c_void,
+                    cuMemcpy,
+                    self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
@@ -159,7 +158,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &src.get_context(),
-                    cuMemcpyDtoD_v2,
+                    cuMemcpy,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
@@ -183,9 +182,9 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
             MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
                     &self.get_context(),
-                    cuMemcpyHtoD_v2,
+                    cuMemcpy,
                     self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as *mut c_void,
+                    src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()
                 )
             }
@@ -194,7 +193,7 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
             MemoryType::Device => unsafe {
                 contexted_call!(
                     &self.get_context(),
-                    cuMemcpyDtoD_v2,
+                    cuMemcpy,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
                     self.num_elem() * T::size_of()

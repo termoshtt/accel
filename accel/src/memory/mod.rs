@@ -344,14 +344,3 @@ pub trait Continuous: Memory {
     fn as_slice(&self) -> &[Self::Elem];
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
-
-/// Memory which is managed under the CUDA unified memory management systems
-pub trait Managed: Memory {
-    fn buffer_id(&self) -> u64 {
-        get_attr(
-            self.head_addr(),
-            CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID,
-        )
-        .expect("Not managed by CUDA")
-    }
-}

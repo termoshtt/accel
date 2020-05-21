@@ -117,8 +117,6 @@ impl<T: Scalar> Continuous for PageLockedMemory<T> {
     }
 }
 
-impl<T: Scalar> Managed for PageLockedMemory<T> {}
-
 impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     type Shape = usize;
     unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {

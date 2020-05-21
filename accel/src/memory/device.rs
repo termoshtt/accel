@@ -159,8 +159,6 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
     }
 }
 
-impl<T: Scalar> Managed for DeviceMemory<T> {}
-
 impl<T> Contexted for DeviceMemory<T> {
     fn get_context(&self) -> Arc<Context> {
         self.context.clone()

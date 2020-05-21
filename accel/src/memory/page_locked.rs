@@ -20,7 +20,7 @@ use std::{
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
-    context: Arc<Context>,
+    ctx: Arc<Context>,
 }
 
 impl<T> Drop for PageLockedMemory<T> {
@@ -46,7 +46,7 @@ impl<T> DerefMut for PageLockedMemory<T> {
 
 impl<T> Contexted for PageLockedMemory<T> {
     fn get_context(&self) -> Arc<Context> {
-        self.context.clone()
+        self.ctx.clone()
     }
 }
 
@@ -119,14 +119,14 @@ impl<T: Scalar> Continuous for PageLockedMemory<T> {
 
 impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(ctx: Arc<Context>, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr = contexted_new!(&context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+        let ptr = contexted_new!(&ctx, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,
-            context,
+            ctx,
         }
     }
 }

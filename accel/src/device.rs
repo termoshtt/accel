@@ -132,6 +132,12 @@ impl Drop for Context {
     }
 }
 
+impl std::cmp::PartialEq<CUcontext> for Context {
+    fn eq(&self, ctx_ptr: &CUcontext) -> bool {
+        self.context_ptr == *ctx_ptr
+    }
+}
+
 unsafe impl Send for Context {}
 unsafe impl Sync for Context {}
 

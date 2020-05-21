@@ -1,5 +1,19 @@
 use super::*;
 
+/// Typed wrapper of cuPointerGetAttribute
+fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
+    let mut data = MaybeUninit::<Attr>::uninit();
+    unsafe {
+        ffi_call!(
+            cuPointerGetAttribute,
+            data.as_mut_ptr() as *mut c_void,
+            attr,
+            ptr as CUdeviceptr
+        )?;
+        Ok(data.assume_init())
+    }
+}
+
 /// Determine actual memory type dynamically
 ///
 /// Because `Continuous` memories can be treated as a slice,
@@ -17,6 +31,10 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
             MemoryType::Host
         }
     }
+}
+
+fn get_context<T>(ptr: *const T) -> Option<CUcontext> {
+    get_attr::<_, CUcontext>(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_CONTEXT).ok()
 }
 
 impl<T: Scalar> Memory for [T] {
@@ -235,6 +253,16 @@ mod tests {
         let a = vec![0_u32; 12];
         assert_eq!(a.as_slice().memory_type(), MemoryType::Host);
         assert_eq!(a.as_slice().num_elem(), 12);
+        Ok(())
+    }
+
+    #[test]
+    fn restore_context() -> error::Result<()> {
+        let device = Device::nth(0)?;
+        let ctx = device.create_context();
+        let a = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+        let ctx_ptr = get_context(a.head_addr()).unwrap();
+        assert_eq!(*ctx, ctx_ptr);
         Ok(())
     }
 }

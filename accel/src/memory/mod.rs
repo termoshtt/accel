@@ -122,20 +122,6 @@ pub enum MemoryType {
     Array,
 }
 
-/// Typed wrapper of cuPointerGetAttribute
-fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
-    let mut data = MaybeUninit::<Attr>::uninit();
-    unsafe {
-        ffi_call!(
-            cuPointerGetAttribute,
-            data.as_mut_ptr() as *mut c_void,
-            attr,
-            ptr as CUdeviceptr
-        )?;
-        Ok(data.assume_init())
-    }
-}
-
 /// Has unique head address and allocated size.
 pub trait Memory {
     /// Scalar type of each element

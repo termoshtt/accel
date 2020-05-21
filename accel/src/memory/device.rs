@@ -15,7 +15,7 @@ use cuda::CUmemAttach_flags_enum as AttachFlag;
 pub struct DeviceMemory<T> {
     ptr: CUdeviceptr,
     size: usize,
-    context: Arc<Context>,
+    ctx: Arc<Context>,
     phantom: PhantomData<T>,
 }
 
@@ -161,16 +161,16 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
 
 impl<T> Contexted for DeviceMemory<T> {
     fn get_context(&self) -> Arc<Context> {
-        self.context.clone()
+        self.ctx.clone()
     }
 }
 
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(ctx: Arc<Context>, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
         let ptr = contexted_new!(
-            &context,
+            &ctx,
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
             AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
@@ -179,7 +179,7 @@ impl<T: Scalar> Allocatable for DeviceMemory<T> {
         DeviceMemory {
             ptr,
             size,
-            context,
+            ctx,
             phantom: PhantomData,
         }
     }

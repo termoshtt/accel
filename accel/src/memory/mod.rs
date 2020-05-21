@@ -9,19 +9,35 @@
 //! Memory Types
 //! ------------
 //!
-//! |name                      | where exists | From Host | From Device | As slice | Description                                                            |
-//! |:-------------------------|:------------:|:---------:|:-----------:|:--------:|:-----------------------------------------------------------------------|
-//! | (usual) Host memory      | Host         | ✓         |  -          |  ✓       | allocated by usual manner, e.g. `vec![0; n]`                           |
-//! | [Registered Host memory] | Host         | ✓         |  ✓          |  ✓       | A host memory registered into CUDA memory management system            |
-//! | [Page-locked Host memory]| Host         | ✓         |  ✓          |  ✓       | OS memory paging is disabled for accelerating memory transfer          |
-//! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
-//! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
+//! |name                 | where exists | From Host | From Device | As slice | Description                                                            |
+//! |:--------------------|:------------:|:---------:|:-----------:|:--------:|:-----------------------------------------------------------------------|
+//! | (usual) Host memory | Host         | ✓         |  -          |  ✓       | allocated by usual manner, e.g. `vec![0; n]`                           |
+//! | [RegisteredMemory]  | Host         | ✓         |  ✓          |  ✓       | A host memory registered into CUDA memory management system            |
+//! | [PageLockedMemory]  | Host         | ✓         |  ✓          |  ✓       | OS memory paging is disabled for accelerating memory transfer          |
+//! | [DeviceMemory]      | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
+//! | [Array]             | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
 //!
-//! [Registered Host memory]:  ./struct.RegisteredMemory.html
-//! [Page-locked Host memory]: ./struct.PageLockedMemory.html
-//! [Device memory]:           ./struct.DeviceMemory.html
-//! [Array]:                   ./struct.Array.html
+//! Traits
+//! -------
 //!
+//! |traits       |`[T]`|[RegisteredMemory]|[PageLockedMemory]|[DeviceMemory]|[Array]| Description                                |
+//! |:------------|:---:|:----------------:|:----------------:|:------------:|:-----:|:-------------------------------------------|
+//! |[Memory]     | ✓   | ✓                | ✓                | ✓            | ✓     | Has Unified address and element size       |
+//! |[Memset]     | -   | ✓                | ✓                | ✓            | ✓     | Set by a value                             |
+//! |[Contexted]  | -   | ✓                | ✓                | ✓            | ✓     | with CUDA Context                          |
+//! |[Continuous] | ✓   | ✓                | ✓                | ✓            | -     | Can be treated as a Rust slice             |
+//! |[Allocatable]| -   | -                | ✓                | ✓            | ✓     | Newly allocatable with its shape and value |
+//!
+//! [RegisteredMemory]: ./struct.RegisteredMemory.html
+//! [PageLockedMemory]: ./struct.PageLockedMemory.html
+//! [DeviceMemory]: ./struct.DeviceMemory.html
+//! [Array]: ./struct.Array.html
+//!
+//! [Memory]: ./trait.Memory.html
+//! [Memset]: ./trait.Memset.html
+//! [Contexted]: ../device/trait.Contexted.html
+//! [Continuous]: ./trait.Continuous.html
+//! [Allocatable]: ./trait.Allocatable.html
 
 mod array;
 mod device;

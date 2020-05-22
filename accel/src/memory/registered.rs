@@ -1,5 +1,5 @@
 use super::*;
-use crate::*;
+use crate::{error::Result, *};
 use cuda::*;
 use std::{
     ffi::c_void,
@@ -39,10 +39,10 @@ impl<T> Drop for RegisteredMemory<'_, T> {
 }
 
 impl<'a, T: Scalar> RegisteredMemory<'a, T> {
-    pub fn new(ctx: Context, mem: &'a mut [T]) -> Self {
+    pub fn new(ctx: &Context, mem: &'a mut [T]) -> Self {
         unsafe {
             contexted_call!(
-                &ctx,
+                ctx,
                 cuMemHostRegister_v2,
                 mem.as_mut_ptr() as *mut c_void,
                 mem.len() * T::size_of(),
@@ -50,7 +50,10 @@ impl<'a, T: Scalar> RegisteredMemory<'a, T> {
             )
         }
         .expect("Failed to register host memory into CUDA memory system");
-        Self { ctx, mem }
+        Self {
+            ctx: ctx.clone(),
+            mem,
+        }
     }
 }
 
@@ -75,8 +78,16 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
 }
 
 impl<T> Contexted for RegisteredMemory<'_, T> {
-    fn get_context(&self) -> Context {
-        self.ctx.clone()
+    fn sync(&self) -> Result<()> {
+        self.ctx.sync()
+    }
+
+    fn version(&self) -> Result<u32> {
+        self.ctx.version()
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        self.ctx.guard()
     }
 }
 
@@ -102,7 +113,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for RegisteredMemory<'_, T> {
         assert_eq!(self.num_elem(), src.num_elem());
         unsafe {
             contexted_call!(
-                &self.get_context(),
+                self,
                 cuMemcpyDtoH_v2,
                 self.as_mut_ptr() as *mut _,
                 src.as_ptr() as CUdeviceptr,

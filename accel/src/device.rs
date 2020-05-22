@@ -72,53 +72,59 @@ impl Device {
     /// let ctx = device.create_context();
     /// ```
     pub fn create_context(&self) -> Context {
-        Arc::new(ContextOwned::create(self.device))
+        let ptr = unsafe {
+            ffi_new!(
+                cuCtxCreate_v2,
+                CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
+                self.device
+            )
+        }
+        .expect("Failed to create a new context");
+        if ptr.is_null() {
+            panic!("Cannot crate a new context");
+        }
+        let ptr_new = ctx_pop().unwrap();
+        assert_eq!(ptr, ptr_new);
+        Arc::new(ContextOwned { ptr })
     }
 }
 
-/// RAII handler for using CUDA context
-///
-/// As described in [CUDA Programming Guide], library using CUDA should push context before using
-/// it, and then pop it.
-///
-/// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
-pub struct ContextGuard {
-    ctx: Context,
+/// Push to the context stack of this thread
+fn ctx_push(ptr: CUcontext) -> Result<()> {
+    unsafe { ffi_call!(cuCtxPushCurrent_v2, ptr) }?;
+    Ok(())
 }
 
-impl ContextGuard {
-    /// Make context as current on this thread
-    pub fn guard_context(ctx: Context) -> Self {
-        ctx.push();
-        Self { ctx }
+/// Pop from the context stack of this thread
+fn ctx_pop() -> Result<CUcontext> {
+    let ptr = unsafe { ffi_new!(cuCtxPopCurrent_v2) }?;
+    if ptr.is_null() {
+        panic!("No current context");
     }
+    Ok(ptr)
 }
 
-impl Drop for ContextGuard {
-    fn drop(&mut self) {
-        self.ctx.pop();
-    }
+/// Get API version
+fn ctx_version(ptr: CUcontext) -> Result<u32> {
+    let mut version: u32 = 0;
+    unsafe { ffi_call!(cuCtxGetApiVersion, ptr, &mut version as *mut _) }?;
+    Ok(version)
 }
 
-/// Object tied up to a CUDA context
+/// Block until all tasks in this context to be complete.
+fn ctx_sync(ptr: CUcontext) -> Result<()> {
+    ctx_push(ptr)?;
+    unsafe { ffi_call!(cuCtxSynchronize) }?;
+    let ptr_new = ctx_pop()?;
+    assert_eq!(ptr, ptr_new);
+    Ok(())
+}
+
+/// Object with CUDA context
 pub trait Contexted {
-    /// Create a dynamically managed, counted reference to Context
-    ///
-    /// See https://gitlab.com/termoshtt/accel/-/merge_requests/66
-    fn get_context(&self) -> Context;
-
-    /// RAII utility for push/pop onto the thread-local context stack
-    fn guard_context(&self) -> ContextGuard {
-        let ctx = self.get_context();
-        ContextGuard::guard_context(ctx)
-    }
-
-    /// Blocking until all tasks in current context end
-    fn sync_context(&self) -> Result<()> {
-        let ctx = self.get_context();
-        ctx.sync()?;
-        Ok(())
-    }
+    fn guard(&self) -> Result<ContextGuard>;
+    fn sync(&self) -> Result<()>;
+    fn version(&self) -> Result<u32>;
 }
 
 /// Owend handler for CUDA context
@@ -126,6 +132,8 @@ pub trait Contexted {
 pub struct ContextOwned {
     ptr: CUcontext,
 }
+
+pub type Context = Arc<ContextOwned>;
 
 impl Drop for ContextOwned {
     fn drop(&mut self) {
@@ -138,7 +146,31 @@ impl Drop for ContextOwned {
 unsafe impl Send for ContextOwned {}
 unsafe impl Sync for ContextOwned {}
 
-pub type Context = Arc<ContextOwned>;
+impl Contexted for Context {
+    fn sync(&self) -> Result<()> {
+        ctx_sync(self.ptr)
+    }
+
+    fn version(&self) -> Result<u32> {
+        ctx_version(self.ptr)
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        ctx_push(self.ptr)?;
+        Ok(ContextGuard { ptr: self.ptr })
+    }
+}
+
+impl ContextOwned {
+    /// Get a reference
+    ///
+    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
+    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
+    ///
+    pub fn get_ref(&self) -> ContextRef {
+        ContextRef { ptr: self.ptr }
+    }
+}
 
 /// Non-Owend handler for CUDA context
 ///
@@ -153,6 +185,24 @@ pub struct ContextRef {
     ptr: CUcontext,
 }
 
+unsafe impl Send for ContextRef {}
+unsafe impl Sync for ContextRef {}
+
+impl Contexted for ContextRef {
+    fn sync(&self) -> Result<()> {
+        ctx_sync(self.ptr)
+    }
+
+    fn version(&self) -> Result<u32> {
+        ctx_version(self.ptr)
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        ctx_push(self.ptr)?;
+        Ok(ContextGuard { ptr: self.ptr })
+    }
+}
+
 impl std::cmp::PartialEq<ContextRef> for ContextOwned {
     fn eq(&self, ctx: &ContextRef) -> bool {
         self.ptr == ctx.ptr
@@ -165,93 +215,28 @@ impl std::cmp::PartialEq<ContextOwned> for ContextRef {
     }
 }
 
-unsafe impl Send for ContextRef {}
-unsafe impl Sync for ContextRef {}
-
-/// Common implementations for Context, ContextRef
-pub(crate) trait ContextImpl {
-    fn get_ptr(&self) -> CUcontext;
-
-    /// Push to the context stack of this thread
-    fn push(&self) {
-        unsafe {
-            ffi_call!(cuCtxPushCurrent_v2, self.get_ptr()).expect("Failed to push context");
-        }
-    }
-
-    /// Pop from the context stack of this thread
-    fn pop(&self) {
-        let ptr = unsafe { ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context") };
-        if ptr.is_null() {
-            panic!("No current context");
-        }
-        assert!(ptr == self.get_ptr(), "Pop must return same pointer");
-    }
-
-    /// Get API version
-    fn version(&self) -> u32 {
-        let mut version: u32 = 0;
-        unsafe { ffi_call!(cuCtxGetApiVersion, self.get_ptr(), &mut version as *mut _) }
-            .expect("Failed to get Driver API version");
-        version
-    }
-
-    /// Block until all tasks in this context to be complete.
-    fn sync(&self) -> Result<()> {
-        self.push();
-        unsafe {
-            ffi_call!(cuCtxSynchronize)?;
-        }
-        self.pop();
-        Ok(())
-    }
+/// RAII handler for using CUDA context
+///
+/// As described in [CUDA Programming Guide], library using CUDA should push context before using
+/// it, and then pop it.
+///
+/// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
+pub struct ContextGuard {
+    ptr: CUcontext,
 }
 
-impl ContextImpl for ContextOwned {
-    fn get_ptr(&self) -> CUcontext {
-        self.ptr
-    }
-}
-
-impl ContextImpl for ContextRef {
-    fn get_ptr(&self) -> CUcontext {
-        // FIXME Check pointer is still valid
-        self.ptr
-    }
-}
-
-impl ContextOwned {
-    /// Create on the top of context stack
-    fn create(device: CUdevice) -> Self {
-        let ptr = unsafe {
-            ffi_new!(
-                cuCtxCreate_v2,
-                CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
-                device
-            )
+impl Drop for ContextGuard {
+    fn drop(&mut self) {
+        match ctx_pop() {
+            Ok(ptr) => {
+                if ptr != self.ptr {
+                    log::error!("Poped context is different from pushed: {:?}", ptr);
+                }
+            }
+            Err(e) => {
+                log::error!("Failed to pop context: {}", e);
+            }
         }
-        .expect("Failed to create a new context");
-        if ptr.is_null() {
-            panic!("Cannot crate a new context");
-        }
-        let ctx = ContextOwned { ptr };
-        ctx.pop();
-        ctx
-    }
-
-    /// Get a reference
-    ///
-    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
-    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
-    ///
-    pub fn get_ref(&self) -> ContextRef {
-        ContextRef { ptr: self.ptr }
-    }
-}
-
-impl Contexted for Context {
-    fn get_context(&self) -> Context {
-        self.clone()
     }
 }
 

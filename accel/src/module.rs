@@ -353,8 +353,16 @@ pub struct Kernel<'module> {
 }
 
 impl Contexted for Kernel<'_> {
-    fn get_context(&self) -> Context {
-        self.module.get_context()
+    fn sync(&self) -> Result<()> {
+        self.module.context.sync()
+    }
+
+    fn version(&self) -> Result<u32> {
+        self.module.context.version()
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        self.module.context.guard()
     }
 }
 
@@ -503,7 +511,7 @@ pub trait Launchable<'arg> {
         let mut params = args.kernel_params();
         unsafe {
             contexted_call!(
-                &kernel.get_context(),
+                &kernel,
                 cuLaunchKernel,
                 kernel.func,
                 grid.x,
@@ -518,7 +526,7 @@ pub trait Launchable<'arg> {
                 null_mut() /* no extra */
             )?;
         }
-        kernel.sync_context()?;
+        kernel.sync()?;
         Ok(())
     }
 }
@@ -532,44 +540,58 @@ pub struct Module {
 
 impl Drop for Module {
     fn drop(&mut self) {
-        if let Err(e) = unsafe { contexted_call!(&self.get_context(), cuModuleUnload, self.module) }
-        {
+        if let Err(e) = unsafe { contexted_call!(&self.context, cuModuleUnload, self.module) } {
             log::error!("Failed to unload module: {:?}", e);
         }
     }
 }
 
 impl Contexted for Module {
-    fn get_context(&self) -> Context {
-        self.context.clone()
+    fn sync(&self) -> Result<()> {
+        self.context.sync()
+    }
+
+    fn version(&self) -> Result<u32> {
+        self.context.version()
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        self.context.guard()
     }
 }
 
 impl Module {
     /// integrated loader of Instruction
-    pub fn load(context: Context, data: &Instruction) -> Result<Self> {
+    pub fn load(context: &Context, data: &Instruction) -> Result<Self> {
         match *data {
             Instruction::PTX(ref ptx) => {
-                let module = unsafe {
-                    contexted_new!(&context, cuModuleLoadData, ptx.as_ptr() as *const _)?
-                };
-                Ok(Module { module, context })
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, ptx.as_ptr() as *const _)? };
+                Ok(Module {
+                    module,
+                    context: context.clone(),
+                })
             }
             Instruction::Cubin(ref bin) => {
-                let module = unsafe {
-                    contexted_new!(&context, cuModuleLoadData, bin.as_ptr() as *const _)?
-                };
-                Ok(Module { module, context })
+                let module =
+                    unsafe { contexted_new!(context, cuModuleLoadData, bin.as_ptr() as *const _)? };
+                Ok(Module {
+                    module,
+                    context: context.clone(),
+                })
             }
             Instruction::PTXFile(ref path) | Instruction::CubinFile(ref path) => {
                 let filename = path_to_cstring(path);
-                let module = unsafe { contexted_new!(&context, cuModuleLoad, filename.as_ptr())? };
-                Ok(Module { module, context })
+                let module = unsafe { contexted_new!(context, cuModuleLoad, filename.as_ptr())? };
+                Ok(Module {
+                    module,
+                    context: context.clone(),
+                })
             }
         }
     }
 
-    pub fn from_str(context: Context, ptx: &str) -> Result<Self> {
+    pub fn from_str(context: &Context, ptx: &str) -> Result<Self> {
         let data = Instruction::ptx(ptx);
         Self::load(context, &data)
     }
@@ -577,14 +599,8 @@ impl Module {
     /// Wrapper of `cuModuleGetFunction`
     pub fn get_kernel(&self, name: &str) -> Result<Kernel> {
         let name = CString::new(name).expect("Invalid Kernel name");
-        let func = unsafe {
-            contexted_new!(
-                &self.get_context(),
-                cuModuleGetFunction,
-                self.module,
-                name.as_ptr()
-            )
-        }?;
+        let func =
+            unsafe { contexted_new!(self, cuModuleGetFunction, self.module, name.as_ptr()) }?;
         Ok(Kernel { func, module: self })
     }
 }
@@ -611,7 +627,7 @@ mod tests {
         "#;
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _mod = Module::from_str(ctx, ptx)?;
+        let _mod = Module::from_str(&ctx, ptx)?;
         Ok(())
     }
 }

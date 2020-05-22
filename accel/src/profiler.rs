@@ -24,8 +24,8 @@ impl Drop for Profiler {
 }
 
 impl Profiler {
-    pub fn start(ctx: Context) -> Self {
-        unsafe { contexted_call!(&ctx, cuProfilerStart) }.expect("Profiler has already started");
-        Self { ctx }
+    pub fn start(ctx: &Context) -> Self {
+        unsafe { contexted_call!(ctx, cuProfilerStart) }.expect("Profiler has already started");
+        Self { ctx: ctx.clone() }
     }
 }

@@ -7,7 +7,7 @@
 use crate::{contexted_call, contexted_new, device::Contexted, *};
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::{marker::PhantomData, sync::Arc};
+use std::marker::PhantomData;
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
@@ -15,7 +15,7 @@ pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 pub struct Array<T, Dim> {
     array: CUarray,
     dim: Dim,
-    ctx: Arc<Context>,
+    ctx: Context,
     phantom: PhantomData<T>,
 }
 
@@ -201,14 +201,14 @@ impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
 }
 
 impl<T, Dim> Contexted for Array<T, Dim> {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.ctx.clone()
     }
 }
 
 impl<T: Scalar, Dim: Dimension> Allocatable for Array<T, Dim> {
     type Shape = Dim;
-    unsafe fn uninitialized(ctx: Arc<Context>, dim: Dim) -> Self {
+    unsafe fn uninitialized(ctx: Context, dim: Dim) -> Self {
         let desc = dim.as_descriptor::<T>();
         let array =
             contexted_new!(&ctx, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");

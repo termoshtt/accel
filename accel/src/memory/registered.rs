@@ -4,11 +4,10 @@ use cuda::*;
 use std::{
     ffi::c_void,
     ops::{Deref, DerefMut},
-    sync::Arc,
 };
 
 pub struct RegisteredMemory<'a, T> {
-    ctx: Arc<Context>,
+    ctx: Context,
     mem: &'a mut [T],
 }
 
@@ -40,7 +39,7 @@ impl<T> Drop for RegisteredMemory<'_, T> {
 }
 
 impl<'a, T: Scalar> RegisteredMemory<'a, T> {
-    pub fn new(ctx: Arc<Context>, mem: &'a mut [T]) -> Self {
+    pub fn new(ctx: Context, mem: &'a mut [T]) -> Self {
         unsafe {
             contexted_call!(
                 &ctx,
@@ -76,7 +75,7 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
 }
 
 impl<T> Contexted for RegisteredMemory<'_, T> {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.ctx.clone()
     }
 }

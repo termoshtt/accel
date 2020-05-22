@@ -3,10 +3,7 @@
 use super::*;
 use crate::*;
 use cuda::*;
-use std::{
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::ops::{Deref, DerefMut};
 
 /// Host memory as page-locked.
 ///
@@ -20,7 +17,7 @@ use std::{
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
-    context: Arc<Context>,
+    context: Context,
 }
 
 impl<T> Drop for PageLockedMemory<T> {
@@ -45,7 +42,7 @@ impl<T> DerefMut for PageLockedMemory<T> {
 }
 
 impl<T> Contexted for PageLockedMemory<T> {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.context.clone()
     }
 }
@@ -121,7 +118,7 @@ impl<T: Scalar> Managed for PageLockedMemory<T> {}
 
 impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(context: Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
         let ptr = contexted_new!(&context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");

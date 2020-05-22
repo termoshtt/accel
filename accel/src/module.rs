@@ -3,7 +3,7 @@
 use crate::{contexted_call, contexted_new, device::*, error::*, *};
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::{ffi::*, path::*, ptr::null_mut, sync::Arc};
+use std::{ffi::*, path::*, ptr::null_mut};
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 ///
@@ -353,7 +353,7 @@ pub struct Kernel<'module> {
 }
 
 impl Contexted for Kernel<'_> {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.module.get_context()
     }
 }
@@ -527,7 +527,7 @@ pub trait Launchable<'arg> {
 #[derive(Debug)]
 pub struct Module {
     module: CUmodule,
-    context: Arc<Context>,
+    context: Context,
 }
 
 impl Drop for Module {
@@ -540,14 +540,14 @@ impl Drop for Module {
 }
 
 impl Contexted for Module {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.context.clone()
     }
 }
 
 impl Module {
     /// integrated loader of Instruction
-    pub fn load(context: Arc<Context>, data: &Instruction) -> Result<Self> {
+    pub fn load(context: Context, data: &Instruction) -> Result<Self> {
         match *data {
             Instruction::PTX(ref ptx) => {
                 let module = unsafe {
@@ -569,7 +569,7 @@ impl Module {
         }
     }
 
-    pub fn from_str(context: Arc<Context>, ptx: &str) -> Result<Self> {
+    pub fn from_str(context: Context, ptx: &str) -> Result<Self> {
         let data = Instruction::ptx(ptx);
         Self::load(context, &data)
     }

@@ -1,11 +1,10 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
-use std::sync::Arc;
 
 /// Handler for non-blocking CUDA Stream
 pub struct Stream {
     pub(crate) stream: CUstream,
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Stream {
@@ -17,14 +16,14 @@ impl Drop for Stream {
 }
 
 impl Contexted for Stream {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.ctx.clone()
     }
 }
 
 impl Stream {
     /// Create a new non-blocking CUDA stream on the current context
-    pub fn new(ctx: Arc<Context>) -> Self {
+    pub fn new(ctx: Context) -> Self {
         let stream = unsafe {
             contexted_new!(
                 &ctx,
@@ -60,7 +59,7 @@ impl Stream {
 
 pub struct Event {
     event: CUevent,
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Event {
@@ -72,13 +71,13 @@ impl Drop for Event {
 }
 
 impl Contexted for Event {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.ctx.clone()
     }
 }
 
 impl Event {
-    pub fn new(ctx: Arc<Context>) -> Self {
+    pub fn new(ctx: Context) -> Self {
         let event = unsafe {
             contexted_new!(
                 &ctx,

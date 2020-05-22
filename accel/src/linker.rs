@@ -10,7 +10,6 @@ use std::{
     os::raw::c_void,
     path::Path,
     ptr::null_mut,
-    sync::Arc,
 };
 
 // TODO
@@ -181,7 +180,7 @@ impl JITConfig {
 pub struct Linker {
     state: CUlinkState,
     cfg: JITConfig,
-    context: Arc<Context>,
+    context: Context,
 }
 
 impl Drop for Linker {
@@ -193,14 +192,14 @@ impl Drop for Linker {
 }
 
 impl Contexted for Linker {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.context.clone()
     }
 }
 
 impl Linker {
     /// Create a new Linker
-    pub fn create(context: Arc<Context>, mut cfg: JITConfig) -> Result<Self> {
+    pub fn create(context: Context, mut cfg: JITConfig) -> Result<Self> {
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
@@ -292,7 +291,7 @@ impl Linker {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: Arc<Context>, data: &[Instruction], opt: JITConfig) -> Result<Module> {
+pub fn link(ctx: Context, data: &[Instruction], opt: JITConfig) -> Result<Module> {
     let mut l = Linker::create(ctx.clone(), opt)?;
     for d in data {
         l = l.add(d)?;

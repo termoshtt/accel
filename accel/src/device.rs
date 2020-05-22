@@ -71,8 +71,8 @@ impl Device {
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context();
     /// ```
-    pub fn create_context(&self) -> Arc<Context> {
-        Arc::new(Context::create(self.device))
+    pub fn create_context(&self) -> Context {
+        Arc::new(ContextOwned::create(self.device))
     }
 }
 
@@ -83,12 +83,12 @@ impl Device {
 ///
 /// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
 pub struct ContextGuard {
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl ContextGuard {
     /// Make context as current on this thread
-    pub fn guard_context(ctx: Arc<Context>) -> Self {
+    pub fn guard_context(ctx: Context) -> Self {
         ctx.push();
         Self { ctx }
     }
@@ -105,7 +105,7 @@ pub trait Contexted {
     /// Create a dynamically managed, counted reference to Context
     ///
     /// See https://gitlab.com/termoshtt/accel/-/merge_requests/66
-    fn get_context(&self) -> Arc<Context>;
+    fn get_context(&self) -> Context;
 
     /// RAII utility for push/pop onto the thread-local context stack
     fn guard_context(&self) -> ContextGuard {
@@ -123,11 +123,11 @@ pub trait Contexted {
 
 /// Owend handler for CUDA context
 #[derive(Debug, PartialEq)]
-pub struct Context {
+pub struct ContextOwned {
     ptr: CUcontext,
 }
 
-impl Drop for Context {
+impl Drop for ContextOwned {
     fn drop(&mut self) {
         if let Err(e) = unsafe { ffi_call!(cuCtxDestroy_v2, self.ptr) } {
             log::error!("Context remove failed: {:?}", e);
@@ -135,8 +135,10 @@ impl Drop for Context {
     }
 }
 
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}
+unsafe impl Send for ContextOwned {}
+unsafe impl Sync for ContextOwned {}
+
+pub type Context = Arc<ContextOwned>;
 
 /// Non-Owend handler for CUDA context
 ///
@@ -151,14 +153,14 @@ pub struct ContextRef {
     ptr: CUcontext,
 }
 
-impl std::cmp::PartialEq<ContextRef> for Context {
+impl std::cmp::PartialEq<ContextRef> for ContextOwned {
     fn eq(&self, ctx: &ContextRef) -> bool {
         self.ptr == ctx.ptr
     }
 }
 
-impl std::cmp::PartialEq<Context> for ContextRef {
-    fn eq(&self, ctx: &Context) -> bool {
+impl std::cmp::PartialEq<ContextOwned> for ContextRef {
+    fn eq(&self, ctx: &ContextOwned) -> bool {
         self.ptr == ctx.ptr
     }
 }
@@ -205,7 +207,7 @@ pub(crate) trait ContextImpl {
     }
 }
 
-impl ContextImpl for Context {
+impl ContextImpl for ContextOwned {
     fn get_ptr(&self) -> CUcontext {
         self.ptr
     }
@@ -218,7 +220,7 @@ impl ContextImpl for ContextRef {
     }
 }
 
-impl Context {
+impl ContextOwned {
     /// Create on the top of context stack
     fn create(device: CUdevice) -> Self {
         let ptr = unsafe {
@@ -232,7 +234,7 @@ impl Context {
         if ptr.is_null() {
             panic!("Cannot crate a new context");
         }
-        let ctx = Context { ptr };
+        let ctx = ContextOwned { ptr };
         ctx.pop();
         ctx
     }
@@ -247,8 +249,8 @@ impl Context {
     }
 }
 
-impl Contexted for Arc<Context> {
-    fn get_context(&self) -> Arc<Context> {
+impl Contexted for Context {
+    fn get_context(&self) -> Context {
         self.clone()
     }
 }

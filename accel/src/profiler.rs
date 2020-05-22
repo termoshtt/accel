@@ -2,7 +2,6 @@
 
 use crate::*;
 use cuda::*;
-use std::sync::Arc;
 
 /// RAII handler for nvprof profiling
 ///
@@ -13,7 +12,7 @@ use std::sync::Arc;
 ///   ```
 /// - You will find more options at [nvprof user's guide](https://docs.nvidia.com/cuda/profiler-users-guide/index.html#nvprof-overview)
 pub struct Profiler {
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Profiler {
@@ -25,7 +24,7 @@ impl Drop for Profiler {
 }
 
 impl Profiler {
-    pub fn start(ctx: Arc<Context>) -> Self {
+    pub fn start(ctx: Context) -> Self {
         unsafe { contexted_call!(&ctx, cuProfilerStart) }.expect("Profiler has already started");
         Self { ctx }
     }

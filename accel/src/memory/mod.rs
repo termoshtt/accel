@@ -43,7 +43,7 @@ pub use scalar::*;
 use crate::*;
 use cuda::*;
 use num_traits::Zero;
-use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
+use std::{ffi::c_void, mem::MaybeUninit};
 
 /// Memory type
 ///
@@ -300,14 +300,14 @@ pub trait Allocatable: Contexted + Memset + Sized {
     /// Panic
     /// ------
     /// - if shape is zero
-    unsafe fn uninitialized(ctx: Arc<Context>, shape: Self::Shape) -> Self;
+    unsafe fn uninitialized(ctx: Context, shape: Self::Shape) -> Self;
 
     /// uniformly initialized
     ///
     /// Panic
     /// ------
     /// - if shape is zero
-    fn from_elem(ctx: Arc<Context>, shape: Self::Shape, elem: Self::Elem) -> Self {
+    fn from_elem(ctx: Context, shape: Self::Shape, elem: Self::Elem) -> Self {
         let mut mem = unsafe { Self::uninitialized(ctx, shape) };
         mem.set(elem);
         mem
@@ -318,7 +318,7 @@ pub trait Allocatable: Contexted + Memset + Sized {
     /// Panic
     /// ------
     /// - if shape is zero
-    fn zeros(ctx: Arc<Context>, shape: Self::Shape) -> Self {
+    fn zeros(ctx: Context, shape: Self::Shape) -> Self {
         Self::from_elem(ctx, shape, <Self::Elem as Zero>::zero())
     }
 }

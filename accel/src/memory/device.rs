@@ -6,7 +6,6 @@ use cuda::*;
 use std::{
     marker::PhantomData,
     ops::{Deref, DerefMut},
-    sync::Arc,
 };
 
 use cuda::CUmemAttach_flags_enum as AttachFlag;
@@ -15,7 +14,7 @@ use cuda::CUmemAttach_flags_enum as AttachFlag;
 pub struct DeviceMemory<T> {
     ptr: CUdeviceptr,
     size: usize,
-    context: Arc<Context>,
+    context: Context,
     phantom: PhantomData<T>,
 }
 
@@ -162,14 +161,14 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
 impl<T: Scalar> Managed for DeviceMemory<T> {}
 
 impl<T> Contexted for DeviceMemory<T> {
-    fn get_context(&self) -> Arc<Context> {
+    fn get_context(&self) -> Context {
         self.context.clone()
     }
 }
 
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(context: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(context: Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
         let ptr = contexted_new!(
             &context,

@@ -1,21 +1,21 @@
 //! Device and Host memory handlers
 
 use super::*;
-use crate::*;
+use crate::{error::*, *};
 use cuda::*;
 use std::{
     marker::PhantomData,
     ops::{Deref, DerefMut},
-    sync::Arc,
 };
 
 use cuda::CUmemAttach_flags_enum as AttachFlag;
 
 /// Memory allocated on the device.
+#[derive(Contexted)]
 pub struct DeviceMemory<T> {
     ptr: CUdeviceptr,
     size: usize,
-    ctx: Arc<Context>,
+    context: Context,
     phantom: PhantomData<T>,
 }
 
@@ -65,7 +65,7 @@ impl<T: Scalar> Memcpy<Self> for DeviceMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         unsafe {
             contexted_call!(
-                &self.get_context(),
+                self,
                 cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
@@ -82,7 +82,7 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for DeviceMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         unsafe {
             contexted_call!(
-                &self.get_context(),
+                self,
                 cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
@@ -99,7 +99,7 @@ impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for DeviceMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         unsafe {
             contexted_call!(
-                &self.get_context(),
+                self,
                 cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
@@ -115,7 +115,7 @@ impl<T: Scalar> Memset for DeviceMemory<T> {
         match T::size_of() {
             1 => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemsetD8_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     value.to_le_u8().unwrap(),
@@ -125,7 +125,7 @@ impl<T: Scalar> Memset for DeviceMemory<T> {
             .expect("memset failed for 8-bit scalar"),
             2 => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemsetD16_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     value.to_le_u16().unwrap(),
@@ -135,7 +135,7 @@ impl<T: Scalar> Memset for DeviceMemory<T> {
             .expect("memset failed for 16-bit scalar"),
             4 => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemsetD32_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     value.to_le_u32().unwrap(),
@@ -159,18 +159,14 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
     }
 }
 
-impl<T> Contexted for DeviceMemory<T> {
-    fn get_context(&self) -> Arc<Context> {
-        self.ctx.clone()
-    }
-}
+impl<T: Scalar> Managed for DeviceMemory<T> {}
 
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(ctx: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(context: &Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
         let ptr = contexted_new!(
-            &ctx,
+            context,
             cuMemAllocManaged,
             size * std::mem::size_of::<T>(),
             AttachFlag::CU_MEM_ATTACH_GLOBAL as u32
@@ -179,7 +175,7 @@ impl<T: Scalar> Allocatable for DeviceMemory<T> {
         DeviceMemory {
             ptr,
             size,
-            ctx,
+            context: context.clone(),
             phantom: PhantomData,
         }
     }
@@ -188,13 +184,12 @@ impl<T: Scalar> Allocatable for DeviceMemory<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::*;
 
     #[test]
     fn as_mut_slice() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mut mem = DeviceMemory::<i32>::zeros(ctx, 12);
+        let context = device.create_context();
+        let mut mem = DeviceMemory::<i32>::zeros(&context, 12);
         let sl = mem.as_mut_slice();
         sl[0] = 3; // test if accessible from host
         assert_eq!(sl.num_elem(), 12);
@@ -205,7 +200,7 @@ mod tests {
     #[test]
     fn device_new_zero() {
         let device = Device::nth(0).unwrap();
-        let ctx = device.create_context();
-        let _a = DeviceMemory::<i32>::zeros(ctx, 0);
+        let context = device.create_context();
+        let _a = DeviceMemory::<i32>::zeros(&context, 0);
     }
 }

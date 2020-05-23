@@ -4,18 +4,18 @@
 //! [Texture]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__TEXOBJECT.html#group__CUDA__TEXOBJECT
 //! [Surface]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__SURFOBJECT.html#group__CUDA__SURFOBJECT
 
-use crate::{contexted_call, contexted_new, device::Contexted, *};
+use crate::{contexted_call, contexted_new, device::Contexted, error::Result, *};
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::{marker::PhantomData, sync::Arc};
+use std::marker::PhantomData;
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
-#[derive(Debug)]
+#[derive(Debug, Contexted)]
 pub struct Array<T, Dim> {
     array: CUarray,
     dim: Dim,
-    ctx: Arc<Context>,
+    context: Context,
     phantom: PhantomData<T>,
 }
 
@@ -195,27 +195,21 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for DeviceMemory<T> {
 impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
     fn set(&mut self, value: Self::Elem) {
         // FIXME CUDA does not have memcpy for array. This is easy but too expensive alternative way
-        let src = PageLockedMemory::from_elem(self.get_context(), self.dim.len(), value);
+        let src = PageLockedMemory::from_elem(&self.context, self.dim.len(), value);
         self.copy_from(&src);
-    }
-}
-
-impl<T, Dim> Contexted for Array<T, Dim> {
-    fn get_context(&self) -> Arc<Context> {
-        self.ctx.clone()
     }
 }
 
 impl<T: Scalar, Dim: Dimension> Allocatable for Array<T, Dim> {
     type Shape = Dim;
-    unsafe fn uninitialized(ctx: Arc<Context>, dim: Dim) -> Self {
+    unsafe fn uninitialized(context: &Context, dim: Dim) -> Self {
         let desc = dim.as_descriptor::<T>();
         let array =
-            contexted_new!(&ctx, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
+            contexted_new!(context, cuArray3DCreate_v2, &desc).expect("Cannot create a new array");
         Array {
             array,
             dim,
-            ctx,
+            context: context.clone(),
             phantom: PhantomData,
         }
     }
@@ -224,57 +218,57 @@ impl<T: Scalar, Dim: Dimension> Allocatable for Array<T, Dim> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{device::*, error::*};
+    use crate::device::*;
 
     #[test]
     fn new_1d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let _array1: Array<f32, Ix1> = Array::zeros(ctx.clone(), 10.into());
-        let _array2: Array<f32, Ix1> = Array::zeros(ctx.clone(), (10,).into());
+        let context = device.create_context();
+        let _array1: Array<f32, Ix1> = Array::zeros(&context, 10.into());
+        let _array2: Array<f32, Ix1> = Array::zeros(&context, (10,).into());
         Ok(())
     }
 
     #[test]
     fn new_2d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let _array: Array<f32, Ix2> = Array::zeros(ctx, (10, 12).into());
+        let context = device.create_context();
+        let _array: Array<f32, Ix2> = Array::zeros(&context, (10, 12).into());
         Ok(())
     }
 
     #[test]
     fn new_3d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let _array: Array<f32, Ix3> = Array::zeros(ctx, (10, 12, 8).into());
+        let context = device.create_context();
+        let _array: Array<f32, Ix3> = Array::zeros(&context, (10, 12, 8).into());
         Ok(())
     }
 
     #[test]
     fn new_1d_layered() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let _array: Array<f32, Ix1Layered> = Array::zeros(ctx, (10, 12).into());
+        let context = device.create_context();
+        let _array: Array<f32, Ix1Layered> = Array::zeros(&context, (10, 12).into());
         Ok(())
     }
 
     #[test]
     fn new_2d_layered() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let _array: Array<f32, Ix2Layered> = Array::zeros(ctx, (10, 12, 8).into());
+        let context = device.create_context();
+        let _array: Array<f32, Ix2Layered> = Array::zeros(&context, (10, 12, 8).into());
         Ok(())
     }
 
     #[test]
     fn memcpy_h2a2h_1d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 10;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n);
-        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(ctx.clone(), n.into()) };
+        let src = PageLockedMemory::from_elem(&context, n, 2_u32);
+        let mut dst = PageLockedMemory::zeros(&context, n);
+        let mut array = unsafe { Array::<u32, Ix1>::uninitialized(&context, n.into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -287,12 +281,12 @@ mod tests {
     #[test]
     fn memcpy_d2a2d_2d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
-        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
-        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        let src = DeviceMemory::from_elem(&context, n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(&context, n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(&context, (n, m).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -305,12 +299,12 @@ mod tests {
     #[test]
     fn memcpy_h2a2h_2d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n * m, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m);
-        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        let src = PageLockedMemory::from_elem(&context, n * m, 2_u32);
+        let mut dst = PageLockedMemory::zeros(&context, n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(&context, (n, m).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -323,12 +317,12 @@ mod tests {
     #[test]
     fn memcpy_d2a2d_1d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
-        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
-        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(ctx.clone(), (n, m).into()) };
+        let src = DeviceMemory::from_elem(&context, n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(&context, n * m);
+        let mut array = unsafe { Array::<u32, Ix2>::uninitialized(&context, (n, m).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -340,13 +334,13 @@ mod tests {
     #[test]
     fn memcpy_h2a2h_3d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
         let l = 2;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m * l);
-        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        let src = PageLockedMemory::from_elem(&context, n * m * l, 2_u32);
+        let mut dst = PageLockedMemory::zeros(&context, n * m * l);
+        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(&context, (n, m, l).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -359,13 +353,13 @@ mod tests {
     #[test]
     fn memcpy_d2a2d_3d() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
         let l = 2;
-        let src = DeviceMemory::from_elem(ctx.clone(), n * l * m, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n * l * m);
-        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(ctx.clone(), (n, m, l).into()) };
+        let src = DeviceMemory::from_elem(&context, n * l * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(&context, n * l * m);
+        let mut array = unsafe { Array::<u32, Ix3>::uninitialized(&context, (n, m, l).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -378,13 +372,12 @@ mod tests {
     #[test]
     fn memcpy_h2a2h_1dlayer() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n * m, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m);
-        let mut array =
-            unsafe { Array::<u32, Ix1Layered>::uninitialized(ctx.clone(), (n, m).into()) };
+        let src = PageLockedMemory::from_elem(&context, n * m, 2_u32);
+        let mut dst = PageLockedMemory::zeros(&context, n * m);
+        let mut array = unsafe { Array::<u32, Ix1Layered>::uninitialized(&context, (n, m).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -397,13 +390,12 @@ mod tests {
     #[test]
     fn memcpy_d2a2d_1dlayer() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
-        let src = DeviceMemory::from_elem(ctx.clone(), n * m, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m);
-        let mut array =
-            unsafe { Array::<u32, Ix1Layered>::uninitialized(ctx.clone(), (n, m).into()) };
+        let src = DeviceMemory::from_elem(&context, n * m, 2_u32);
+        let mut dst = DeviceMemory::zeros(&context, n * m);
+        let mut array = unsafe { Array::<u32, Ix1Layered>::uninitialized(&context, (n, m).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -416,14 +408,14 @@ mod tests {
     #[test]
     fn memcpy_h2a2h_2dlayer() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
         let l = 2;
-        let src = PageLockedMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
-        let mut dst = PageLockedMemory::zeros(ctx.clone(), n * m * l);
+        let src = PageLockedMemory::from_elem(&context, n * m * l, 2_u32);
+        let mut dst = PageLockedMemory::zeros(&context, n * m * l);
         let mut array =
-            unsafe { Array::<u32, Ix2Layered>::uninitialized(ctx.clone(), (n, m, l).into()) };
+            unsafe { Array::<u32, Ix2Layered>::uninitialized(&context, (n, m, l).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());
@@ -436,14 +428,14 @@ mod tests {
     #[test]
     fn memcpy_d2a2d_2dlayer() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
+        let context = device.create_context();
         let n = 3;
         let m = 4;
         let l = 2;
-        let src = DeviceMemory::from_elem(ctx.clone(), n * m * l, 2_u32);
-        let mut dst = DeviceMemory::zeros(ctx.clone(), n * m * l);
+        let src = DeviceMemory::from_elem(&context, n * m * l, 2_u32);
+        let mut dst = DeviceMemory::zeros(&context, n * m * l);
         let mut array =
-            unsafe { Array::<u32, Ix2Layered>::uninitialized(ctx.clone(), (n, m, l).into()) };
+            unsafe { Array::<u32, Ix2Layered>::uninitialized(&context, (n, m, l).into()) };
         array.copy_from(&src);
         dst.copy_from(&array);
         dbg!(dst.as_slice());

@@ -1,12 +1,9 @@
 //! Device and Host memory handlers
 
 use super::*;
-use crate::*;
+use crate::{error::Result, *};
 use cuda::*;
-use std::{
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::ops::{Deref, DerefMut};
 
 /// Host memory as page-locked.
 ///
@@ -17,10 +14,11 @@ use std::{
 /// See also [cuMemAllocHost].
 ///
 /// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
+#[derive(Contexted)]
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
-    ctx: Arc<Context>,
+    context: Context,
 }
 
 impl<T> Drop for PageLockedMemory<T> {
@@ -41,12 +39,6 @@ impl<T> Deref for PageLockedMemory<T> {
 impl<T> DerefMut for PageLockedMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr, self.size) }
-    }
-}
-
-impl<T> Contexted for PageLockedMemory<T> {
-    fn get_context(&self) -> Arc<Context> {
-        self.ctx.clone()
     }
 }
 
@@ -91,7 +83,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for PageLockedMemory<T> {
         assert_eq!(self.num_elem(), src.num_elem());
         unsafe {
             contexted_call!(
-                &self.get_context(),
+                self,
                 cuMemcpy,
                 self.as_mut_ptr() as CUdeviceptr,
                 src.as_ptr() as CUdeviceptr,
@@ -119,14 +111,14 @@ impl<T: Scalar> Continuous for PageLockedMemory<T> {
 
 impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     type Shape = usize;
-    unsafe fn uninitialized(ctx: Arc<Context>, size: usize) -> Self {
+    unsafe fn uninitialized(context: &Context, size: usize) -> Self {
         assert!(size > 0, "Zero-sized malloc is forbidden");
-        let ptr = contexted_new!(&ctx, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
+        let ptr = contexted_new!(context, cuMemAllocHost_v2, size * std::mem::size_of::<T>())
             .expect("Cannot allocate page-locked memory");
         Self {
             ptr: ptr as *mut T,
             size,
-            ctx,
+            context: context.clone(),
         }
     }
 }
@@ -134,13 +126,12 @@ impl<T: Scalar> Allocatable for PageLockedMemory<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::*;
 
     #[test]
     fn as_mut_slice() -> Result<()> {
         let device = Device::nth(0)?;
-        let ctx = device.create_context();
-        let mut mem = PageLockedMemory::<i32>::zeros(ctx, 12);
+        let context = device.create_context();
+        let mut mem = PageLockedMemory::<i32>::zeros(&context, 12);
         let sl = mem.as_mut_slice();
 
         sl[0] = 3; // test if accessible
@@ -152,7 +143,7 @@ mod tests {
     #[test]
     fn page_locked_new_zero() {
         let device = Device::nth(0).unwrap();
-        let ctx = device.create_context();
-        let _a = PageLockedMemory::<i32>::zeros(ctx, 0);
+        let context = device.create_context();
+        let _a = PageLockedMemory::<i32>::zeros(&context, 0);
     }
 }

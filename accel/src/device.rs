@@ -7,6 +7,8 @@ use crate::{error::*, *};
 use cuda::*;
 use std::sync::{Arc, Once};
 
+pub use accel_derive::Contexted;
+
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {
@@ -71,8 +73,147 @@ impl Device {
     /// let device = Device::nth(0).unwrap();
     /// let ctx = device.create_context();
     /// ```
-    pub fn create_context(&self) -> Arc<Context> {
-        Arc::new(Context::create(self.device))
+    pub fn create_context(&self) -> Context {
+        let ptr = unsafe {
+            ffi_new!(
+                cuCtxCreate_v2,
+                CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
+                self.device
+            )
+        }
+        .expect("Failed to create a new context");
+        if ptr.is_null() {
+            panic!("Cannot crate a new context");
+        }
+        let ptr_new = ctx_pop().unwrap();
+        assert_eq!(ptr, ptr_new);
+        Arc::new(ContextOwned { ptr })
+    }
+}
+
+/// Push to the context stack of this thread
+fn ctx_push(ptr: CUcontext) -> Result<()> {
+    unsafe { ffi_call!(cuCtxPushCurrent_v2, ptr) }?;
+    Ok(())
+}
+
+/// Pop from the context stack of this thread
+fn ctx_pop() -> Result<CUcontext> {
+    let ptr = unsafe { ffi_new!(cuCtxPopCurrent_v2) }?;
+    if ptr.is_null() {
+        panic!("No current context");
+    }
+    Ok(ptr)
+}
+
+/// Get API version
+fn ctx_version(ptr: CUcontext) -> Result<u32> {
+    let mut version: u32 = 0;
+    unsafe { ffi_call!(cuCtxGetApiVersion, ptr, &mut version as *mut _) }?;
+    Ok(version)
+}
+
+/// Block until all tasks in this context to be complete.
+fn ctx_sync(ptr: CUcontext) -> Result<()> {
+    ctx_push(ptr)?;
+    unsafe { ffi_call!(cuCtxSynchronize) }?;
+    let ptr_new = ctx_pop()?;
+    assert_eq!(ptr, ptr_new);
+    Ok(())
+}
+
+/// Object with CUDA context
+pub trait Contexted {
+    fn guard(&self) -> Result<ContextGuard>;
+    fn sync(&self) -> Result<()>;
+    fn version(&self) -> Result<u32>;
+}
+
+/// Owend handler for CUDA context
+#[derive(Debug, PartialEq)]
+pub struct ContextOwned {
+    ptr: CUcontext,
+}
+
+pub type Context = Arc<ContextOwned>;
+
+impl Drop for ContextOwned {
+    fn drop(&mut self) {
+        if let Err(e) = unsafe { ffi_call!(cuCtxDestroy_v2, self.ptr) } {
+            log::error!("Context remove failed: {:?}", e);
+        }
+    }
+}
+
+unsafe impl Send for ContextOwned {}
+unsafe impl Sync for ContextOwned {}
+
+impl Contexted for Context {
+    fn sync(&self) -> Result<()> {
+        ctx_sync(self.ptr)
+    }
+
+    fn version(&self) -> Result<u32> {
+        ctx_version(self.ptr)
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        ctx_push(self.ptr)?;
+        Ok(ContextGuard { ptr: self.ptr })
+    }
+}
+
+impl ContextOwned {
+    /// Get a reference
+    ///
+    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
+    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
+    ///
+    pub fn get_ref(&self) -> ContextRef {
+        ContextRef { ptr: self.ptr }
+    }
+}
+
+/// Non-Owend handler for CUDA context
+///
+/// The validity of reference is checked dynamically.
+/// CUDA APIs (e.g. [cuPointerGetAttribute]) allow us to get a pointer to CUDA context,
+/// but its validity cannot be assured by Rust lifetime system.
+///
+/// [cuPointerGetAttribute]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__UNIFIED.html#group__CUDA__UNIFIED_1g0c28ed0aff848042bc0533110e45820c
+///
+#[derive(Debug, PartialEq)]
+pub struct ContextRef {
+    ptr: CUcontext,
+}
+
+unsafe impl Send for ContextRef {}
+unsafe impl Sync for ContextRef {}
+
+impl Contexted for ContextRef {
+    fn sync(&self) -> Result<()> {
+        ctx_sync(self.ptr)
+    }
+
+    fn version(&self) -> Result<u32> {
+        ctx_version(self.ptr)
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        ctx_push(self.ptr)?;
+        Ok(ContextGuard { ptr: self.ptr })
+    }
+}
+
+impl std::cmp::PartialEq<ContextRef> for ContextOwned {
+    fn eq(&self, ctx: &ContextRef) -> bool {
+        self.ptr == ctx.ptr
+    }
+}
+
+impl std::cmp::PartialEq<ContextOwned> for ContextRef {
+    fn eq(&self, ctx: &ContextOwned) -> bool {
+        self.ptr == ctx.ptr
     }
 }
 
@@ -83,124 +224,21 @@ impl Device {
 ///
 /// [CUDA Programming Guide]: https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#context
 pub struct ContextGuard {
-    ctx: Arc<Context>,
-}
-
-impl ContextGuard {
-    /// Make context as current on this thread
-    pub fn guard_context(ctx: Arc<Context>) -> Self {
-        ctx.push();
-        Self { ctx }
-    }
+    ptr: CUcontext,
 }
 
 impl Drop for ContextGuard {
     fn drop(&mut self) {
-        self.ctx.pop();
-    }
-}
-
-/// Object tied up to a CUDA context
-pub trait Contexted {
-    fn get_context(&self) -> Arc<Context>;
-
-    /// RAII utility for push/pop onto the thread-local context stack
-    fn guard_context(&self) -> ContextGuard {
-        let ctx = self.get_context();
-        ContextGuard::guard_context(ctx)
-    }
-
-    /// Blocking until all tasks in current context end
-    fn sync_context(&self) -> Result<()> {
-        let ctx = self.get_context();
-        ctx.sync()?;
-        Ok(())
-    }
-}
-
-/// CUDA context handler
-#[derive(Debug, PartialEq)]
-pub struct Context {
-    context_ptr: CUcontext,
-}
-
-impl Drop for Context {
-    fn drop(&mut self) {
-        if let Err(e) = unsafe { ffi_call!(cuCtxDestroy_v2, self.context_ptr) } {
-            log::error!("Context remove failed: {:?}", e);
+        match ctx_pop() {
+            Ok(ptr) => {
+                if ptr != self.ptr {
+                    log::error!("Poped context is different from pushed: {:?}", ptr);
+                }
+            }
+            Err(e) => {
+                log::error!("Failed to pop context: {}", e);
+            }
         }
-    }
-}
-
-impl std::cmp::PartialEq<CUcontext> for Context {
-    fn eq(&self, ctx_ptr: &CUcontext) -> bool {
-        self.context_ptr == *ctx_ptr
-    }
-}
-
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}
-
-impl Context {
-    /// Push to the context stack of this thread
-    fn push(&self) {
-        unsafe {
-            ffi_call!(cuCtxPushCurrent_v2, self.context_ptr).expect("Failed to push context");
-        }
-    }
-
-    /// Pop from the context stack of this thread
-    fn pop(&self) {
-        let context_ptr =
-            unsafe { ffi_new!(cuCtxPopCurrent_v2).expect("Failed to pop current context") };
-        if context_ptr.is_null() {
-            panic!("No current context");
-        }
-        assert!(
-            context_ptr == self.context_ptr,
-            "Pop must return same pointer"
-        );
-    }
-
-    /// Create on the top of context stack
-    fn create(device: CUdevice) -> Self {
-        let context_ptr = unsafe {
-            ffi_new!(
-                cuCtxCreate_v2,
-                CUctx_flags_enum::CU_CTX_SCHED_AUTO as u32,
-                device
-            )
-        }
-        .expect("Failed to create a new context");
-        if context_ptr.is_null() {
-            panic!("Cannot crate a new context");
-        }
-        let ctx = Context { context_ptr };
-        ctx.pop();
-        ctx
-    }
-
-    pub fn version(&self) -> u32 {
-        let mut version: u32 = 0;
-        unsafe { ffi_call!(cuCtxGetApiVersion, self.context_ptr, &mut version as *mut _) }
-            .expect("Failed to get Driver API version");
-        version
-    }
-
-    /// Block until all tasks to complete.
-    pub fn sync(&self) -> Result<()> {
-        self.push();
-        unsafe {
-            ffi_call!(cuCtxSynchronize)?;
-        }
-        self.pop();
-        Ok(())
-    }
-}
-
-impl Contexted for Arc<Context> {
-    fn get_context(&self) -> Arc<Context> {
-        self.clone()
     }
 }
 
@@ -232,5 +270,25 @@ mod tests {
         let ctx = device.create_context();
         dbg!(&ctx);
         Ok(())
+    }
+
+    #[should_panic]
+    #[test]
+    fn expired_context_ref() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let ctx_ref = ctx.get_ref();
+        drop(ctx);
+        let _version = ctx_ref.version().unwrap(); // ctx has been expired
+    }
+
+    #[should_panic]
+    #[test]
+    fn expired_contexted_call() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let ctx_ref = ctx.get_ref();
+        drop(ctx);
+        unsafe { contexted_call!(&ctx_ref, cuCtxSynchronize) }.unwrap();
     }
 }

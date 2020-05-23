@@ -281,4 +281,14 @@ mod tests {
         drop(ctx);
         let _version = ctx_ref.version().unwrap(); // ctx has been expired
     }
+
+    #[should_panic]
+    #[test]
+    fn expired_contexted_call() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let ctx_ref = ctx.get_ref();
+        drop(ctx);
+        unsafe { contexted_call!(&ctx_ref, cuCtxSynchronize) }.unwrap();
+    }
 }

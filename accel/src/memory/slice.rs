@@ -79,173 +79,44 @@ impl<T: Scalar> Memcpy<[T]> for [T] {
     }
 }
 
-impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
-    fn copy_from(&mut self, src: &PageLockedMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match self.memory_type() {
-            // H -> H
-            MemoryType::Host | MemoryType::PageLocked => self.copy_from(src),
-            // H -> D
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    src,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Page-locked memory to Device failed"),
-            // H -> A
-            MemoryType::Array => {
-                unimplemented!("Dynamical cast from slice to CUDA Array is not supported yet")
+macro_rules! impl_memcpy_slice {
+    ($t:path) => {
+        impl<T: Scalar> Memcpy<[T]> for $t {
+            fn copy_from(&mut self, src: &[T]) {
+                self.as_mut_slice().copy_from(src);
             }
         }
-    }
+        impl<T: Scalar> Memcpy<$t> for [T] {
+            fn copy_from(&mut self, src: &$t) {
+                self.copy_from(src.as_slice());
+            }
+        }
+    };
 }
 
-impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &[T]) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match src.memory_type() {
-            // H -> H
-            MemoryType::Host | MemoryType::PageLocked => self.copy_from_slice(src),
-            // D -> H
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    self,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
+impl_memcpy_slice!(DeviceMemory::<T>);
+impl_memcpy_slice!(PageLockedMemory::<T>);
+impl_memcpy_slice!(RegisteredMemory::<'_, T>);
+
+macro_rules! impl_memcpy {
+    ($from:path, $to:path) => {
+        impl<T: Scalar> Memcpy<$from> for $to {
+            fn copy_from(&mut self, src: &$from) {
+                self.as_mut_slice().copy_from(src.as_slice());
             }
-            .expect("memcpy from Device to Page-locked memory failed"),
-            // A -> H
-            MemoryType::Array => unreachable!("Array cannot be casted to a slice"),
         }
-    }
+    };
 }
 
-impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for [T] {
-    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match self.memory_type() {
-            // H -> H
-            MemoryType::Host | MemoryType::PageLocked => self.copy_from(src),
-            // H -> D
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    src,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from registered host memory to Device failed"),
-            // H -> A
-            MemoryType::Array => {
-                unimplemented!("Dynamical cast from slice to CUDA Array is not supported yet")
-            }
-        }
-    }
-}
-
-impl<T: Scalar> Memcpy<[T]> for RegisteredMemory<'_, T> {
-    fn copy_from(&mut self, src: &[T]) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match src.memory_type() {
-            // H -> H
-            MemoryType::Host | MemoryType::PageLocked => self.copy_from_slice(src),
-            // D -> H
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    self,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Device to registered host memory failed"),
-            // A -> H
-            MemoryType::Array => unreachable!("Array cannot be casted to a slice"),
-        }
-    }
-}
-
-impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
-    fn copy_from(&mut self, src: &DeviceMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match self.memory_type() {
-            // D -> H
-            MemoryType::Host | MemoryType::PageLocked => unsafe {
-                contexted_call!(
-                    src,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Device to Host memory failed"),
-            // D -> D
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    src,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Page-locked memory to Device failed"),
-            // D -> A
-            MemoryType::Array => {
-                unimplemented!("Dynamical cast from slice to CUDA Array is not supported yet")
-            }
-        }
-    }
-}
-
-impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
-    fn copy_from(&mut self, src: &[T]) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        match src.memory_type() {
-            // H -> D
-            MemoryType::Host | MemoryType::PageLocked => unsafe {
-                contexted_call!(
-                    self,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Page-locked memory to Device failed"),
-            // D -> D
-            MemoryType::Device => unsafe {
-                contexted_call!(
-                    self,
-                    cuMemcpy,
-                    self.head_addr_mut() as CUdeviceptr,
-                    src.as_ptr() as CUdeviceptr,
-                    self.num_elem() * T::size_of()
-                )
-            }
-            .expect("memcpy from Device to Page-locked memory failed"),
-            // A -> D
-            MemoryType::Array => unreachable!("Array cannot be casted to a slice"),
-        }
-    }
-}
+impl_memcpy!(DeviceMemory::<T>, DeviceMemory::<T>);
+impl_memcpy!(DeviceMemory::<T>, RegisteredMemory::<'_, T>);
+impl_memcpy!(DeviceMemory::<T>, PageLockedMemory::<T>);
+impl_memcpy!(PageLockedMemory::<T>, DeviceMemory::<T>);
+impl_memcpy!(PageLockedMemory::<T>, RegisteredMemory::<'_, T>);
+impl_memcpy!(PageLockedMemory::<T>, PageLockedMemory::<T>);
+impl_memcpy!(RegisteredMemory::<'_, T>, DeviceMemory::<T>);
+impl_memcpy!(RegisteredMemory::<'_, T>, RegisteredMemory::<'_, T>);
+impl_memcpy!(RegisteredMemory::<'_, T>, PageLockedMemory::<T>);
 
 impl<T: Scalar> Continuous for [T] {
     fn as_slice(&self) -> &[Self::Elem] {

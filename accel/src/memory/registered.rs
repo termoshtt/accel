@@ -78,39 +78,6 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
     }
 }
 
-impl<T: Scalar> Memcpy<Self> for RegisteredMemory<'_, T> {
-    fn copy_from(&mut self, src: &Self) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        self.copy_from_slice(src)
-    }
-}
-
-impl<T: Scalar> Memcpy<PageLockedMemory<T>> for RegisteredMemory<'_, T> {
-    fn copy_from(&mut self, src: &PageLockedMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        self.copy_from_slice(src)
-    }
-}
-
-impl<T: Scalar> Memcpy<DeviceMemory<T>> for RegisteredMemory<'_, T> {
-    fn copy_from(&mut self, src: &DeviceMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self,
-                cuMemcpy,
-                self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as CUdeviceptr,
-                self.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Device to registered host memory failed")
-    }
-}
-
 impl<T: Scalar> Memset for RegisteredMemory<'_, T> {
     fn set(&mut self, value: Self::Elem) {
         self.iter_mut().for_each(|v| *v = value);

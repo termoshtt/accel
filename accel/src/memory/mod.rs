@@ -182,6 +182,7 @@ pub trait Memory {
 ///
 /// ```
 /// # use accel::*;
+/// # use std::ops::DerefMut;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);

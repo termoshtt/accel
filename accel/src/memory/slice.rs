@@ -58,6 +58,27 @@ impl<T: Scalar> Memory for [T] {
     }
 }
 
+impl<T: Scalar> Memcpy<[T]> for [T] {
+    fn copy_from(&mut self, src: &[T]) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        if let Some(ctx) = get_context(self.head_addr()).or_else(|| get_context(src.head_addr())) {
+            unsafe {
+                contexted_call!(
+                    &ctx,
+                    cuMemcpy,
+                    self.head_addr_mut() as CUdeviceptr,
+                    src.as_ptr() as CUdeviceptr,
+                    self.num_elem() * T::size_of()
+                )
+            }
+            .unwrap()
+        } else {
+            self.copy_from_slice(src);
+        }
+    }
+}
+
 impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
     fn copy_from(&mut self, src: &PageLockedMemory<T>) {
         assert_ne!(self.head_addr(), src.head_addr());

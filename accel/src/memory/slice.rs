@@ -49,7 +49,7 @@ impl<T: Scalar> Memcpy<PageLockedMemory<T>> for [T] {
             // H -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &src.get_context(),
+                    src,
                     cuMemcpyHtoD_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as *mut c_void,
@@ -75,7 +75,7 @@ impl<T: Scalar> Memcpy<[T]> for PageLockedMemory<T> {
             // D -> H
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemcpyDtoH_v2,
                     self.head_addr_mut() as *mut c_void,
                     src.as_ptr() as CUdeviceptr,
@@ -99,7 +99,7 @@ impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for [T] {
             // H -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &src.get_context(),
+                    src,
                     cuMemcpyHtoD_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as *mut c_void,
@@ -125,7 +125,7 @@ impl<T: Scalar> Memcpy<[T]> for RegisteredMemory<'_, T> {
             // D -> H
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemcpyDtoH_v2,
                     self.head_addr_mut() as *mut c_void,
                     src.as_ptr() as CUdeviceptr,
@@ -147,7 +147,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
             // D -> H
             MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
-                    &src.get_context(),
+                    src,
                     cuMemcpyDtoH_v2,
                     self.head_addr_mut() as *mut c_void,
                     src.as_ptr() as CUdeviceptr,
@@ -158,7 +158,7 @@ impl<T: Scalar> Memcpy<DeviceMemory<T>> for [T] {
             // D -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &src.get_context(),
+                    src,
                     cuMemcpyDtoD_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,
@@ -182,7 +182,7 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
             // H -> D
             MemoryType::Host | MemoryType::PageLocked => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemcpyHtoD_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as *mut c_void,
@@ -193,7 +193,7 @@ impl<T: Scalar> Memcpy<[T]> for DeviceMemory<T> {
             // D -> D
             MemoryType::Device => unsafe {
                 contexted_call!(
-                    &self.get_context(),
+                    self,
                     cuMemcpyDtoD_v2,
                     self.head_addr_mut() as CUdeviceptr,
                     src.as_ptr() as CUdeviceptr,

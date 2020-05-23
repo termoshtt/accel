@@ -62,19 +62,13 @@ macro_rules! ffi_new {
 #[macro_export]
 macro_rules! contexted_call {
     ($ctx:expr, $ffi:path $(,$args:expr)*) => {
-        {
-            let _g = $crate::Contexted::guard_context($ctx);
-            $crate::ffi_call!($ffi $(,$args)*)
-        }
+        $crate::Contexted::guard($ctx).and_then(|_g| { $crate::ffi_call!($ffi $(,$args)*) })
     };
 }
 
 #[macro_export]
 macro_rules! contexted_new {
     ($ctx:expr, $ffi:path $(,$args:expr)*) => {
-        {
-            let _g = $crate::Contexted::guard_context($ctx);
-            $crate::ffi_new!($ffi $(,$args)*)
-        }
+        $crate::Contexted::guard($ctx).and_then(|_g| { $crate::ffi_new!($ffi $(,$args)*) })
     };
 }

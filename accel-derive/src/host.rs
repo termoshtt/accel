@@ -24,7 +24,7 @@ fn impl_submodule(ptx_str: &str, func: &syn::ItemFn) -> TokenStream {
             pub struct Module(::accel::Module);
 
             impl Module {
-                pub fn new(ctx: ::std::sync::Arc<::accel::Context>) -> ::accel::error::Result<Self> {
+                pub fn new(ctx: &::accel::Context) -> ::accel::error::Result<Self> {
                     Ok(Module(::accel::Module::from_str(ctx, PTX_STR)?))
                 }
             }
@@ -46,7 +46,7 @@ fn caller(func: &syn::ItemFn) -> TokenStream {
     let input_types = get_input_types(func);
     quote! {
         #vis #fn_token #ident<'arg, G: Into<::accel::Grid>, B: Into<::accel::Block>>(
-            ctx: ::std::sync::Arc<::accel::Context>,
+            ctx: &::accel::Context,
             grid: G,
             block: B,
             args: &(#(&'arg #input_types,)*)

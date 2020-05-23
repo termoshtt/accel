@@ -1,11 +1,10 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
-use std::sync::Arc;
 
 /// Handler for non-blocking CUDA Stream
 pub struct Stream {
     pub(crate) stream: CUstream,
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Stream {
@@ -17,23 +16,34 @@ impl Drop for Stream {
 }
 
 impl Contexted for Stream {
-    fn get_context(&self) -> Arc<Context> {
-        self.ctx.clone()
+    fn sync(&self) -> Result<()> {
+        self.ctx.sync()
+    }
+
+    fn version(&self) -> Result<u32> {
+        self.ctx.version()
+    }
+
+    fn guard(&self) -> Result<ContextGuard> {
+        self.ctx.guard()
     }
 }
 
 impl Stream {
     /// Create a new non-blocking CUDA stream on the current context
-    pub fn new(ctx: Arc<Context>) -> Self {
+    pub fn new(ctx: &Context) -> Self {
         let stream = unsafe {
             contexted_new!(
-                &ctx,
+                ctx,
                 cuStreamCreate,
                 CUstream_flags::CU_STREAM_NON_BLOCKING as u32
             )
         }
         .expect("Failed to create CUDA stream");
-        Stream { ctx, stream }
+        Stream {
+            ctx: ctx.clone(),
+            stream,
+        }
     }
 
     /// Check all tasks in this stream have been completed
@@ -58,9 +68,10 @@ impl Stream {
     }
 }
 
+#[derive(Contexted)]
 pub struct Event {
     event: CUevent,
-    ctx: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Event {
@@ -71,14 +82,8 @@ impl Drop for Event {
     }
 }
 
-impl Contexted for Event {
-    fn get_context(&self) -> Arc<Context> {
-        self.ctx.clone()
-    }
-}
-
 impl Event {
-    pub fn new(ctx: Arc<Context>) -> Self {
+    pub fn new(ctx: Context) -> Self {
         let event = unsafe {
             contexted_new!(
                 &ctx,
@@ -119,7 +124,7 @@ mod tests {
     fn new() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _st = Stream::new(ctx);
+        let _st = Stream::new(&ctx);
         Ok(())
     }
 
@@ -127,7 +132,7 @@ mod tests {
     fn trivial_sync() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let mut stream = Stream::new(ctx.clone());
+        let mut stream = Stream::new(&ctx);
         let mut event = Event::new(ctx);
         event.record(&mut stream);
         // nothing to be waited

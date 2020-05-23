@@ -23,6 +23,7 @@
 //! ```
 
 mod builder;
+mod contexted;
 mod host;
 mod parser;
 
@@ -33,4 +34,9 @@ pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
     let func: syn::ItemFn = syn::parse(func).expect("Not a function");
     let ptx_str = builder::compile_tokens(&func).expect("Failed to compile to PTX");
     host::func2caller(&ptx_str, &func).into()
+}
+
+#[proc_macro_derive(Contexted)]
+pub fn contexted(input: TokenStream) -> TokenStream {
+    contexted::contexted(syn::parse(input).unwrap()).into()
 }

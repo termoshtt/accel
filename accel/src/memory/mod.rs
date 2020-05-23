@@ -43,7 +43,7 @@ pub use scalar::*;
 use crate::*;
 use cuda::*;
 use num_traits::Zero;
-use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
+use std::{ffi::c_void, mem::MaybeUninit};
 
 /// Memory type
 ///
@@ -55,7 +55,7 @@ use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
 /// # use accel::{*, memory::*};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mem = DeviceMemory::<i32>::zeros(ctx, 12);
+/// let mem = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::Device);
 /// ```
@@ -66,7 +66,7 @@ use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
 /// # use accel::{*, memory::*};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mem = PageLockedMemory::<i32>::zeros(ctx, 12);
+/// let mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
 /// ```
@@ -79,7 +79,7 @@ use std::{ffi::c_void, mem::MaybeUninit, sync::Arc};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut a = vec![0_i32; 12];
-/// let mem = RegisteredMemory::<i32>::new(ctx, &mut a);
+/// let mem = RegisteredMemory::<i32>::new(&ctx, &mut a);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
 /// ```
@@ -149,8 +149,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
-/// let src = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -160,8 +160,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
-/// let src = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = PageLockedMemory::<i32>::zeros(&ctx, 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -171,8 +171,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
-/// let src = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -182,7 +182,7 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// let src = vec![0_i32; 12];
 /// dest.copy_from(src.as_slice()); // requires explicit cast to slice
 /// ```
@@ -194,7 +194,7 @@ pub trait Memory {
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut dest = vec![0_i32; 12];
-/// let src = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
+/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src);
 /// ```
 ///
@@ -207,8 +207,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i64>::zeros(ctx.clone(), 12);
-/// let src = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = DeviceMemory::<i64>::zeros(&ctx, 12);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src); // compile fail
 /// ```
 ///
@@ -218,8 +218,8 @@ pub trait Memory {
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(ctx.clone(), 24);
-/// let src = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 24);
+/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// dest.copy_from(&src); // will panic
 /// ```
 ///
@@ -249,7 +249,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// mem.set(1234);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1234);
@@ -263,7 +263,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<f32>::zeros(ctx.clone(), 12);
+/// let mut mem = DeviceMemory::<f32>::zeros(&ctx, 12);
 /// mem.set(1.0);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1.0);
@@ -276,7 +276,7 @@ where
 /// # use accel::*;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mut mem = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+/// let mut mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// mem.set(1234);
 /// for &val in mem.as_slice() {
 ///   assert_eq!(val, 1234);
@@ -300,14 +300,14 @@ pub trait Allocatable: Contexted + Memset + Sized {
     /// Panic
     /// ------
     /// - if shape is zero
-    unsafe fn uninitialized(ctx: Arc<Context>, shape: Self::Shape) -> Self;
+    unsafe fn uninitialized(ctx: &Context, shape: Self::Shape) -> Self;
 
     /// uniformly initialized
     ///
     /// Panic
     /// ------
     /// - if shape is zero
-    fn from_elem(ctx: Arc<Context>, shape: Self::Shape, elem: Self::Elem) -> Self {
+    fn from_elem(ctx: &Context, shape: Self::Shape, elem: Self::Elem) -> Self {
         let mut mem = unsafe { Self::uninitialized(ctx, shape) };
         mem.set(elem);
         mem
@@ -318,7 +318,7 @@ pub trait Allocatable: Contexted + Memset + Sized {
     /// Panic
     /// ------
     /// - if shape is zero
-    fn zeros(ctx: Arc<Context>, shape: Self::Shape) -> Self {
+    fn zeros(ctx: &Context, shape: Self::Shape) -> Self {
         Self::from_elem(ctx, shape, <Self::Elem as Zero>::zero())
     }
 }

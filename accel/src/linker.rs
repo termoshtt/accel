@@ -10,7 +10,6 @@ use std::{
     os::raw::c_void,
     path::Path,
     ptr::null_mut,
-    sync::Arc,
 };
 
 // TODO
@@ -178,10 +177,11 @@ impl JITConfig {
 }
 
 /// Consuming builder for cubin from PTX and cubins
+#[derive(accel_derive::Contexted)]
 pub struct Linker {
     state: CUlinkState,
     cfg: JITConfig,
-    context: Arc<Context>,
+    ctx: Context,
 }
 
 impl Drop for Linker {
@@ -192,20 +192,14 @@ impl Drop for Linker {
     }
 }
 
-impl Contexted for Linker {
-    fn get_context(&self) -> Arc<Context> {
-        self.context.clone()
-    }
-}
-
 impl Linker {
     /// Create a new Linker
-    pub fn create(context: Arc<Context>, mut cfg: JITConfig) -> Result<Self> {
+    pub fn create(ctx: &Context, mut cfg: JITConfig) -> Result<Self> {
         let (n, mut opt, mut opts) = cfg.pack();
         let state = unsafe {
             let mut state = MaybeUninit::uninit();
             contexted_call!(
-                &context,
+                ctx,
                 cuLinkCreate_v2,
                 n,
                 opt.as_mut_ptr(),
@@ -217,7 +211,7 @@ impl Linker {
         Ok(Linker {
             state,
             cfg,
-            context,
+            ctx: ctx.clone(),
         })
     }
 
@@ -292,8 +286,8 @@ impl Linker {
 }
 
 /// Link PTX/cubin into a module
-pub fn link(ctx: Arc<Context>, data: &[Instruction], opt: JITConfig) -> Result<Module> {
-    let mut l = Linker::create(ctx.clone(), opt)?;
+pub fn link(ctx: &Context, data: &[Instruction], opt: JITConfig) -> Result<Module> {
+    let mut l = Linker::create(&ctx, opt)?;
     for d in data {
         l = l.add(d)?;
     }
@@ -309,7 +303,7 @@ mod tests {
     fn create() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let _linker = Linker::create(ctx, JITConfig::default())?;
+        let _linker = Linker::create(&ctx, JITConfig::default())?;
         Ok(())
     }
 
@@ -317,7 +311,7 @@ mod tests {
     fn ptx_file() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let linker = Linker::create(ctx, JITConfig::default())?;
+        let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         linker.add(&data)?;
         Ok(())
@@ -330,7 +324,7 @@ mod tests {
 
         let data_add = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
         let data_sub = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
-        let _module = Linker::create(ctx, JITConfig::default())?
+        let _module = Linker::create(&ctx, JITConfig::default())?
             .add(&data_add)?
             .add(&data_sub)?
             .complete()?;
@@ -342,7 +336,7 @@ mod tests {
     fn cubin_file() -> Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let linker = Linker::create(ctx, JITConfig::default())?;
+        let linker = Linker::create(&ctx, JITConfig::default())?;
         let data = Instruction::cubin_file(Path::new("tests/data/add.cubin"))?;
         linker.add(&data)?;
         Ok(())

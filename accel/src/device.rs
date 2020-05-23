@@ -7,6 +7,8 @@ use crate::{error::*, *};
 use cuda::*;
 use std::sync::{Arc, Once};
 
+pub use accel_derive::Contexted;
+
 /// Handler for device and its primary context
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Device {

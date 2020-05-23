@@ -11,6 +11,7 @@ use std::{
 use cuda::CUmemAttach_flags_enum as AttachFlag;
 
 /// Memory allocated on the device.
+#[derive(Contexted)]
 pub struct DeviceMemory<T> {
     ptr: CUdeviceptr,
     size: usize,
@@ -159,20 +160,6 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
 }
 
 impl<T: Scalar> Managed for DeviceMemory<T> {}
-
-impl<T> Contexted for DeviceMemory<T> {
-    fn sync(&self) -> Result<()> {
-        self.context.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.context.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.context.guard()
-    }
-}
 
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;

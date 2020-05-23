@@ -68,6 +68,7 @@ impl Stream {
     }
 }
 
+#[derive(Contexted)]
 pub struct Event {
     event: CUevent,
     ctx: Context,
@@ -78,20 +79,6 @@ impl Drop for Event {
         if let Err(e) = unsafe { contexted_call!(self, cuEventDestroy_v2, self.event) } {
             log::error!("Failed to delete CUDA event: {:?}", e);
         }
-    }
-}
-
-impl Contexted for Event {
-    fn sync(&self) -> Result<()> {
-        self.ctx.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.ctx.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.ctx.guard()
     }
 }
 

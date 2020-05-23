@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
-#[derive(Debug)]
+#[derive(Debug, Contexted)]
 pub struct Array<T, Dim> {
     array: CUarray,
     dim: Dim,
@@ -197,20 +197,6 @@ impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
         // FIXME CUDA does not have memcpy for array. This is easy but too expensive alternative way
         let src = PageLockedMemory::from_elem(&self.context, self.dim.len(), value);
         self.copy_from(&src);
-    }
-}
-
-impl<T, Dim> Contexted for Array<T, Dim> {
-    fn sync(&self) -> Result<()> {
-        self.context.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.context.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.context.guard()
     }
 }
 

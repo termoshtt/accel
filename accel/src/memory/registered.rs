@@ -6,6 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+#[derive(Contexted)]
 pub struct RegisteredMemory<'a, T> {
     ctx: Context,
     mem: &'a mut [T],
@@ -74,20 +75,6 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
 
     fn memory_type(&self) -> MemoryType {
         MemoryType::Host
-    }
-}
-
-impl<T> Contexted for RegisteredMemory<'_, T> {
-    fn sync(&self) -> Result<()> {
-        self.ctx.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.ctx.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.ctx.guard()
     }
 }
 

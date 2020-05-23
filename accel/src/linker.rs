@@ -177,6 +177,7 @@ impl JITConfig {
 }
 
 /// Consuming builder for cubin from PTX and cubins
+#[derive(accel_derive::Contexted)]
 pub struct Linker {
     state: CUlinkState,
     cfg: JITConfig,
@@ -188,20 +189,6 @@ impl Drop for Linker {
         if let Err(e) = unsafe { contexted_call!(self, cuLinkDestroy, self.state) } {
             log::error!("Failed to release Linker: {:?}", e)
         }
-    }
-}
-
-impl Contexted for Linker {
-    fn sync(&self) -> Result<()> {
-        self.ctx.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.ctx.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.ctx.guard()
     }
 }
 

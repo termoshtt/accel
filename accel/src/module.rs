@@ -532,7 +532,7 @@ pub trait Launchable<'arg> {
 }
 
 /// OOP-like wrapper of `cuModule*` APIs
-#[derive(Debug)]
+#[derive(Debug, Contexted)]
 pub struct Module {
     module: CUmodule,
     context: Context,
@@ -543,20 +543,6 @@ impl Drop for Module {
         if let Err(e) = unsafe { contexted_call!(&self.context, cuModuleUnload, self.module) } {
             log::error!("Failed to unload module: {:?}", e);
         }
-    }
-}
-
-impl Contexted for Module {
-    fn sync(&self) -> Result<()> {
-        self.context.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.context.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.context.guard()
     }
 }
 

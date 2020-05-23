@@ -14,6 +14,7 @@ use std::ops::{Deref, DerefMut};
 /// See also [cuMemAllocHost].
 ///
 /// [cuMemAllocHost]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__MEM.html#group__CUDA__MEM_1gdd8311286d2c2691605362c689bc64e0
+#[derive(Contexted)]
 pub struct PageLockedMemory<T> {
     ptr: *mut T,
     size: usize,
@@ -38,20 +39,6 @@ impl<T> Deref for PageLockedMemory<T> {
 impl<T> DerefMut for PageLockedMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr, self.size) }
-    }
-}
-
-impl<T> Contexted for PageLockedMemory<T> {
-    fn sync(&self) -> Result<()> {
-        self.context.sync()
-    }
-
-    fn version(&self) -> Result<u32> {
-        self.context.version()
-    }
-
-    fn guard(&self) -> Result<ContextGuard> {
-        self.context.guard()
     }
 }
 

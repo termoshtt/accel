@@ -55,7 +55,7 @@ use std::{ffi::c_void, mem::MaybeUninit};
 /// # use accel::{*, memory::*};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mem = DeviceMemory::<i32>::zeros(ctx, 12);
+/// let mem = DeviceMemory::<i32>::zeros(&ctx, 12);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::Device);
 /// ```
@@ -66,7 +66,7 @@ use std::{ffi::c_void, mem::MaybeUninit};
 /// # use accel::{*, memory::*};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
-/// let mem = PageLockedMemory::<i32>::zeros(ctx, 12);
+/// let mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
 /// ```
@@ -79,7 +79,7 @@ use std::{ffi::c_void, mem::MaybeUninit};
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut a = vec![0_i32; 12];
-/// let mem = RegisteredMemory::<i32>::new(ctx, &mut a);
+/// let mem = RegisteredMemory::<i32>::new(&ctx, &mut a);
 /// let sl = mem.as_slice();
 /// assert_eq!(sl.memory_type(), MemoryType::PageLocked);
 /// ```

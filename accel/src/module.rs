@@ -494,7 +494,7 @@ pub trait Launchable<'arg> {
     ///
     /// let device = Device::nth(0)?;
     /// let ctx = device.create_context();
-    /// let module = f::Module::new(ctx)?;
+    /// let module = f::Module::new(&ctx)?;
     /// let a = 12;
     /// module.launch((1,) /* grid */, (4,) /* block */, &(&a,))?; // wait until kernel execution ends
     /// # Ok::<(), ::accel::error::AccelError>(())

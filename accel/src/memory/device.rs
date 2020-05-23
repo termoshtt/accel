@@ -159,8 +159,6 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
     }
 }
 
-impl<T: Scalar> Managed for DeviceMemory<T> {}
-
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;
     unsafe fn uninitialized(context: &Context, size: usize) -> Self {

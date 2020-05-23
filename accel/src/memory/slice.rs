@@ -33,8 +33,10 @@ fn memory_type<T>(ptr: *const T) -> MemoryType {
     }
 }
 
-fn get_context<T>(ptr: *const T) -> Option<CUcontext> {
-    get_attr::<_, CUcontext>(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_CONTEXT).ok()
+fn get_context<T>(ptr: *const T) -> Option<ContextRef> {
+    let ptr =
+        get_attr::<_, CUcontext>(ptr, CUpointer_attribute::CU_POINTER_ATTRIBUTE_CONTEXT).ok()?;
+    Some(ContextRef::from_ptr(ptr))
 }
 
 impl<T: Scalar> Memory for [T] {
@@ -260,7 +262,7 @@ mod tests {
     fn restore_context() -> error::Result<()> {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
-        let a = PageLockedMemory::<i32>::zeros(ctx.clone(), 12);
+        let a = PageLockedMemory::<i32>::zeros(&ctx, 12);
         let ctx_ptr = get_context(a.head_addr()).unwrap();
         assert_eq!(*ctx, ctx_ptr);
         Ok(())

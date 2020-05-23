@@ -277,6 +277,6 @@ mod tests {
         let ctx = device.create_context();
         let ctx_ref = ctx.get_ref();
         drop(ctx);
-        let _version = ctx_ref.version(); // ctx has been expired
+        let _version = ctx_ref.version().unwrap(); // ctx has been expired
     }
 }

@@ -52,105 +52,13 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     }
 }
 
-impl<T: Scalar, Dim: Dimension> Memcpy<PageLockedMemory<T>> for Array<T, Dim> {
-    fn copy_from(&mut self, src: &PageLockedMemory<T>) {
+impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
+    fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let dim = self.dim;
         let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            srcHost: src.as_ptr() as *mut _,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            dstArray: self.array,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from page-locked host memory to Array failed");
-    }
-}
-
-impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &Array<T, Dim>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        let dim = src.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            srcArray: src.array,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            dstHost: self.as_mut_ptr() as *mut _,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to page-locked host memory failed");
-    }
-}
-
-impl<T: Scalar, Dim: Dimension> Memcpy<RegisteredMemory<'_, T>> for Array<T, Dim> {
-    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        let dim = self.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            srcHost: src.as_ptr() as *mut _,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            dstArray: self.array,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from registered host memory to Array failed");
-    }
-}
-
-impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for RegisteredMemory<'_, T> {
-    fn copy_from(&mut self, src: &Array<T, Dim>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        let dim = src.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            srcArray: src.array,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_HOST,
-            dstHost: self.as_mut_ptr() as *mut _,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to registered host memory failed");
-    }
-}
-
-impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
-    fn copy_from(&mut self, src: &DeviceMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        let dim = self.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
+            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
             srcDevice: src.as_ptr() as CUdeviceptr,
 
             dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
@@ -162,12 +70,11 @@ impl<T: Scalar, Dim: Dimension> Memcpy<DeviceMemory<T>> for Array<T, Dim> {
 
             ..Default::default()
         };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to Device memory failed");
+        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }.expect("memcpy into array failed");
     }
 }
 
-impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for DeviceMemory<T> {
+impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
     fn copy_from(&mut self, src: &Array<T, Dim>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
@@ -176,10 +83,8 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for DeviceMemory<T> {
             srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
             srcArray: src.array,
 
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_DEVICE,
+            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
             dstDevice: self.as_mut_ptr() as CUdeviceptr,
-            dstPitch: dim.width() * T::size_of(),
-            dstHeight: dim.height(),
 
             WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
             Height: dim.height(),
@@ -187,10 +92,28 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for DeviceMemory<T> {
 
             ..Default::default()
         };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }
-            .expect("memcpy from Array to Device memory failed");
+        unsafe { contexted_call!(src, cuMemcpy3D_v2, &param) }.expect("memcpy from array failed");
     }
 }
+
+macro_rules! impl_memcpy_array {
+    ($t:path) => {
+        impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for $t {
+            fn copy_from(&mut self, src: &Array<T, Dim>) {
+                self.as_mut_slice().copy_from(src);
+            }
+        }
+        impl<T: Scalar, Dim: Dimension> Memcpy<$t> for Array<T, Dim> {
+            fn copy_from(&mut self, src: &$t) {
+                self.copy_from(src.as_slice());
+            }
+        }
+    };
+}
+
+impl_memcpy_array!(DeviceMemory::<T>);
+impl_memcpy_array!(PageLockedMemory::<T>);
+impl_memcpy_array!(RegisteredMemory::<'_, T>);
 
 impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
     fn set(&mut self, value: Self::Elem) {

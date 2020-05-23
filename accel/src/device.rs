@@ -187,6 +187,13 @@ pub struct ContextRef {
     ptr: CUcontext,
 }
 
+impl ContextRef {
+    pub(crate) fn from_ptr(ptr: CUcontext) -> Self {
+        assert!(!ptr.is_null());
+        ContextRef { ptr }
+    }
+}
+
 unsafe impl Send for ContextRef {}
 unsafe impl Sync for ContextRef {}
 

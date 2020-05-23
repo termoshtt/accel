@@ -9,19 +9,35 @@
 //! Memory Types
 //! ------------
 //!
-//! |name                      | where exists | From Host | From Device | As slice | Description                                                            |
-//! |:-------------------------|:------------:|:---------:|:-----------:|:--------:|:-----------------------------------------------------------------------|
-//! | (usual) Host memory      | Host         | ✓         |  -          |  ✓       | allocated by usual manner, e.g. `vec![0; n]`                           |
-//! | [Registered Host memory] | Host         | ✓         |  ✓          |  ✓       | A host memory registered into CUDA memory management system            |
-//! | [Page-locked Host memory]| Host         | ✓         |  ✓          |  ✓       | OS memory paging is disabled for accelerating memory transfer          |
-//! | [Device memory]          | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
-//! | [Array]                  | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
+//! |name                 | where exists | From Host | From Device | As slice | Description                                                            |
+//! |:--------------------|:------------:|:---------:|:-----------:|:--------:|:-----------------------------------------------------------------------|
+//! | (usual) Host memory | Host         | ✓         |  -          |  ✓       | allocated by usual manner, e.g. `vec![0; n]`                           |
+//! | [RegisteredMemory]  | Host         | ✓         |  ✓          |  ✓       | A host memory registered into CUDA memory management system            |
+//! | [PageLockedMemory]  | Host         | ✓         |  ✓          |  ✓       | OS memory paging is disabled for accelerating memory transfer          |
+//! | [DeviceMemory]      | Device       | ✓         |  ✓          |  ✓       | allocated on device as a single span                                   |
+//! | [Array]             | Device       | ✓         |  ✓          |  -       | properly aligned memory on device for using Texture and Surface memory |
 //!
-//! [Registered Host memory]:  ./struct.RegisteredMemory.html
-//! [Page-locked Host memory]: ./struct.PageLockedMemory.html
-//! [Device memory]:           ./struct.DeviceMemory.html
-//! [Array]:                   ./struct.Array.html
+//! Traits
+//! -------
 //!
+//! |traits       |`[T]`|[RegisteredMemory]|[PageLockedMemory]|[DeviceMemory]|[Array]| Description                                |
+//! |:------------|:---:|:----------------:|:----------------:|:------------:|:-----:|:-------------------------------------------|
+//! |[Memory]     | ✓   | ✓                | ✓                | ✓            | ✓     | Has Unified address and element size       |
+//! |[Memset]     | -   | ✓                | ✓                | ✓            | ✓     | Set by a value                             |
+//! |[Contexted]  | -   | ✓                | ✓                | ✓            | ✓     | with CUDA Context                          |
+//! |[Continuous] | ✓   | ✓                | ✓                | ✓            | -     | Can be treated as a Rust slice             |
+//! |[Allocatable]| -   | -                | ✓                | ✓            | ✓     | Newly allocatable with its shape and value |
+//!
+//! [RegisteredMemory]: ./struct.RegisteredMemory.html
+//! [PageLockedMemory]: ./struct.PageLockedMemory.html
+//! [DeviceMemory]: ./struct.DeviceMemory.html
+//! [Array]: ./struct.Array.html
+//!
+//! [Memory]: ./trait.Memory.html
+//! [Memset]: ./trait.Memset.html
+//! [Contexted]: ../device/trait.Contexted.html
+//! [Continuous]: ./trait.Continuous.html
+//! [Allocatable]: ./trait.Allocatable.html
 
 mod array;
 mod device;
@@ -106,20 +122,6 @@ pub enum MemoryType {
     Array,
 }
 
-/// Typed wrapper of cuPointerGetAttribute
-fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
-    let mut data = MaybeUninit::<Attr>::uninit();
-    unsafe {
-        ffi_call!(
-            cuPointerGetAttribute,
-            data.as_mut_ptr() as *mut c_void,
-            attr,
-            ptr as CUdeviceptr
-        )?;
-        Ok(data.assume_init())
-    }
-}
-
 /// Has unique head address and allocated size.
 pub trait Memory {
     /// Scalar type of each element
@@ -180,6 +182,7 @@ pub trait Memory {
 ///
 /// ```
 /// # use accel::*;
+/// # use std::ops::DerefMut;
 /// # let device = Device::nth(0).unwrap();
 /// # let ctx = device.create_context();
 /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
@@ -327,15 +330,4 @@ pub trait Allocatable: Contexted + Memset + Sized {
 pub trait Continuous: Memory {
     fn as_slice(&self) -> &[Self::Elem];
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
-}
-
-/// Memory which is managed under the CUDA unified memory management systems
-pub trait Managed: Memory {
-    fn buffer_id(&self) -> u64 {
-        get_attr(
-            self.head_addr(),
-            CUpointer_attribute::CU_POINTER_ATTRIBUTE_BUFFER_ID,
-        )
-        .expect("Not managed by CUDA")
-    }
 }

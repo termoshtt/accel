@@ -61,39 +61,6 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
     }
 }
 
-impl<T: Scalar> Memcpy<Self> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &Self) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        self.copy_from_slice(src)
-    }
-}
-
-impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        self.copy_from_slice(src)
-    }
-}
-
-impl<T: Scalar> Memcpy<DeviceMemory<T>> for PageLockedMemory<T> {
-    fn copy_from(&mut self, src: &DeviceMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self,
-                cuMemcpyDtoH_v2,
-                self.as_mut_ptr() as *mut _,
-                src.as_ptr() as CUdeviceptr,
-                self.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Device to Page-locked memory failed")
-    }
-}
-
 impl<T: Scalar> Memset for PageLockedMemory<T> {
     fn set(&mut self, value: Self::Elem) {
         self.iter_mut().for_each(|v| *v = value);
@@ -108,8 +75,6 @@ impl<T: Scalar> Continuous for PageLockedMemory<T> {
         self
     }
 }
-
-impl<T: Scalar> Managed for PageLockedMemory<T> {}
 
 impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     type Shape = usize;

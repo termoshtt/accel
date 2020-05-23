@@ -59,57 +59,6 @@ impl<T: Scalar> Memory for DeviceMemory<T> {
     }
 }
 
-impl<T: Scalar> Memcpy<Self> for DeviceMemory<T> {
-    fn copy_from(&mut self, src: &Self) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self,
-                cuMemcpyDtoD_v2,
-                self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as CUdeviceptr,
-                self.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy between Device memories failed")
-    }
-}
-
-impl<T: Scalar> Memcpy<PageLockedMemory<T>> for DeviceMemory<T> {
-    fn copy_from(&mut self, src: &PageLockedMemory<T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self,
-                cuMemcpyHtoD_v2,
-                self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as *mut _,
-                self.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from Page-locked host memory to Device memory failed")
-    }
-}
-
-impl<T: Scalar> Memcpy<RegisteredMemory<'_, T>> for DeviceMemory<T> {
-    fn copy_from(&mut self, src: &RegisteredMemory<'_, T>) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        unsafe {
-            contexted_call!(
-                self,
-                cuMemcpyHtoD_v2,
-                self.as_mut_ptr() as CUdeviceptr,
-                src.as_ptr() as *mut _,
-                self.num_elem() * T::size_of()
-            )
-        }
-        .expect("memcpy from registered host memory to Device memory failed")
-    }
-}
-
 impl<T: Scalar> Memset for DeviceMemory<T> {
     fn set(&mut self, value: T) {
         match T::size_of() {
@@ -158,8 +107,6 @@ impl<T: Scalar> Continuous for DeviceMemory<T> {
         self
     }
 }
-
-impl<T: Scalar> Managed for DeviceMemory<T> {}
 
 impl<T: Scalar> Allocatable for DeviceMemory<T> {
     type Shape = usize;

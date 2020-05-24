@@ -1,75 +1,24 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::{
-        mpsc::{channel, Receiver},
-        Arc, Mutex,
-    },
-    task::{self, Poll, Waker},
-};
 
-#[derive(Debug)]
-pub struct ThreadFuture {
-    recv: Receiver<()>,
-    waker: Arc<Mutex<Option<Waker>>>,
-}
-
-impl ThreadFuture {
-    fn memcpy<'a, T>(
-        ctx: &Context,
-        from: &'a [T],
-        to: &'a mut [T],
-    ) -> Pin<Box<dyn Future<Output = ()> + 'a>> {
-        assert_eq!(from.len(), to.len());
-
-        let stream = Stream::new(ctx);
-        let byte_count = from.len() * std::mem::size_of::<T>();
-        unsafe {
-            contexted_call!(
-                ctx,
-                cuMemcpyAsync,
-                from.as_ptr() as CUdeviceptr,
-                to.as_mut_ptr() as CUdeviceptr,
-                byte_count,
-                stream.stream
-            )
-        }
-        .unwrap();
-
-        // spawn a thread for waiting memcpy
-        let (send, recv) = channel();
-        let waker = Arc::new(Mutex::new(None::<Waker>));
-        let w = waker.clone();
-        std::thread::spawn(move || {
-            stream.sync().unwrap();
-            send.send(()).unwrap();
-            if let Some(waker) = &*w.lock().unwrap() {
-                waker.wake_by_ref()
-            }
-        });
-        Box::pin(ThreadFuture { recv, waker })
-    }
-}
-
-pub fn memcpy_async<'a, T>(
-    ctx: &Context,
-    from: &'a [T],
-    to: &'a mut [T],
-) -> Pin<Box<dyn Future<Output = ()> + 'a>> {
-    ThreadFuture::memcpy(ctx, from, to)
-}
-
-impl Future for ThreadFuture {
-    type Output = ();
-    fn poll(mut self: Pin<&mut Self>, cx: &mut task::Context) -> Poll<Self::Output> {
-        *self.waker.lock().unwrap() = Some(cx.waker().clone());
-        match self.recv.try_recv() {
-            Ok(t) => Poll::Ready(t),
-            Err(_) => Poll::Pending,
-        }
-    }
+pub async fn memcpy_async<T>(ctx: &Context, from: &[T], to: &mut [T]) -> Result<()> {
+    let stream = Stream::new(ctx);
+    let byte_count = from.len() * std::mem::size_of::<T>();
+    unsafe {
+        contexted_call!(
+            ctx,
+            cuMemcpyAsync,
+            from.as_ptr() as CUdeviceptr,
+            to.as_mut_ptr() as CUdeviceptr,
+            byte_count,
+            stream.stream
+        )
+    }?;
+    tokio::task::spawn_blocking(move || {
+        stream.sync().unwrap();
+    })
+    .await?;
+    Ok(())
 }
 
 /// Handler for non-blocking CUDA Stream
@@ -209,7 +158,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn memcpy_async_host() {
+    async fn memcpy_async_host() -> Result<()> {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
         let a = vec![1_u32; 12];
@@ -220,8 +169,14 @@ mod tests {
         let fut2 = memcpy_async(&ctx, &a, &mut b2);
         let fut3 = memcpy_async(&ctx, &a, &mut b3);
 
-        fut3.await;
-        fut2.await;
-        fut1.await;
+        fut3.await?;
+        fut2.await?;
+        fut1.await?;
+
+        assert_eq!(a, b1);
+        assert_eq!(a, b2);
+        assert_eq!(a, b3);
+
+        Ok(())
     }
 }

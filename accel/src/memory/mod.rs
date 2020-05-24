@@ -59,7 +59,7 @@ pub use scalar::*;
 use crate::*;
 use cuda::*;
 use num_traits::Zero;
-use std::{ffi::c_void, mem::MaybeUninit};
+use std::{ffi::c_void, future::Future, mem::MaybeUninit, pin::Pin};
 
 /// Memory type
 ///
@@ -239,6 +239,16 @@ where
     fn copy_to(&self, destination: &mut Target) {
         destination.copy_from(self);
     }
+}
+
+pub trait AsyncMemcpy<Target: ?Sized>: Memcpy<Target>
+where
+    Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
+{
+    fn copy_from_async<'a, 'b: 'a>(
+        &'a mut self,
+        src: &'b Target,
+    ) -> Pin<Box<dyn Future<Output = ()> + 'a>>;
 }
 
 /// Set all elements by `value`

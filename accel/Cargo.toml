@@ -22,9 +22,11 @@ bitflags = "1.2"
 derive-new = "0.5"
 paste = "0.1"
 accel-derive = { version = "0.3.0", path = "../accel-derive" }
+lazy_static = "*"
 
 [dev-dependencies]
 criterion = "*"
+tokio = { version = "0.2", features = ["full"] }
 
 [[bench]]
 name = "memcpy"

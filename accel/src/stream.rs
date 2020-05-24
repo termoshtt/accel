@@ -1,8 +1,108 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
+use lazy_static::lazy_static;
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    ffi::c_void,
+    future::Future,
+    pin::Pin,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc, Mutex,
+    },
+    task::{self, Poll, Waker},
+};
+
+lazy_static! {
+    static ref WAKER: Arc<Mutex<HashMap<usize, Waker>>> = Arc::new(Mutex::new(HashMap::new()));
+}
+static mut WAKER_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+unsafe extern "C" fn wake_nth(arg: *mut c_void) {
+    let id = (arg as *const usize).as_ref().unwrap();
+    if let Ok(mut map) = WAKER.lock() {
+        if let Some(waker) = map.remove(id) {
+            waker.wake()
+        }
+    } else {
+        log::error!("Error while locking mutex, maybe another thread panics with lock");
+    }
+}
+
+#[derive(Debug)]
+pub struct MemcpyFuture<'a, T> {
+    id: usize,
+    from: &'a [T],
+    to: &'a mut [T],
+    stream: Stream,
+}
+
+impl<'a, T> MemcpyFuture<'a, T> {
+    fn new(ctx: &Context, from: &'a [T], to: &'a mut [T]) -> Result<Pin<Box<Self>>> {
+        assert_eq!(from.len(), to.len());
+        let id = unsafe { WAKER_ID_COUNTER.fetch_add(1, Ordering::Relaxed) };
+        let byte_count = from.len() * std::mem::size_of::<T>();
+        let stream = Stream::new(ctx);
+        unsafe {
+            contexted_call!(
+                ctx,
+                cuMemcpyAsync,
+                from.as_ptr() as CUdeviceptr,
+                to.as_mut_ptr() as CUdeviceptr,
+                byte_count,
+                stream.stream
+            )?;
+            contexted_call!(
+                ctx,
+                cuLaunchHostFunc,
+                stream.stream,
+                Some(wake_nth),
+                &id as *const usize as *mut c_void
+            )?;
+        }
+
+        Ok(Box::pin(MemcpyFuture {
+            id,
+            from,
+            to,
+            stream,
+        }))
+    }
+}
+
+pub fn memcpy_async<'a, T>(
+    ctx: &Context,
+    from: &'a [T],
+    to: &'a mut [T],
+) -> Pin<Box<MemcpyFuture<'a, T>>> {
+    MemcpyFuture::new(ctx, from, to).unwrap()
+}
+
+impl<'a, T> Future for MemcpyFuture<'a, T> {
+    type Output = ();
+    fn poll(self: Pin<&mut Self>, cx: &mut task::Context) -> Poll<Self::Output> {
+        let mut map = WAKER
+            .lock()
+            .expect("Cannot lock global mutex, another thread paniced with lock");
+        match map.entry(self.id) {
+            Entry::Vacant(v) => {
+                if self.stream.query() {
+                    Poll::Ready(())
+                } else {
+                    v.insert(cx.waker().clone());
+                    Poll::Pending
+                }
+            }
+            Entry::Occupied(mut o) => {
+                o.insert(cx.waker().clone());
+                Poll::Pending
+            }
+        }
+    }
+}
 
 /// Handler for non-blocking CUDA Stream
-#[derive(Contexted)]
+#[derive(Debug, Contexted)]
 pub struct Stream {
     stream: CUstream,
     context: Context,
@@ -129,5 +229,14 @@ mod tests {
         event.sync()?;
         stream.sync()?;
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn memcpy_async_host() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let a = vec![1_u32; 12];
+        let mut b = vec![0_u32; 12];
+        memcpy_async(&ctx, &a, &mut b).await;
     }
 }

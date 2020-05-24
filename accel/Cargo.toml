@@ -13,18 +13,18 @@ readme        = "../README.md"
 categories    = []
 
 [dependencies]
-log = "0.4"
-num-traits = "0.2"
-num-derive = "0.2"
-thiserror = "1.0"
-cuda-driver-sys = "0.3.0"
-bitflags = "1.2"
-derive-new = "0.5"
-paste = "0.1"
 accel-derive = { version = "0.3.0", path = "../accel-derive" }
+bitflags = "1.2.1"
+cuda-driver-sys = "0.3.0"
+derive-new = "0.5.8"
+log = "0.4.8"
+num-derive = "0.2"
+num-traits = "0.2.11"
+paste = "0.1.13"
+thiserror = "1.0.19"
 
 [dev-dependencies]
-criterion = "*"
+criterion = "0.3.2"
 
 [[bench]]
 name = "memcpy"

@@ -1,48 +1,31 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
-use lazy_static::lazy_static;
 use std::{
-    collections::{hash_map::Entry, HashMap},
-    ffi::c_void,
     future::Future,
     pin::Pin,
     sync::{
-        atomic::{AtomicUsize, Ordering},
+        mpsc::{channel, Receiver},
         Arc, Mutex,
     },
     task::{self, Poll, Waker},
 };
 
-lazy_static! {
-    static ref WAKER: Arc<Mutex<HashMap<usize, Waker>>> = Arc::new(Mutex::new(HashMap::new()));
-}
-static mut WAKER_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
-
-unsafe extern "C" fn wake_nth(arg: *mut c_void) {
-    let id = (arg as *const usize).as_ref().unwrap();
-    if let Ok(mut map) = WAKER.lock() {
-        if let Some(waker) = map.remove(id) {
-            waker.wake()
-        }
-    } else {
-        log::error!("Error while locking mutex, maybe another thread panics with lock");
-    }
-}
-
 #[derive(Debug)]
-pub struct MemcpyFuture<'a, T> {
-    id: usize,
-    from: &'a [T],
-    to: &'a mut [T],
-    stream: Stream,
+pub struct ThreadFuture {
+    recv: Receiver<()>,
+    waker: Arc<Mutex<Option<Waker>>>,
 }
 
-impl<'a, T> MemcpyFuture<'a, T> {
-    fn new(ctx: &Context, from: &'a [T], to: &'a mut [T]) -> Result<Pin<Box<Self>>> {
+impl ThreadFuture {
+    fn memcpy<'a, T>(
+        ctx: &Context,
+        from: &'a [T],
+        to: &'a mut [T],
+    ) -> Pin<Box<dyn Future<Output = ()> + 'a>> {
         assert_eq!(from.len(), to.len());
-        let id = unsafe { WAKER_ID_COUNTER.fetch_add(1, Ordering::Relaxed) };
-        let byte_count = from.len() * std::mem::size_of::<T>();
+
         let stream = Stream::new(ctx);
+        let byte_count = from.len() * std::mem::size_of::<T>();
         unsafe {
             contexted_call!(
                 ctx,
@@ -51,22 +34,22 @@ impl<'a, T> MemcpyFuture<'a, T> {
                 to.as_mut_ptr() as CUdeviceptr,
                 byte_count,
                 stream.stream
-            )?;
-            contexted_call!(
-                ctx,
-                cuLaunchHostFunc,
-                stream.stream,
-                Some(wake_nth),
-                &id as *const usize as *mut c_void
-            )?;
+            )
         }
+        .unwrap();
 
-        Ok(Box::pin(MemcpyFuture {
-            id,
-            from,
-            to,
-            stream,
-        }))
+        // spawn a thread for waiting memcpy
+        let (send, recv) = channel();
+        let waker = Arc::new(Mutex::new(None::<Waker>));
+        let w = waker.clone();
+        std::thread::spawn(move || {
+            stream.sync().unwrap();
+            send.send(()).unwrap();
+            if let Some(waker) = &*w.lock().unwrap() {
+                waker.wake_by_ref()
+            }
+        });
+        Box::pin(ThreadFuture { recv, waker })
     }
 }
 
@@ -74,29 +57,17 @@ pub fn memcpy_async<'a, T>(
     ctx: &Context,
     from: &'a [T],
     to: &'a mut [T],
-) -> Pin<Box<MemcpyFuture<'a, T>>> {
-    MemcpyFuture::new(ctx, from, to).unwrap()
+) -> Pin<Box<dyn Future<Output = ()> + 'a>> {
+    ThreadFuture::memcpy(ctx, from, to)
 }
 
-impl<'a, T> Future for MemcpyFuture<'a, T> {
+impl Future for ThreadFuture {
     type Output = ();
-    fn poll(self: Pin<&mut Self>, cx: &mut task::Context) -> Poll<Self::Output> {
-        let mut map = WAKER
-            .lock()
-            .expect("Cannot lock global mutex, another thread paniced with lock");
-        match map.entry(self.id) {
-            Entry::Vacant(v) => {
-                if self.stream.query() {
-                    Poll::Ready(())
-                } else {
-                    v.insert(cx.waker().clone());
-                    Poll::Pending
-                }
-            }
-            Entry::Occupied(mut o) => {
-                o.insert(cx.waker().clone());
-                Poll::Pending
-            }
+    fn poll(mut self: Pin<&mut Self>, cx: &mut task::Context) -> Poll<Self::Output> {
+        *self.waker.lock().unwrap() = Some(cx.waker().clone());
+        match self.recv.try_recv() {
+            Ok(t) => Poll::Ready(t),
+            Err(_) => Poll::Pending,
         }
     }
 }
@@ -107,6 +78,9 @@ pub struct Stream {
     stream: CUstream,
     context: Context,
 }
+
+unsafe impl Sync for Stream {}
+unsafe impl Send for Stream {}
 
 impl Drop for Stream {
     fn drop(&mut self) {
@@ -160,6 +134,9 @@ pub struct Event {
     event: CUevent,
     context: Context,
 }
+
+unsafe impl Sync for Event {}
+unsafe impl Send for Event {}
 
 impl Drop for Event {
     fn drop(&mut self) {
@@ -236,7 +213,15 @@ mod tests {
         let device = Device::nth(0).unwrap();
         let ctx = device.create_context();
         let a = vec![1_u32; 12];
-        let mut b = vec![0_u32; 12];
-        memcpy_async(&ctx, &a, &mut b).await;
+        let mut b1 = vec![0_u32; 12];
+        let mut b2 = vec![0_u32; 12];
+        let mut b3 = vec![0_u32; 12];
+        let fut1 = memcpy_async(&ctx, &a, &mut b1);
+        let fut2 = memcpy_async(&ctx, &a, &mut b2);
+        let fut3 = memcpy_async(&ctx, &a, &mut b3);
+
+        fut3.await;
+        fut2.await;
+        fut1.await;
     }
 }

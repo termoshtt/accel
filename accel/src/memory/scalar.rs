@@ -35,8 +35,8 @@ macro_rules! impl_array_scalar {
             }
             paste::item! {
                 fn [< to_le_ $le >](self) -> Option<$le> {
-                    assert_eq!(Self::size_of(), $le::size_of());
-                    Some($le::from_le_bytes(self.to_le_bytes()))
+                    assert_eq!(Self::size_of(), <$le>::size_of());
+                    Some(<$le>::from_le_bytes(self.to_le_bytes()))
                 }
             }
         }

@@ -87,7 +87,24 @@ impl<T: Scalar> Memcpy<[T]> for [T] {
         let ctx1 = get_context(self.head_addr());
         let ctx2 = get_context(src.head_addr());
         if let Some(ctx) = ctx1.or(ctx2) {
-            memcpy_async(ctx, src, self).await.unwrap();
+            let stream = stream::Stream::new(ctx);
+            let byte_count = self.len() * std::mem::size_of::<T>();
+            unsafe {
+                contexted_call!(
+                    &ctx,
+                    cuMemcpyAsync,
+                    src.as_ptr() as CUdeviceptr,
+                    self.as_mut_ptr() as CUdeviceptr,
+                    byte_count,
+                    stream.stream
+                )
+            }
+            .expect("Failed to start async memcpy");
+            tokio::task::spawn_blocking(move || {
+                stream.sync().unwrap();
+            })
+            .await
+            .expect("Async memcpy thread failed");
         } else {
             self.copy_from_slice(src);
         }
@@ -192,5 +209,79 @@ mod tests {
         let ctx_ptr = get_context(a.head_addr()).unwrap();
         assert_eq!(*ctx, ctx_ptr);
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn memcpy_async_host() {
+        let a = vec![1_u32; 12];
+        let mut b1 = vec![0_u32; 12];
+        let mut b2 = vec![0_u32; 12];
+        let mut b3 = vec![0_u32; 12];
+        let fut1 = b1.copy_from_async(a.as_slice());
+        let fut2 = b2.copy_from_async(a.as_slice());
+        let fut3 = b3.copy_from_async(a.as_slice());
+        fut3.await;
+        fut2.await;
+        fut1.await;
+        assert_eq!(a, b1);
+        assert_eq!(a, b2);
+        assert_eq!(a, b3);
+    }
+
+    #[tokio::test]
+    async fn memcpy_async_d2h() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let a = DeviceMemory::from_elem(&ctx, 12, 1_u32);
+        let mut b1 = vec![0_u32; 12];
+        let mut b2 = vec![0_u32; 12];
+        let mut b3 = vec![0_u32; 12];
+        let fut1 = b1.copy_from_async(&a);
+        let fut2 = b2.copy_from_async(&a);
+        let fut3 = b3.copy_from_async(&a);
+        fut3.await;
+        fut2.await;
+        fut1.await;
+        assert_eq!(a.as_slice(), b1.as_slice());
+        assert_eq!(a.as_slice(), b2.as_slice());
+        assert_eq!(a.as_slice(), b3.as_slice());
+    }
+
+    #[tokio::test]
+    async fn memcpy_async_h2d() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let a = PageLockedMemory::from_elem(&ctx, 12, 1_u32);
+        let mut b1 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let mut b2 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let mut b3 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let fut1 = b1.copy_from_async(&a);
+        let fut2 = b2.copy_from_async(&a);
+        let fut3 = b3.copy_from_async(&a);
+        fut3.await;
+        fut2.await;
+        fut1.await;
+        assert_eq!(a.as_slice(), b1.as_slice());
+        assert_eq!(a.as_slice(), b2.as_slice());
+        assert_eq!(a.as_slice(), b3.as_slice());
+    }
+
+    #[tokio::test]
+    async fn memcpy_async_d2d() {
+        let device = Device::nth(0).unwrap();
+        let ctx = device.create_context();
+        let a = DeviceMemory::from_elem(&ctx, 12, 1_u32);
+        let mut b1 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let mut b2 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let mut b3 = DeviceMemory::from_elem(&ctx, 12, 0_u32);
+        let fut1 = b1.copy_from_async(&a);
+        let fut2 = b2.copy_from_async(&a);
+        let fut3 = b3.copy_from_async(&a);
+        fut3.await;
+        fut2.await;
+        fut1.await;
+        assert_eq!(a.as_slice(), b1.as_slice());
+        assert_eq!(a.as_slice(), b2.as_slice());
+        assert_eq!(a.as_slice(), b3.as_slice());
     }
 }

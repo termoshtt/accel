@@ -1,30 +1,10 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
 
-pub(crate) async fn memcpy_async<T>(ctx: ContextRef, from: &[T], to: &mut [T]) -> Result<()> {
-    let stream = Stream::new(ctx);
-    let byte_count = from.len() * std::mem::size_of::<T>();
-    unsafe {
-        contexted_call!(
-            &ctx,
-            cuMemcpyAsync,
-            from.as_ptr() as CUdeviceptr,
-            to.as_mut_ptr() as CUdeviceptr,
-            byte_count,
-            stream.stream
-        )
-    }?;
-    tokio::task::spawn_blocking(move || {
-        stream.sync().unwrap();
-    })
-    .await?;
-    Ok(())
-}
-
 /// Handler for non-blocking CUDA Stream
 #[derive(Debug, Contexted)]
 pub struct Stream {
-    stream: CUstream,
+    pub(crate) stream: CUstream,
     context: ContextRef,
 }
 
@@ -148,29 +128,6 @@ mod tests {
         // nothing to be waited
         event.sync()?;
         stream.sync()?;
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn memcpy_async_host() -> Result<()> {
-        let device = Device::nth(0).unwrap();
-        let ctx = device.create_context();
-        let a = vec![1_u32; 12];
-        let mut b1 = vec![0_u32; 12];
-        let mut b2 = vec![0_u32; 12];
-        let mut b3 = vec![0_u32; 12];
-        let fut1 = memcpy_async(ctx.get_ref(), &a, &mut b1);
-        let fut2 = memcpy_async(ctx.get_ref(), &a, &mut b2);
-        let fut3 = memcpy_async(ctx.get_ref(), &a, &mut b3);
-
-        fut3.await?;
-        fut2.await?;
-        fut1.await?;
-
-        assert_eq!(a, b1);
-        assert_eq!(a, b2);
-        assert_eq!(a, b3);
-
         Ok(())
     }
 }

@@ -142,99 +142,141 @@ pub trait Memory {
 }
 
 /// Copy data from one to another
-///
-/// Examples
-/// ---------
-///
-/// - memcpy from page-locked host memory to device memory
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src);
-/// ```
-///
-/// - memcpy from device memory to page-locked host memory
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = PageLockedMemory::<i32>::zeros(&ctx, 12);
-/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src);
-/// ```
-///
-/// - memcpy from device to device
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src);
-/// ```
-///
-/// - memcpy from Rust slice to device memory
-///
-/// ```
-/// # use accel::*;
-/// # use std::ops::DerefMut;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// let src = vec![0_i32; 12];
-/// dest.copy_from(src.as_slice()); // requires explicit cast to slice
-/// ```
-///
-/// - memcpy from device memory to Rust slice
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = vec![0_i32; 12];
-/// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src);
-/// ```
-///
-/// Requirements
-/// -------------
-///
-/// - Cannot copy between different types
-///
-/// ```compile_fail
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i64>::zeros(&ctx, 12);
-/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src); // compile fail
-/// ```
-///
-/// - Panics if sizes are different
-///
-/// ```should_panic
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 24);
-/// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
-/// dest.copy_from(&src); // will panic
-/// ```
-///
-/// Panic
-/// -----
-/// - `self` and `src` are identical
-/// - if `self` nad `src` belong to different context
-/// - if the size memory size mismathes
 #[async_trait]
 pub trait Memcpy<Target: Memory<Elem = Self::Elem> + ?Sized>: Memory {
+    /// Examples
+    /// ---------
+    ///
+    /// - memcpy from page-locked host memory to device memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from device memory to page-locked host memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = PageLockedMemory::<i32>::zeros(&ctx, 12);
+    /// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from device to device
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - memcpy from Rust slice to device memory
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # use std::ops::DerefMut;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// let src = vec![0_i32; 12];
+    /// dest.copy_from(src.as_slice()); // requires explicit cast to slice
+    /// ```
+    ///
+    /// - memcpy from device memory to Rust slice
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = vec![0_i32; 12];
+    /// let src = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src);
+    /// ```
+    ///
+    /// - Cannot copy between different types
+    ///
+    /// ```compile_fail
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i64>::zeros(&ctx, 12);
+    /// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src); // compile fail
+    /// ```
+    ///
+    /// - Panics if sizes are different
+    ///
+    /// ```should_panic
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut dest = DeviceMemory::<i32>::zeros(&ctx, 24);
+    /// let src = PageLockedMemory::<i32>::zeros(&ctx, 12);
+    /// dest.copy_from(&src); // will panic
+    /// ```
+    ///
+    /// Panics
+    /// -------
+    ///
+    /// - if `self` and `src` are identical
+    /// - if sizes of memory mismatch
+    ///
     fn copy_from(&mut self, source: &Target);
+
+    /// Copy data in async manner
+    ///
+    /// ```
+    /// use accel::*;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///   let device = Device::nth(0).unwrap();
+    ///   let ctx = device.create_context();
+    ///   let mut dest = DeviceMemory::<f32>::zeros(&ctx, 12);
+    ///   let src = PageLockedMemory::<f32>::zeros(&ctx, 12);
+    ///   dest.copy_from_async(&src).await;
+    /// }
+    /// ```
+    ///
+    /// - Arrays are captured until await:
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// # let mut dest = DeviceMemory::<f32>::zeros(&ctx, 12);
+    /// # let src = PageLockedMemory::<f32>::zeros(&ctx, 12);
+    /// let future = dest.copy_from_async(&src);
+    /// println!("src[0] = {}", src[0]);  // Source is always accessible as usual &-reference
+    /// future.await;
+    /// # }
+    /// ```
+    ///
+    /// ```compile_fail
+    /// # use accel::*;
+    /// # #[tokio::main]
+    /// # async fn main() {
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// # let mut dest = DeviceMemory::<f32>::zeros(&ctx, 12);
+    /// # let src = PageLockedMemory::<f32>::zeros(&ctx, 12);
+    /// let future = dest.copy_from_async(&src);
+    /// println!("dest[0] = {}", dest[0]);  // Destination is not accessible until .await
+    /// future.await;
+    /// # }
+    /// ```
     async fn copy_from_async(&mut self, src: &Target);
 }
 

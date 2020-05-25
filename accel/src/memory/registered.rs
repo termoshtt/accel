@@ -28,6 +28,18 @@ impl<T> DerefMut for RegisteredMemory<'_, T> {
     }
 }
 
+impl<T: Scalar> PartialEq for RegisteredMemory<'_, T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<T: Scalar> PartialEq<[T]> for RegisteredMemory<'_, T> {
+    fn eq(&self, other: &[T]) -> bool {
+        self.as_slice().eq(other)
+    }
+}
+
 impl<T> Drop for RegisteredMemory<'_, T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe {

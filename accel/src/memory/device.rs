@@ -53,6 +53,20 @@ impl<T> DerefMut for DeviceMemory<T> {
     }
 }
 
+impl<T: Scalar> PartialEq for DeviceMemory<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // FIXME should be tested on device
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<T: Scalar> PartialEq<[T]> for DeviceMemory<T> {
+    fn eq(&self, other: &[T]) -> bool {
+        // FIXME should be tested on device
+        self.as_slice().eq(other)
+    }
+}
+
 impl<T: Scalar> Memory for DeviceMemory<T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {

@@ -57,6 +57,18 @@ impl<T> DerefMut for PageLockedMemory<T> {
     }
 }
 
+impl<T: Scalar> PartialEq for PageLockedMemory<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<T: Scalar> PartialEq<[T]> for PageLockedMemory<T> {
+    fn eq(&self, other: &[T]) -> bool {
+        self.as_slice().eq(other)
+    }
+}
+
 impl<T: Scalar> Memory for PageLockedMemory<T> {
     type Elem = T;
     fn head_addr(&self) -> *const T {

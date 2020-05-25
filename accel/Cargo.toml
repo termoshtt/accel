@@ -14,6 +14,7 @@ categories    = []
 
 [dependencies]
 accel-derive = { version = "0.3.0", path = "../accel-derive" }
+async-trait = "0.1.31"
 bitflags = "1.2.1"
 cuda-driver-sys = "0.3.0"
 derive-new = "0.5.8"

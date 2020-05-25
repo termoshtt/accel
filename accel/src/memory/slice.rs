@@ -1,4 +1,5 @@
 use super::*;
+use async_trait::async_trait;
 
 /// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
@@ -117,6 +118,21 @@ impl_memcpy!(PageLockedMemory::<T>, PageLockedMemory::<T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, DeviceMemory::<T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, RegisteredMemory::<'_, T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, PageLockedMemory::<T>);
+
+#[async_trait]
+impl<T: Scalar> AsyncMemcpy<[T]> for [T] {
+    async fn copy_from_async(&mut self, src: &[T]) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        let ctx1 = get_context(self.head_addr());
+        let ctx2 = get_context(src.head_addr());
+        if let Some(ctx) = ctx1.or(ctx2) {
+            memcpy_async(ctx, src, self).await.unwrap();
+        } else {
+            self.copy_from_slice(src);
+        }
+    }
+}
 
 impl<T: Scalar> Continuous for [T] {
     fn as_slice(&self) -> &[Self::Elem] {

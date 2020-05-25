@@ -1,5 +1,6 @@
 use super::*;
 use async_trait::async_trait;
+use std::{future::Future, pin::Pin};
 
 /// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
@@ -59,6 +60,7 @@ impl<T: Scalar> Memory for [T] {
     }
 }
 
+#[async_trait]
 impl<T: Scalar> Memcpy<[T]> for [T] {
     fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -78,6 +80,18 @@ impl<T: Scalar> Memcpy<[T]> for [T] {
             self.copy_from_slice(src);
         }
     }
+
+    async fn copy_from_async(&mut self, src: &[T]) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        let ctx1 = get_context(self.head_addr());
+        let ctx2 = get_context(src.head_addr());
+        if let Some(ctx) = ctx1.or(ctx2) {
+            memcpy_async(ctx, src, self).await.unwrap();
+        } else {
+            self.copy_from_slice(src);
+        }
+    }
 }
 
 macro_rules! impl_memcpy_slice {
@@ -86,10 +100,23 @@ macro_rules! impl_memcpy_slice {
             fn copy_from(&mut self, src: &[T]) {
                 self.as_mut_slice().copy_from(src);
             }
+            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+                &'a mut self,
+                src: &'b [T],
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                self.as_mut_slice().copy_from_async(src)
+            }
         }
+
         impl<T: Scalar> Memcpy<$t> for [T] {
             fn copy_from(&mut self, src: &$t) {
                 self.copy_from(src.as_slice());
+            }
+            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+                &'a mut self,
+                src: &'b $t,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                self.copy_from_async(src.as_slice())
             }
         }
     };
@@ -105,6 +132,12 @@ macro_rules! impl_memcpy {
             fn copy_from(&mut self, src: &$from) {
                 self.as_mut_slice().copy_from(src.as_slice());
             }
+            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+                &'a mut self,
+                src: &'b $from,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                self.as_mut_slice().copy_from_async(src.as_slice())
+            }
         }
     };
 }
@@ -118,21 +151,6 @@ impl_memcpy!(PageLockedMemory::<T>, PageLockedMemory::<T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, DeviceMemory::<T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, RegisteredMemory::<'_, T>);
 impl_memcpy!(RegisteredMemory::<'_, T>, PageLockedMemory::<T>);
-
-#[async_trait]
-impl<T: Scalar> AsyncMemcpy<[T]> for [T] {
-    async fn copy_from_async(&mut self, src: &[T]) {
-        assert_ne!(self.head_addr(), src.head_addr());
-        assert_eq!(self.num_elem(), src.num_elem());
-        let ctx1 = get_context(self.head_addr());
-        let ctx2 = get_context(src.head_addr());
-        if let Some(ctx) = ctx1.or(ctx2) {
-            memcpy_async(ctx, src, self).await.unwrap();
-        } else {
-            self.copy_from_slice(src);
-        }
-    }
-}
 
 impl<T: Scalar> Continuous for [T] {
     fn as_slice(&self) -> &[Self::Elem] {

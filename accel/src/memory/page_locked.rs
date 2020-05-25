@@ -21,6 +21,9 @@ pub struct PageLockedMemory<T> {
     context: Context,
 }
 
+unsafe impl<T> Sync for PageLockedMemory<T> {}
+unsafe impl<T> Send for PageLockedMemory<T> {}
+
 impl<T> Drop for PageLockedMemory<T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) } {

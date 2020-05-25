@@ -232,21 +232,9 @@ pub trait Memory {
 /// - `self` and `src` are identical
 /// - if `self` nad `src` belong to different context
 /// - if the size memory size mismathes
-pub trait Memcpy<Target: ?Sized>: Memory
-where
-    Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
-{
-    fn copy_from(&mut self, source: &Target);
-    fn copy_to(&self, destination: &mut Target) {
-        destination.copy_from(self);
-    }
-}
-
 #[async_trait]
-pub trait AsyncMemcpy<Target: ?Sized>: Memcpy<Target>
-where
-    Target: Memory<Elem = Self::Elem> + Memcpy<Self>,
-{
+pub trait Memcpy<Target: Memory<Elem = Self::Elem> + ?Sized>: Memory {
+    fn copy_from(&mut self, source: &Target);
     async fn copy_from_async(&mut self, src: &Target);
 }
 

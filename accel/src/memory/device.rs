@@ -19,6 +19,9 @@ pub struct DeviceMemory<T> {
     phantom: PhantomData<T>,
 }
 
+unsafe impl<T> Sync for DeviceMemory<T> {}
+unsafe impl<T> Send for DeviceMemory<T> {}
+
 impl<T> Drop for DeviceMemory<T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {

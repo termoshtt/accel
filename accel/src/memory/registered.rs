@@ -12,6 +12,9 @@ pub struct RegisteredMemory<'a, T> {
     mem: &'a mut [T],
 }
 
+unsafe impl<T> Sync for RegisteredMemory<'_, T> {}
+unsafe impl<T> Send for RegisteredMemory<'_, T> {}
+
 impl<T> Deref for RegisteredMemory<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {

@@ -5,6 +5,7 @@
 //! [Surface]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__SURFOBJECT.html#group__CUDA__SURFOBJECT
 
 use crate::{contexted_call, contexted_new, device::Contexted, error::Result, *};
+use async_trait::async_trait;
 use cuda::*;
 use num_traits::ToPrimitive;
 use std::marker::PhantomData;
@@ -18,6 +19,9 @@ pub struct Array<T, Dim> {
     context: Context,
     phantom: PhantomData<T>,
 }
+
+unsafe impl<T, Dim> Send for Array<T, Dim> {}
+unsafe impl<T, Dim> Sync for Array<T, Dim> {}
 
 impl<T, Dim> Drop for Array<T, Dim> {
     fn drop(&mut self) {
@@ -52,6 +56,7 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     }
 }
 
+#[async_trait]
 impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
     fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -72,8 +77,13 @@ impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
         };
         unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }.expect("memcpy into array failed");
     }
+
+    async fn copy_from_async(&mut self, _src: &[T]) {
+        todo!()
+    }
 }
 
+#[async_trait]
 impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
     fn copy_from(&mut self, src: &Array<T, Dim>) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -94,6 +104,10 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
         };
         unsafe { contexted_call!(src, cuMemcpy3D_v2, &param) }.expect("memcpy from array failed");
     }
+
+    async fn copy_from_async(&mut self, _src: &Array<T, Dim>) {
+        todo!()
+    }
 }
 
 macro_rules! impl_memcpy_array {
@@ -102,10 +116,23 @@ macro_rules! impl_memcpy_array {
             fn copy_from(&mut self, src: &Array<T, Dim>) {
                 self.as_mut_slice().copy_from(src);
             }
+            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+                &'a mut self,
+                _src: &'b Array<T, Dim>,
+            ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'c>> {
+                todo!()
+            }
         }
+
         impl<T: Scalar, Dim: Dimension> Memcpy<$t> for Array<T, Dim> {
             fn copy_from(&mut self, src: &$t) {
                 self.copy_from(src.as_slice());
+            }
+            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+                &'a mut self,
+                _src: &'b $t,
+            ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'c>> {
+                todo!()
             }
         }
     };

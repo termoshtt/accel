@@ -1,12 +1,12 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
 
-pub async fn memcpy_async<T>(ctx: &Context, from: &[T], to: &mut [T]) -> Result<()> {
+pub(crate) async fn memcpy_async<T>(ctx: ContextRef, from: &[T], to: &mut [T]) -> Result<()> {
     let stream = Stream::new(ctx);
     let byte_count = from.len() * std::mem::size_of::<T>();
     unsafe {
         contexted_call!(
-            ctx,
+            &ctx,
             cuMemcpyAsync,
             from.as_ptr() as CUdeviceptr,
             to.as_mut_ptr() as CUdeviceptr,
@@ -25,7 +25,7 @@ pub async fn memcpy_async<T>(ctx: &Context, from: &[T], to: &mut [T]) -> Result<
 #[derive(Debug, Contexted)]
 pub struct Stream {
     stream: CUstream,
-    context: Context,
+    context: ContextRef,
 }
 
 unsafe impl Sync for Stream {}
@@ -41,19 +41,16 @@ impl Drop for Stream {
 
 impl Stream {
     /// Create a new non-blocking CUDA stream on the current context
-    pub fn new(context: &Context) -> Self {
+    pub fn new(context: ContextRef) -> Self {
         let stream = unsafe {
             contexted_new!(
-                context,
+                &context,
                 cuStreamCreate,
                 CUstream_flags::CU_STREAM_NON_BLOCKING as u32
             )
         }
         .expect("Failed to create CUDA stream");
-        Stream {
-            context: context.clone(),
-            stream,
-        }
+        Stream { context, stream }
     }
 
     /// Check all tasks in this stream have been completed
@@ -81,7 +78,7 @@ impl Stream {
 #[derive(Contexted)]
 pub struct Event {
     event: CUevent,
-    context: Context,
+    context: ContextRef,
 }
 
 unsafe impl Sync for Event {}
@@ -96,19 +93,16 @@ impl Drop for Event {
 }
 
 impl Event {
-    pub fn new(context: &Context) -> Self {
+    pub fn new(context: ContextRef) -> Self {
         let event = unsafe {
             contexted_new!(
-                context,
+                &context,
                 cuEventCreate,
                 CUevent_flags_enum::CU_EVENT_BLOCKING_SYNC as u32
             )
         }
         .expect("Failed to create CUDA event");
-        Event {
-            context: context.clone(),
-            event,
-        }
+        Event { context, event }
     }
 
     pub fn record(&mut self, stream: &mut Stream) {
@@ -140,7 +134,7 @@ mod tests {
     fn new() -> Result<()> {
         let device = Device::nth(0)?;
         let context = device.create_context();
-        let _st = Stream::new(&context);
+        let _st = Stream::new(context.get_ref());
         Ok(())
     }
 
@@ -148,8 +142,8 @@ mod tests {
     fn trivial_sync() -> Result<()> {
         let device = Device::nth(0)?;
         let context = device.create_context();
-        let mut stream = Stream::new(&context);
-        let mut event = Event::new(&context);
+        let mut stream = Stream::new(context.get_ref());
+        let mut event = Event::new(context.get_ref());
         event.record(&mut stream);
         // nothing to be waited
         event.sync()?;
@@ -165,9 +159,9 @@ mod tests {
         let mut b1 = vec![0_u32; 12];
         let mut b2 = vec![0_u32; 12];
         let mut b3 = vec![0_u32; 12];
-        let fut1 = memcpy_async(&ctx, &a, &mut b1);
-        let fut2 = memcpy_async(&ctx, &a, &mut b2);
-        let fut3 = memcpy_async(&ctx, &a, &mut b3);
+        let fut1 = memcpy_async(ctx.get_ref(), &a, &mut b1);
+        let fut2 = memcpy_async(ctx.get_ref(), &a, &mut b2);
+        let fut3 = memcpy_async(ctx.get_ref(), &a, &mut b3);
 
         fut3.await?;
         fut2.await?;

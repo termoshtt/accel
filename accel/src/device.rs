@@ -182,7 +182,7 @@ impl ContextOwned {
 ///
 /// [cuPointerGetAttribute]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__UNIFIED.html#group__CUDA__UNIFIED_1g0c28ed0aff848042bc0533110e45820c
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ContextRef {
     ptr: CUcontext,
 }

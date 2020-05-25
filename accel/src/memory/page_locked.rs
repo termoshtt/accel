@@ -3,7 +3,10 @@
 use super::*;
 use crate::{error::Result, *};
 use cuda::*;
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+};
 
 /// Host memory as page-locked.
 ///
@@ -29,6 +32,15 @@ impl<T> Drop for PageLockedMemory<T> {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) } {
             log::error!("Cannot free page-locked memory: {:?}", e);
         }
+    }
+}
+
+impl<T: Scalar> fmt::Debug for PageLockedMemory<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PageLockedMemory")
+            .field("context", &self.context)
+            .field("data", &self.as_slice())
+            .finish()
     }
 }
 

@@ -6,10 +6,10 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-#[derive(Contexted)]
+#[derive(Contexted, Debug)]
 pub struct RegisteredMemory<'a, T> {
-    ctx: Context,
-    mem: &'a mut [T],
+    context: Context,
+    data: &'a mut [T],
 }
 
 unsafe impl<T> Sync for RegisteredMemory<'_, T> {}
@@ -18,13 +18,13 @@ unsafe impl<T> Send for RegisteredMemory<'_, T> {}
 impl<T> Deref for RegisteredMemory<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        self.mem
+        self.data
     }
 }
 
 impl<T> DerefMut for RegisteredMemory<'_, T> {
     fn deref_mut(&mut self) -> &mut [T] {
-        self.mem
+        self.data
     }
 }
 
@@ -32,9 +32,9 @@ impl<T> Drop for RegisteredMemory<'_, T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe {
             contexted_call!(
-                &self.ctx,
+                &self.context,
                 cuMemHostUnregister,
-                self.mem.as_mut_ptr() as *mut c_void
+                self.data.as_mut_ptr() as *mut c_void
             )
         } {
             log::error!("Failed to unregister memory: {:?}", e);
@@ -43,20 +43,20 @@ impl<T> Drop for RegisteredMemory<'_, T> {
 }
 
 impl<'a, T: Scalar> RegisteredMemory<'a, T> {
-    pub fn new(ctx: &Context, mem: &'a mut [T]) -> Self {
+    pub fn new(context: &Context, data: &'a mut [T]) -> Self {
         unsafe {
             contexted_call!(
-                ctx,
+                context,
                 cuMemHostRegister_v2,
-                mem.as_mut_ptr() as *mut c_void,
-                mem.len() * T::size_of(),
+                data.as_mut_ptr() as *mut c_void,
+                data.len() * T::size_of(),
                 0
             )
         }
         .expect("Failed to register host memory into CUDA memory system");
         Self {
-            ctx: ctx.clone(),
-            mem,
+            context: context.clone(),
+            data,
         }
     }
 }
@@ -65,15 +65,15 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
     type Elem = T;
 
     fn head_addr(&self) -> *const T {
-        self.mem.as_ptr()
+        self.data.as_ptr()
     }
 
     fn head_addr_mut(&mut self) -> *mut T {
-        self.mem.as_mut_ptr()
+        self.data.as_mut_ptr()
     }
 
     fn num_elem(&self) -> usize {
-        self.mem.len()
+        self.data.len()
     }
 
     fn memory_type(&self) -> MemoryType {

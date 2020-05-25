@@ -4,6 +4,7 @@ use super::*;
 use crate::{error::*, *};
 use cuda::*;
 use std::{
+    fmt,
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
@@ -27,6 +28,15 @@ impl<T> Drop for DeviceMemory<T> {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {
             log::error!("Failed to free device memory: {:?}", e);
         }
+    }
+}
+
+impl<T: Scalar> fmt::Debug for DeviceMemory<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DeviceMemory")
+            .field("context", &self.context)
+            .field("data", &self.as_slice())
+            .finish()
     }
 }
 

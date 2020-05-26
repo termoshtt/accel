@@ -4,6 +4,7 @@ use super::*;
 use crate::{error::*, *};
 use cuda::*;
 use std::{
+    fmt,
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
@@ -19,11 +20,23 @@ pub struct DeviceMemory<T> {
     phantom: PhantomData<T>,
 }
 
+unsafe impl<T> Sync for DeviceMemory<T> {}
+unsafe impl<T> Send for DeviceMemory<T> {}
+
 impl<T> Drop for DeviceMemory<T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFree_v2, self.ptr) } {
             log::error!("Failed to free device memory: {:?}", e);
         }
+    }
+}
+
+impl<T: Scalar> fmt::Debug for DeviceMemory<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DeviceMemory")
+            .field("context", &self.context)
+            .field("data", &self.as_slice())
+            .finish()
     }
 }
 
@@ -37,6 +50,20 @@ impl<T> Deref for DeviceMemory<T> {
 impl<T> DerefMut for DeviceMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr as _, self.size) }
+    }
+}
+
+impl<T: Scalar> PartialEq for DeviceMemory<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // FIXME should be tested on device
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<T: Scalar> PartialEq<[T]> for DeviceMemory<T> {
+    fn eq(&self, other: &[T]) -> bool {
+        // FIXME should be tested on device
+        self.as_slice().eq(other)
     }
 }
 

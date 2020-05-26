@@ -33,7 +33,7 @@ impl Default for NumChannels {
     }
 }
 
-pub trait Dimension: Zero + Debug + Clone + Copy + PartialEq {
+pub trait Dimension: Zero + Debug + Clone + Copy + PartialEq + Send + Sync + 'static {
     fn as_descriptor<T: Scalar>(&self) -> Descriptor;
 
     /// Number of elements

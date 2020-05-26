@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 pub type Result<T> = ::std::result::Result<T, AccelError>;
 
-#[derive(thiserror::Error, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(thiserror::Error, Debug)]
 pub enum AccelError {
     /// Raw errors originates from CUDA Device APIs
     #[error("CUDA Device API Error: {api_name}, {error:?}")]

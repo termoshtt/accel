@@ -3,7 +3,10 @@
 use super::*;
 use crate::{error::Result, *};
 use cuda::*;
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+};
 
 /// Host memory as page-locked.
 ///
@@ -21,11 +24,23 @@ pub struct PageLockedMemory<T> {
     context: Context,
 }
 
+unsafe impl<T> Sync for PageLockedMemory<T> {}
+unsafe impl<T> Send for PageLockedMemory<T> {}
+
 impl<T> Drop for PageLockedMemory<T> {
     fn drop(&mut self) {
         if let Err(e) = unsafe { contexted_call!(self, cuMemFreeHost, self.ptr as *mut _) } {
             log::error!("Cannot free page-locked memory: {:?}", e);
         }
+    }
+}
+
+impl<T: Scalar> fmt::Debug for PageLockedMemory<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PageLockedMemory")
+            .field("context", &self.context)
+            .field("data", &self.as_slice())
+            .finish()
     }
 }
 
@@ -39,6 +54,18 @@ impl<T> Deref for PageLockedMemory<T> {
 impl<T> DerefMut for PageLockedMemory<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         unsafe { std::slice::from_raw_parts_mut(self.ptr, self.size) }
+    }
+}
+
+impl<T: Scalar> PartialEq for PageLockedMemory<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<T: Scalar> PartialEq<[T]> for PageLockedMemory<T> {
+    fn eq(&self, other: &[T]) -> bool {
+        self.as_slice().eq(other)
     }
 }
 

@@ -8,7 +8,7 @@ use crate::{contexted_call, contexted_new, device::Contexted, error::Result, *};
 use async_trait::async_trait;
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::marker::PhantomData;
+use std::{future::Future, marker::PhantomData, pin::Pin};
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
@@ -56,30 +56,73 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     }
 }
 
+fn memcpy3d_param_h2a<T: Scalar, Dim: Dimension>(
+    src: &[T],
+    dst: &mut Array<T, Dim>,
+) -> CUDA_MEMCPY3D {
+    let dim = dst.dim;
+    CUDA_MEMCPY3D {
+        srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
+        srcDevice: src.as_ptr() as CUdeviceptr,
+
+        dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+        dstArray: dst.array,
+
+        WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+        Height: dim.height(),
+        Depth: dim.depth(),
+
+        ..Default::default()
+    }
+}
+
 #[async_trait]
 impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
     fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        let dim = self.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
-            srcDevice: src.as_ptr() as CUdeviceptr,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            dstArray: self.array,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(self, cuMemcpy3D_v2, &param) }.expect("memcpy into array failed");
+        unsafe { contexted_call!(self, cuMemcpy3D_v2, &memcpy3d_param_h2a(src, self)) }
+            .expect("memcpy into array failed");
     }
 
-    async fn copy_from_async(&mut self, _src: &[T]) {
-        todo!()
+    async fn copy_from_async(&mut self, src: &[T]) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        let stream = stream::Stream::new(self.context.get_ref());
+        unsafe {
+            contexted_call!(
+                self,
+                cuMemcpy3DAsync_v2,
+                &memcpy3d_param_h2a(src, self),
+                stream.stream
+            )
+        }
+        .expect("memcpy into array failed");
+        tokio::task::spawn_blocking(move || {
+            stream.sync().unwrap();
+        })
+        .await
+        .expect("Async memcpy thread failed");
+    }
+}
+
+fn memcpy3d_param_a2h<T: Scalar, Dim: Dimension>(
+    src: &Array<T, Dim>,
+    dst: &mut [T],
+) -> CUDA_MEMCPY3D {
+    let dim = src.dim;
+    CUDA_MEMCPY3D {
+        srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
+        srcArray: src.array,
+
+        dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
+        dstDevice: dst.as_mut_ptr() as CUdeviceptr,
+
+        WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
+        Height: dim.height(),
+        Depth: dim.depth(),
+
+        ..Default::default()
     }
 }
 
@@ -88,25 +131,28 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
     fn copy_from(&mut self, src: &Array<T, Dim>) {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
-        let dim = src.dim;
-        let param = CUDA_MEMCPY3D {
-            srcMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_ARRAY,
-            srcArray: src.array,
-
-            dstMemoryType: CUmemorytype_enum::CU_MEMORYTYPE_UNIFIED,
-            dstDevice: self.as_mut_ptr() as CUdeviceptr,
-
-            WidthInBytes: dim.width() * T::size_of() * dim.num_channels().to_usize().unwrap(),
-            Height: dim.height(),
-            Depth: dim.depth(),
-
-            ..Default::default()
-        };
-        unsafe { contexted_call!(src, cuMemcpy3D_v2, &param) }.expect("memcpy from array failed");
+        unsafe { contexted_call!(src, cuMemcpy3D_v2, &memcpy3d_param_a2h(src, self)) }
+            .expect("memcpy from array failed");
     }
 
-    async fn copy_from_async(&mut self, _src: &Array<T, Dim>) {
-        todo!()
+    async fn copy_from_async(&mut self, src: &Array<T, Dim>) {
+        assert_ne!(self.head_addr(), src.head_addr());
+        assert_eq!(self.num_elem(), src.num_elem());
+        let stream = stream::Stream::new(src.context.get_ref());
+        unsafe {
+            contexted_call!(
+                src,
+                cuMemcpy3DAsync_v2,
+                &memcpy3d_param_a2h(src, self),
+                stream.stream
+            )
+        }
+        .expect("memcpy from array failed");
+        tokio::task::spawn_blocking(move || {
+            stream.sync().unwrap();
+        })
+        .await
+        .expect("Async memcpy thread failed");
     }
 }
 
@@ -118,9 +164,9 @@ macro_rules! impl_memcpy_array {
             }
             fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
                 &'a mut self,
-                _src: &'b Array<T, Dim>,
-            ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'c>> {
-                todo!()
+                src: &'b Array<T, Dim>,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                self.as_mut_slice().copy_from_async(src)
             }
         }
 
@@ -130,9 +176,9 @@ macro_rules! impl_memcpy_array {
             }
             fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
                 &'a mut self,
-                _src: &'b $t,
-            ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + 'c>> {
-                todo!()
+                src: &'b $t,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                self.copy_from_async(src.as_slice())
             }
         }
     };

@@ -25,9 +25,6 @@ pub enum AccelError {
 
     #[error("File not found: {path:?}")]
     FileNotFound { path: PathBuf },
-
-    #[error(transparent)]
-    AsyncTaskFailed(#[from] tokio::task::JoinError),
 }
 
 /// Convert return code of CUDA Driver/Runtime API into Result

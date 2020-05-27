@@ -3,7 +3,7 @@
 use crate::{contexted_call, contexted_new, device::*, error::*, *};
 use cuda::*;
 use num_traits::ToPrimitive;
-use std::{ffi::*, path::*, ptr::null_mut};
+use std::{ffi::*, future::Future, path::*, pin::Pin, ptr::null_mut};
 
 /// Size of Block (thread block) in [CUDA thread hierarchy]( http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#programming-model )
 ///
@@ -504,6 +504,45 @@ pub trait Launchable<'arg> {
         }
         kernel.sync()?;
         Ok(())
+    }
+
+    /// Launch CUDA Kernel asynchronously
+    fn launch_async(
+        &self,
+        grid: impl Into<Grid>,
+        block: impl Into<Block>,
+        args: impl Into<Self::Args>,
+    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'arg>> {
+        let grid = grid.into();
+        let block = block.into();
+        let kernel = self.get_kernel().unwrap();
+        let stream = stream::Stream::new(kernel.module.context.get_ref());
+        let args: Self::Args = args.into();
+        unsafe {
+            contexted_call!(
+                &kernel,
+                cuLaunchKernel,
+                kernel.func,
+                grid.x,
+                grid.y,
+                grid.z,
+                block.x,
+                block.y,
+                block.z,
+                0, /* FIXME: no shared memory */
+                stream.stream,
+                args.as_ptr(),
+                null_mut() /* no extra */
+            )
+            .unwrap();
+        }
+        Box::pin(async {
+            tokio::task::spawn_blocking(move || {
+                stream.sync().unwrap();
+            })
+            .await
+            .expect("Async memcpy thread failed");
+        })
     }
 }
 

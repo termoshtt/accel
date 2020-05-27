@@ -26,6 +26,7 @@ thiserror = "1.0.19"
 tokio = { version = "0.2.21", features = ["blocking"] }
 
 [dev-dependencies]
+trybuild = "1.0.19"
 criterion = "0.3.2"
 tokio = { version = "0.2.21", features = ["full"] }
 

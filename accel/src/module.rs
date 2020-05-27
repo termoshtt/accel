@@ -475,10 +475,10 @@ pub trait Launchable<'arg> {
     /// module.launch((1,) /* grid */, (4,) /* block */, (&a,))?; // wait until kernel execution ends
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
-    fn launch<G: Into<Grid>, B: Into<Block>>(
+    fn launch(
         &self,
-        grid: G,
-        block: B,
+        grid: impl Into<Grid>,
+        block: impl Into<Block>,
         args: impl Into<Self::Args>,
     ) -> Result<()> {
         let grid = grid.into();

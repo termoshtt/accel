@@ -375,7 +375,7 @@ impl Contexted for Kernel<'_> {
 /// let p = &a as *const i32;
 /// assert_eq!(
 ///     DeviceSend::as_ptr(&p),
-///     &p as *const *const i32 as *const u8
+///     &p as *const *const i32 as *mut c_void
 /// );
 /// assert!(std::ptr::eq(
 ///     unsafe { *(DeviceSend::as_ptr(&p) as *mut *const i32) },
@@ -406,49 +406,6 @@ impl DeviceSend for usize {}
 impl DeviceSend for f32 {}
 impl DeviceSend for f64 {}
 
-/// Arbitary number of tuple of kernel arguments
-///
-/// ```
-/// # use accel::*;
-/// # use std::ffi::*;
-/// let a: i32 = 10;
-/// let b: f32 = 1.0;
-/// assert_eq!(
-///   Arguments::kernel_params(&(&a, &b)),
-///   vec![&a as *const i32 as *mut _, &b as *const f32 as *mut _, ]
-/// );
-/// ```
-pub trait Arguments<'arg> {
-    /// Get a list of kernel parameters to be passed into [cuLaunchKernel]
-    ///
-    /// [cuLaunchKernel]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__EXEC.html#group__CUDA__EXEC_1gb8f3dc3031b40da29d5f9a7139e52e15
-    fn kernel_params(&self) -> Vec<*mut c_void>;
-}
-
-macro_rules! impl_kernel_parameters {
-    ($($name:ident),*; $($num:tt),*) => {
-        impl<'arg, $($name : DeviceSend),*> Arguments<'arg> for ($( &'arg $name, )*) {
-            fn kernel_params(&self) -> Vec<*mut c_void> {
-                vec![$( self.$num.as_ptr() as *mut c_void ),*]
-            }
-        }
-    }
-}
-
-impl_kernel_parameters!(;);
-impl_kernel_parameters!(D0; 0);
-impl_kernel_parameters!(D0, D1; 0, 1);
-impl_kernel_parameters!(D0, D1, D2; 0, 1, 2);
-impl_kernel_parameters!(D0, D1, D2, D3; 0, 1, 2, 3);
-impl_kernel_parameters!(D0, D1, D2, D3, D4; 0, 1, 2, 3, 4);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5; 0, 1, 2, 3, 4, 5);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6; 0, 1, 2, 3, 4, 5, 6);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7; 0, 1, 2, 3, 4, 5, 6, 7);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8; 0, 1, 2, 3, 4, 5, 6, 7, 8);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-
 pub trait ArgRef {
     fn as_ptr(&self) -> *mut *mut c_void {
         self as *const Self as *mut *mut c_void
@@ -466,7 +423,7 @@ pub trait ArgRef {
 // ```
 //
 // and impls for `Send`, `Sync`, `From(&D1, &D2)`, and `ArgRef`
-accel_derive::define_argref!(4 /* 1..=4 */);
+accel_derive::define_argref!(12 /* 1..=4 */);
 
 /// Typed CUDA Kernel launcher
 ///
@@ -499,7 +456,7 @@ pub trait Launchable<'arg> {
     /// This must be a tuple of [DeviceSend] types.
     ///
     /// [DeviceSend]: trait.DeviceSend.html
-    type Args: Arguments<'arg>;
+    type Args: ArgRef;
 
     fn get_kernel(&self) -> Result<Kernel>;
 
@@ -515,19 +472,19 @@ pub trait Launchable<'arg> {
     /// let ctx = device.create_context();
     /// let module = f::Module::new(&ctx)?;
     /// let a = 12;
-    /// module.launch((1,) /* grid */, (4,) /* block */, &(&a,))?; // wait until kernel execution ends
+    /// module.launch((1,) /* grid */, (4,) /* block */, (&a,))?; // wait until kernel execution ends
     /// # Ok::<(), ::accel::error::AccelError>(())
     /// ```
     fn launch<G: Into<Grid>, B: Into<Block>>(
         &self,
         grid: G,
         block: B,
-        args: &Self::Args,
+        args: impl Into<Self::Args>,
     ) -> Result<()> {
         let grid = grid.into();
         let block = block.into();
         let kernel = self.get_kernel()?;
-        let mut params = args.kernel_params();
+        let args: Self::Args = args.into();
         unsafe {
             contexted_call!(
                 &kernel,
@@ -541,7 +498,7 @@ pub trait Launchable<'arg> {
                 block.z,
                 0,          /* FIXME: no shared memory */
                 null_mut(), /* use default stream */
-                params.as_mut_ptr(),
+                args.as_ptr(),
                 null_mut() /* no extra */
             )?;
         }

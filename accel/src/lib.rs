@@ -61,7 +61,7 @@
 //!     add(&ctx,
 //!         1 /* grid */,
 //!         n /* block */,
-//!         &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)
+//!         (&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)
 //!     ).expect("Kernel call failed");
 //!
 //!     println!("c = {:?}", c.as_slice());
@@ -82,7 +82,7 @@
 //! fn main() -> error::Result<()> {
 //!     let device = Device::nth(0)?;
 //!     let ctx = device.create_context();
-//!     let result = assert(&ctx, 1 /* grid */, 4 /* block */, &());
+//!     let result = assert(&ctx, 1 /* grid */, 4 /* block */, ());
 //!     assert!(result.is_err()); // assertion failed
 //!     Ok(())
 //! }
@@ -102,7 +102,7 @@
 //! fn main() -> error::Result<()> {
 //!     let device = Device::nth(0)?;
 //!     let ctx = device.create_context();
-//!     print(&ctx, 1, 4, &())?;
+//!     print(&ctx, 1, 4, ())?;
 //!     Ok(())
 //! }
 //! ```

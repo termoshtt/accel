@@ -15,7 +15,7 @@ fn test() -> Result<()> {
     let i = 12;
     let grid = Grid::x(1);
     let block = Block::x(4);
-    launch(&ctx, grid, block, &(&i,))?;
+    launch(&ctx, grid, block, (&i,))?;
     Ok(())
 }
 

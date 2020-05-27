@@ -31,7 +31,7 @@ fn main() -> error::Result<()> {
         &ctx,
         1, /* grid */
         n, /* block */
-        &(&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n),
+        (&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n),
     )
     .expect("Kernel call failed");
 

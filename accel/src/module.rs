@@ -512,7 +512,7 @@ pub trait Launchable<'arg> {
         grid: impl Into<Grid>,
         block: impl Into<Block>,
         args: impl Into<Self::Args>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'arg>> {
+    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'arg>> {
         let grid = grid.into();
         let block = block.into();
         let kernel = self.get_kernel().unwrap();
@@ -534,14 +534,16 @@ pub trait Launchable<'arg> {
                 args.as_ptr(),
                 null_mut() /* no extra */
             )
-            .unwrap();
         }
+        .expect("Asynchronous kernel launch has been failed");
+
         Box::pin(async {
-            tokio::task::spawn_blocking(move || {
-                stream.sync().unwrap();
+            tokio::task::spawn_blocking(move || -> Result<()> {
+                stream.sync()?;
+                Ok(())
             })
-            .await
-            .expect("Async memcpy thread failed");
+            .await??;
+            Ok(())
         })
     }
 }

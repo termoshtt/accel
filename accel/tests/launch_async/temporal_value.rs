@@ -8,8 +8,8 @@ unsafe fn add(a: *const f32, b: *const f32, c: *mut f32, n: usize) {
     }
 }
 
-#[tokio::test]
-async fn temporal_value() -> error::Result<()> {
+#[tokio::main]
+async fn main() -> error::Result<()> {
     let device = Device::nth(0)?;
     let ctx = device.create_context();
     let n = 16;

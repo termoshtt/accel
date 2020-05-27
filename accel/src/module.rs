@@ -384,8 +384,8 @@ impl Contexted for Kernel<'_> {
 /// ```
 pub trait DeviceSend: Sized {
     /// Get the address of this value
-    fn as_ptr(&self) -> *const u8 {
-        self as *const Self as *const u8
+    fn as_ptr(&self) -> *mut c_void {
+        self as *const Self as *mut c_void
     }
 }
 
@@ -448,6 +448,25 @@ impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8; 0, 1, 2, 3, 4, 5, 6,
 impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 impl_kernel_parameters!(D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11; 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+
+pub trait ArgRef {
+    fn as_ptr(&self) -> *mut *mut c_void {
+        self as *const Self as *mut *mut c_void
+    }
+}
+
+// Generate `ArgRef*` structs like
+//
+// ```
+// #[repr(C)]
+// pub struct ArgRef2<'arg, D1: DeviceSend, D2: DeviceSend> {
+//     pub arg1: &'arg D1,
+//     pub arg2: &'arg D2,
+// }
+// ```
+//
+// and impls for `Send`, `Sync`, `From(&D1, &D2)`, and `ArgRef`
+accel_derive::define_argref!(4 /* 1..=4 */);
 
 /// Typed CUDA Kernel launcher
 ///
@@ -615,5 +634,17 @@ mod tests {
         let ctx = device.create_context();
         let _mod = Module::from_str(&ctx, ptx)?;
         Ok(())
+    }
+
+    #[test]
+    fn arg_ref2() {
+        let a: i32 = 10;
+        let b: f32 = 1.0;
+        let args: ArgRef2<'_, i32, f32> = (&a, &b).into();
+        let args_ptrs: &[*mut c_void] = unsafe { std::slice::from_raw_parts(args.as_ptr(), 2) };
+        assert_eq!(
+            args_ptrs,
+            &[&a as *const _ as *mut c_void, &b as *const _ as *mut c_void]
+        );
     }
 }

@@ -22,6 +22,7 @@
 //! println!("{}", add::PTX_STR);
 //! ```
 
+mod argref;
 mod builder;
 mod contexted;
 mod host;
@@ -39,4 +40,9 @@ pub fn kernel(_attr: TokenStream, func: TokenStream) -> TokenStream {
 #[proc_macro_derive(Contexted)]
 pub fn contexted(input: TokenStream) -> TokenStream {
     contexted::contexted(syn::parse(input).unwrap()).into()
+}
+
+#[proc_macro]
+pub fn define_argref(item: TokenStream) -> TokenStream {
+    argref::generate(item.into()).into()
 }

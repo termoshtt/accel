@@ -119,7 +119,14 @@ pub mod module;
 pub mod profiler;
 pub mod stream;
 
+mod block;
+mod grid;
+mod instruction;
+
+pub use block::Block;
 pub use device::*;
+pub use grid::Grid;
+pub use instruction::Instruction;
 pub use linker::*;
 pub use memory::*;
 pub use module::*;

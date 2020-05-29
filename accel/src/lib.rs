@@ -113,6 +113,7 @@ pub use accel_derive::kernel;
 
 pub mod device;
 pub mod error;
+pub mod execution;
 pub mod linker;
 pub mod memory;
 pub mod module;
@@ -125,6 +126,7 @@ mod instruction;
 
 pub use block::Block;
 pub use device::*;
+pub use execution::*;
 pub use grid::Grid;
 pub use instruction::Instruction;
 pub use linker::*;

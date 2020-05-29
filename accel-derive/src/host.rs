@@ -13,7 +13,7 @@ fn argref_path(func: &syn::ItemFn) -> TokenStream {
         .cloned()
         .collect();
     let args_ident: syn::Path =
-        syn::parse_str(&format!("::accel::module::ArgRef{}", input_types.len())).unwrap();
+        syn::parse_str(&format!("::accel::execution::ArgRef{}", input_types.len())).unwrap();
     quote! { #args_ident <'arg, #(#input_types),*> }
 }
 

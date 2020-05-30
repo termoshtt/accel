@@ -21,6 +21,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
                 .map(|k| syn::Ident::new(&format!("Arg{}", k), Span::call_site()))
                 .collect();
             quote! {
+                /// Launchable Kernel with N-arguments
                 pub trait #name <'arg> {
                     #(
                         type #targets;

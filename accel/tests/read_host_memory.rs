@@ -16,7 +16,7 @@ fn page_locked() -> error::Result<()> {
     a[1] = 1;
     a[2] = 2;
     a[3] = 3;
-    read_host_memory(&ctx, 1, 4, (&a.as_ptr(),))?;
+    read_host_memory(&ctx, 1, 4, (a.as_ptr(),))?;
     Ok(())
 }
 
@@ -31,6 +31,6 @@ fn registered() -> error::Result<()> {
     mem[1] = 1;
     mem[2] = 2;
     mem[3] = 3;
-    read_host_memory(&ctx, 1, 4, (&mem.as_ptr(),))?;
+    read_host_memory(&ctx, 1, 4, (mem.as_ptr(),))?;
     Ok(())
 }

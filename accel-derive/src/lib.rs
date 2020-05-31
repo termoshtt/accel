@@ -22,10 +22,10 @@
 //! println!("{}", add::PTX_STR);
 //! ```
 
-mod argref;
 mod builder;
 mod contexted;
 mod host;
+mod launchable;
 mod parser;
 
 use proc_macro::TokenStream;
@@ -43,6 +43,6 @@ pub fn contexted(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn define_argref(item: TokenStream) -> TokenStream {
-    argref::generate(item.into()).into()
+pub fn define_launchable(item: TokenStream) -> TokenStream {
+    launchable::generate(item.into()).into()
 }

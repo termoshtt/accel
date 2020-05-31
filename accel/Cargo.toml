@@ -1,6 +1,6 @@
 [package]
 name = "accel"
-version = "0.3.1"
+version = "0.4.0-alpha.0"
 authors = ["Toshiki Teramura <toshiki.teramura@gmail.com>"]
 edition = "2018"
 

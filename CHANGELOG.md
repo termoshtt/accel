@@ -3,6 +3,13 @@ Unreleased
 
 Not released features
 
+0.3.1 - 2020-05-25
+-------------------
+
+- HotFix for `impl_array_scalar` macro
+  - https://gitlab.com/termoshtt/accel/-/issues/58
+  - https://gitlab.com/termoshtt/accel/-/issues/59
+
 0.3.0 - 2020-05-04
 ===================
 

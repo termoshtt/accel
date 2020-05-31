@@ -7,6 +7,7 @@ Unreleased (will be 0.4.0)
   - memcpy https://gitlab.com/termoshtt/accel/-/merge_requests/85
   - kernel launch https://gitlab.com/termoshtt/accel/-/merge_requests/88
 - `ContextRef` struct https://gitlab.com/termoshtt/accel/-/merge_requests/83
+- memcpy benchmark https://gitlab.com/termoshtt/accel/-/merge_requests/81
 
 ### Changed
 
@@ -14,13 +15,12 @@ Unreleased (will be 0.4.0)
 - Kernel launch APIs changes, refactoring `Launchable` and `DeviceSend` traits
   - reference support https://gitlab.com/termoshtt/accel/-/merge_requests/90
   - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91
+- `module` sub-module split https://gitlab.com/termoshtt/accel/-/merge_requests/89
 
 0.3.1 - 2020-05-25
 -------------------
 
-- HotFix for `impl_array_scalar` macro
-  - https://gitlab.com/termoshtt/accel/-/issues/58
-  - https://gitlab.com/termoshtt/accel/-/issues/59
+- HotFix for `impl_array_scalar` macro https://gitlab.com/termoshtt/accel/-/issues/58 https://gitlab.com/termoshtt/accel/-/issues/59 https://gitlab.com/termoshtt/accel/-/merge_requests/80
 
 0.3.0 - 2020-05-04
 ===================

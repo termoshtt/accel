@@ -16,18 +16,18 @@ categories    = []
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.7"
-quote = "1.0.2"
-syn = { version = "1.0", features =  ["full", "extra-traits"] }
+proc-macro2 = "1.0.18"
+quote = "1.0.6"
+syn = { version = "1.0.30", features = ["full", "extra-traits"] }
 
 dirs = "2.0.2"
 maplit = "1.0.2"
-serde = { version = "1.0.104", features = ["derive"] }
-toml = "0.5.5"
+serde = { version = "1.0.111", features = ["derive"] }
+toml = "0.5.6"
 
-failure = "0.1.6"
-anyhow = "1.0"
+failure = "0.1.8"
+anyhow = "1.0.31"
 
 [dev-dependencies]
-trybuild = "1.0.19"
+trybuild = "1.0.27"
 accel = { version = "0.3.0", path = "../accel" }

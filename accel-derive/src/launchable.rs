@@ -100,14 +100,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
                             )
                         }
                         .expect("Asynchronous kernel launch has been failed");
-                        Box::pin(async {
-                            tokio::task::spawn_blocking(move || -> Result<()> {
-                                stream.sync()?;
-                                Ok(())
-                            })
-                            .await??;
-                            Ok(())
-                        })
+                        stream.into_future()
                     }
                 }
             }

@@ -5,7 +5,6 @@
 //! [Surface]: https://docs.nvidia.com/cuda/cuda-driver-api/group__CUDA__SURFOBJECT.html#group__CUDA__SURFOBJECT
 
 use crate::{contexted_call, contexted_new, device::Contexted, error::Result, *};
-use async_trait::async_trait;
 use cuda::*;
 use num_traits::ToPrimitive;
 use std::{future::Future, marker::PhantomData, pin::Pin};
@@ -76,7 +75,6 @@ fn memcpy3d_param_h2a<T: Scalar, Dim: Dimension>(
     }
 }
 
-#[async_trait]
 impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
     fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -85,7 +83,10 @@ impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
             .expect("memcpy into array failed");
     }
 
-    async fn copy_from_async(&mut self, src: &[T]) {
+    fn copy_from_async<'a>(
+        &'a mut self,
+        src: &'a [T],
+    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let stream = stream::Stream::new(self.context.get_ref());
@@ -98,11 +99,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
             )
         }
         .expect("memcpy into array failed");
-        tokio::task::spawn_blocking(move || {
-            stream.sync().unwrap();
-        })
-        .await
-        .expect("Async memcpy thread failed");
+        Box::pin(async { stream.into_future().await.expect("async memcpy failed") })
     }
 }
 
@@ -126,7 +123,6 @@ fn memcpy3d_param_a2h<T: Scalar, Dim: Dimension>(
     }
 }
 
-#[async_trait]
 impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
     fn copy_from(&mut self, src: &Array<T, Dim>) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -135,7 +131,10 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
             .expect("memcpy from array failed");
     }
 
-    async fn copy_from_async(&mut self, src: &Array<T, Dim>) {
+    fn copy_from_async<'a>(
+        &'a mut self,
+        src: &'a Array<T, Dim>,
+    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let stream = stream::Stream::new(src.context.get_ref());
@@ -148,11 +147,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
             )
         }
         .expect("memcpy from array failed");
-        tokio::task::spawn_blocking(move || {
-            stream.sync().unwrap();
-        })
-        .await
-        .expect("Async memcpy thread failed");
+        Box::pin(async { stream.into_future().await.expect("async memcpy failed") })
     }
 }
 
@@ -162,10 +157,10 @@ macro_rules! impl_memcpy_array {
             fn copy_from(&mut self, src: &Array<T, Dim>) {
                 self.as_mut_slice().copy_from(src);
             }
-            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+            fn copy_from_async<'a>(
                 &'a mut self,
-                src: &'b Array<T, Dim>,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                src: &'a Array<T, Dim>,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
                 self.as_mut_slice().copy_from_async(src)
             }
         }
@@ -174,10 +169,10 @@ macro_rules! impl_memcpy_array {
             fn copy_from(&mut self, src: &$t) {
                 self.copy_from(src.as_slice());
             }
-            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
+            fn copy_from_async<'a>(
                 &'a mut self,
-                src: &'b $t,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+                src: &'a $t,
+            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
                 self.copy_from_async(src.as_slice())
             }
         }

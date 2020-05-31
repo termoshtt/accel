@@ -1,6 +1,4 @@
 use super::*;
-use async_trait::async_trait;
-use std::{future::Future, pin::Pin};
 
 /// Typed wrapper of cuPointerGetAttribute
 fn get_attr<T, Attr>(ptr: *const T, attr: CUpointer_attribute) -> error::Result<Attr> {
@@ -60,7 +58,6 @@ impl<T: Scalar> Memory for [T] {
     }
 }
 
-#[async_trait]
 impl<T: Scalar> Memcpy<[T]> for [T] {
     fn copy_from(&mut self, src: &[T]) {
         assert_ne!(self.head_addr(), src.head_addr());
@@ -81,7 +78,7 @@ impl<T: Scalar> Memcpy<[T]> for [T] {
         }
     }
 
-    async fn copy_from_async(&mut self, src: &[T]) {
+    fn copy_from_async<'a>(&'a mut self, src: &'a [T]) -> BoxFuture<'a, ()> {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let ctx1 = get_context(self.head_addr());
@@ -100,13 +97,15 @@ impl<T: Scalar> Memcpy<[T]> for [T] {
                 )
             }
             .expect("Failed to start async memcpy");
-            tokio::task::spawn_blocking(move || {
-                stream.sync().unwrap();
+            Box::pin(async {
+                stream
+                    .into_future()
+                    .await
+                    .expect("Async memcpy thread failed")
             })
-            .await
-            .expect("Async memcpy thread failed");
         } else {
             self.copy_from_slice(src);
+            Box::pin(async {})
         }
     }
 }
@@ -117,10 +116,7 @@ macro_rules! impl_memcpy_slice {
             fn copy_from(&mut self, src: &[T]) {
                 self.as_mut_slice().copy_from(src);
             }
-            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
-                &'a mut self,
-                src: &'b [T],
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+            fn copy_from_async<'a>(&'a mut self, src: &'a [T]) -> BoxFuture<'a, ()> {
                 self.as_mut_slice().copy_from_async(src)
             }
         }
@@ -129,10 +125,7 @@ macro_rules! impl_memcpy_slice {
             fn copy_from(&mut self, src: &$t) {
                 self.copy_from(src.as_slice());
             }
-            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
-                &'a mut self,
-                src: &'b $t,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+            fn copy_from_async<'a>(&'a mut self, src: &'a $t) -> BoxFuture<'a, ()> {
                 self.copy_from_async(src.as_slice())
             }
         }
@@ -149,10 +142,7 @@ macro_rules! impl_memcpy {
             fn copy_from(&mut self, src: &$from) {
                 self.as_mut_slice().copy_from(src.as_slice());
             }
-            fn copy_from_async<'a: 'c, 'b: 'c, 'c>(
-                &'a mut self,
-                src: &'b $from,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'c>> {
+            fn copy_from_async<'a>(&'a mut self, src: &'a $from) -> BoxFuture<'a, ()> {
                 self.as_mut_slice().copy_from_async(src.as_slice())
             }
         }

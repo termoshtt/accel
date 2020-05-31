@@ -70,12 +70,11 @@ pub fn generate(item: TokenStream) -> TokenStream {
                         grid: impl Into<Grid>,
                         block: impl Into<Block>,
                         (#(#args_value,)*): (#(#args_types,)*),
-                    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'arg>>
+                    ) -> ::futures::future::BoxFuture<'arg, Result<()>>
                     where
                         #(
                             #args_types: DeviceSend<Target = Self::#targets> + 'arg
                         ),*
-
                     {
                         let grid = grid.into();
                         let block = block.into();
@@ -100,14 +99,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
                             )
                         }
                         .expect("Asynchronous kernel launch has been failed");
-                        Box::pin(async {
-                            tokio::task::spawn_blocking(move || -> Result<()> {
-                                stream.sync()?;
-                                Ok(())
-                            })
-                            .await??;
-                            Ok(())
-                        })
+                        Box::pin(stream.into_future())
                     }
                 }
             }

@@ -57,8 +57,8 @@ pub use registered::*;
 pub use scalar::*;
 
 use crate::*;
-use async_trait::async_trait;
 use cuda::*;
+use futures::future::BoxFuture;
 use num_traits::Zero;
 use std::{ffi::c_void, mem::MaybeUninit};
 
@@ -142,7 +142,6 @@ pub trait Memory {
 }
 
 /// Copy data from one to another
-#[async_trait]
 pub trait Memcpy<Target: Memory<Elem = Self::Elem> + ?Sized>: Memory {
     /// Examples
     /// ---------
@@ -277,7 +276,7 @@ pub trait Memcpy<Target: Memory<Elem = Self::Elem> + ?Sized>: Memory {
     /// future.await;
     /// # }
     /// ```
-    async fn copy_from_async(&mut self, src: &Target);
+    fn copy_from_async<'a>(&'a mut self, src: &'a Target) -> BoxFuture<'a, ()>;
 }
 
 /// Set all elements by `value`

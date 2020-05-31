@@ -127,6 +127,12 @@ pub trait Contexted {
     fn guard(&self) -> Result<ContextGuard>;
     fn sync(&self) -> Result<()>;
     fn version(&self) -> Result<u32>;
+    /// Get a reference
+    ///
+    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
+    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
+    ///
+    fn get_ref(&self) -> ContextRef;
 }
 
 /// Owend handler for CUDA context
@@ -161,15 +167,8 @@ impl Contexted for Context {
         ctx_push(self.ptr)?;
         Ok(ContextGuard { ptr: self.ptr })
     }
-}
 
-impl ContextOwned {
-    /// Get a reference
-    ///
-    /// This is **NOT** a Rust reference, i.e. you can drop owned context while the reference exists.
-    /// The reference becomes expired after owned context is released, and it will cause a runtime error.
-    ///
-    pub fn get_ref(&self) -> ContextRef {
+    fn get_ref(&self) -> ContextRef {
         ContextRef { ptr: self.ptr }
     }
 }
@@ -209,6 +208,10 @@ impl Contexted for ContextRef {
     fn guard(&self) -> Result<ContextGuard> {
         ctx_push(self.ptr)?;
         Ok(ContextGuard { ptr: self.ptr })
+    }
+
+    fn get_ref(&self) -> ContextRef {
+        self.clone()
     }
 }
 

@@ -37,6 +37,10 @@ pub fn contexted(input: DeriveInput) -> TokenStream {
             fn guard(&self) -> Result<ContextGuard> {
                 self.#context_ident.guard()
             }
+
+            fn get_ref(&self) -> ContextRef {
+                self.#context_ident.get_ref()
+            }
         }
     }
 }

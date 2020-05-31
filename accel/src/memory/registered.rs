@@ -107,3 +107,17 @@ impl<T: Scalar> Continuous for RegisteredMemory<'_, T> {
         self
     }
 }
+
+impl<'arg, 'a: 'arg, T: Scalar> DeviceSend for &'arg RegisteredMemory<'a, T> {
+    type Target = *const T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        self.data.as_kernel_parameter()
+    }
+}
+
+impl<'arg, 'a: 'arg, T: Scalar> DeviceSend for &'arg mut RegisteredMemory<'a, T> {
+    type Target = *mut T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        self.data.as_kernel_parameter()
+    }
+}

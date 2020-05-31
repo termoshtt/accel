@@ -102,6 +102,14 @@ impl<T: Sized> DeviceSend for *const T {
     type Target = Self;
 }
 
+impl<'arg, T: Sized> DeviceSend for &'arg [T] {
+    type Target = *const T;
+}
+
+impl<'arg, T: Sized> DeviceSend for &'arg mut [T] {
+    type Target = *mut T;
+}
+
 macro_rules! impl_device_send {
     ($pri:ty) => {
         impl DeviceSend for $pri {

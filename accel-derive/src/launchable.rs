@@ -1,6 +1,5 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-
 pub fn generate(item: TokenStream) -> TokenStream {
     let literal: syn::LitInt = syn::parse2(item).unwrap();
     let n: usize = literal.base10_parse().unwrap();
@@ -29,9 +28,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
                     #(
                         type #targets;
                     )*
-
                     fn get_kernel(&self) -> Result<Kernel>;
-
                     fn launch<#(#args_types),*>(
                         &self,
                         grid: impl Into<Grid>,
@@ -66,6 +63,51 @@ pub fn generate(item: TokenStream) -> TokenStream {
                         }
                         kernel.sync()?;
                         Ok(())
+                    }
+
+                    fn launch_async<#(#args_types),*>(
+                        &self,
+                        grid: impl Into<Grid>,
+                        block: impl Into<Block>,
+                        (#(#args_value,)*): (#(#args_types,)*),
+                    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'arg>>
+                    where
+                        #(
+                            #args_types: DeviceSend<Target = Self::#targets> + 'arg
+                        ),*
+
+                    {
+                        let grid = grid.into();
+                        let block = block.into();
+                        let kernel = self.get_kernel().unwrap();
+                        let stream = stream::Stream::new(kernel.get_ref());
+                        let mut args = [#(#args_value.as_kernel_parameter()),*];
+                        unsafe {
+                            contexted_call!(
+                                &kernel,
+                                cuLaunchKernel,
+                                kernel.func,
+                                grid.x,
+                                grid.y,
+                                grid.z,
+                                block.x,
+                                block.y,
+                                block.z,
+                                0, /* FIXME: no shared memory */
+                                stream.stream,
+                                args.as_mut_ptr(),
+                                null_mut() /* no extra */
+                            )
+                        }
+                        .expect("Asynchronous kernel launch has been failed");
+                        Box::pin(async {
+                            tokio::task::spawn_blocking(move || -> Result<()> {
+                                stream.sync()?;
+                                Ok(())
+                            })
+                            .await??;
+                            Ok(())
+                        })
                     }
                 }
             }

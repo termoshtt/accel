@@ -23,7 +23,7 @@ async fn main() -> error::Result<()> {
     }
 
     let md = add::Module::new(&ctx)?;
-    let future = md.launch_async(1, n, (&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n));
+    let future = md.launch_async(1, n, (&a, &b, &mut c, n));
 
     println!("{:?}", c); // cannot be borrow
     future.await?;

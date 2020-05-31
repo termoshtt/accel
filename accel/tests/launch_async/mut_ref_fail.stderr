@@ -1,0 +1,10 @@
+error[E0502]: cannot borrow `c` as immutable because it is also borrowed as mutable
+  --> $DIR/mut_ref_fail.rs:28:22
+   |
+26 |     let future = md.launch_async(1, n, (&a, &b, &mut c, n));
+   |                                                 ------ mutable borrow occurs here
+27 |
+28 |     println!("{:?}", c); // cannot be borrow
+   |                      ^ immutable borrow occurs here
+29 |     future.await?;
+   |     ------ mutable borrow later used here

@@ -23,6 +23,10 @@ impl Contexted for Kernel<'_> {
     fn guard(&self) -> Result<ContextGuard> {
         self.module.context.guard()
     }
+
+    fn get_ref(&self) -> ContextRef {
+        self.module.get_ref()
+    }
 }
 
 /// OOP-like wrapper of `cuModule*` APIs

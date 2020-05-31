@@ -30,6 +30,8 @@ pub enum AccelError {
     AsyncTaskFailed(#[from] tokio::task::JoinError),
 }
 
+unsafe impl Send for AccelError {}
+
 /// Convert return code of CUDA Driver/Runtime API into Result
 pub(crate) fn check(error: DeviceError, api_name: &str) -> Result<()> {
     match error {

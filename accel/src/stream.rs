@@ -1,6 +1,6 @@
 use crate::{contexted_call, contexted_new, device::*, error::*};
 use cuda::*;
-use std::{future::Future, pin::Pin};
+use std::future::Future;
 
 /// Handler for non-blocking CUDA Stream
 #[derive(Debug, Contexted)]
@@ -50,8 +50,8 @@ impl Stream {
     }
 
     /// Consume and convert into a Future
-    pub fn into_future(self) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
-        Box::pin(async { tokio::task::spawn_blocking(move || self.sync()).await? })
+    pub fn into_future(self) -> impl Future<Output = Result<()>> + Send {
+        async { tokio::task::spawn_blocking(move || self.sync()).await? }
     }
 
     /// Wait event to sync another stream

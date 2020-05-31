@@ -6,8 +6,9 @@
 
 use crate::{contexted_call, contexted_new, device::Contexted, error::Result, *};
 use cuda::*;
+use futures::future::BoxFuture;
 use num_traits::ToPrimitive;
-use std::{future::Future, marker::PhantomData, pin::Pin};
+use std::marker::PhantomData;
 
 pub use cuda::CUDA_ARRAY3D_DESCRIPTOR as Descriptor;
 
@@ -83,10 +84,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<[T]> for Array<T, Dim> {
             .expect("memcpy into array failed");
     }
 
-    fn copy_from_async<'a>(
-        &'a mut self,
-        src: &'a [T],
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+    fn copy_from_async<'a>(&'a mut self, src: &'a [T]) -> BoxFuture<'a, ()> {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let stream = stream::Stream::new(self.context.get_ref());
@@ -131,10 +129,7 @@ impl<T: Scalar, Dim: Dimension> Memcpy<Array<T, Dim>> for [T] {
             .expect("memcpy from array failed");
     }
 
-    fn copy_from_async<'a>(
-        &'a mut self,
-        src: &'a Array<T, Dim>,
-    ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+    fn copy_from_async<'a>(&'a mut self, src: &'a Array<T, Dim>) -> BoxFuture<'a, ()> {
         assert_ne!(self.head_addr(), src.head_addr());
         assert_eq!(self.num_elem(), src.num_elem());
         let stream = stream::Stream::new(src.context.get_ref());
@@ -157,10 +152,7 @@ macro_rules! impl_memcpy_array {
             fn copy_from(&mut self, src: &Array<T, Dim>) {
                 self.as_mut_slice().copy_from(src);
             }
-            fn copy_from_async<'a>(
-                &'a mut self,
-                src: &'a Array<T, Dim>,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+            fn copy_from_async<'a>(&'a mut self, src: &'a Array<T, Dim>) -> BoxFuture<'a, ()> {
                 self.as_mut_slice().copy_from_async(src)
             }
         }
@@ -169,10 +161,7 @@ macro_rules! impl_memcpy_array {
             fn copy_from(&mut self, src: &$t) {
                 self.copy_from(src.as_slice());
             }
-            fn copy_from_async<'a>(
-                &'a mut self,
-                src: &'a $t,
-            ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+            fn copy_from_async<'a>(&'a mut self, src: &'a $t) -> BoxFuture<'a, ()> {
                 self.copy_from_async(src.as_slice())
             }
         }

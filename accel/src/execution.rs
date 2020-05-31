@@ -83,7 +83,7 @@
 
 use crate::{contexted_call, device::*, error::*, *};
 use cuda::*;
-use std::{ffi::*, future::Future, pin::Pin, ptr::null_mut};
+use std::{ffi::*, ptr::null_mut};
 
 /// Type which can be sent to device
 pub trait DeviceSend {

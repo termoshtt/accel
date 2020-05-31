@@ -23,6 +23,7 @@ num-traits = "0.2.11"
 paste = "0.1.13"
 thiserror = "1.0.19"
 tokio = { version = "0.2.21", features = ["blocking"] }
+futures = "0.3.5"
 
 [dev-dependencies]
 trybuild = "1.0.19"

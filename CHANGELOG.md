@@ -1,7 +1,19 @@
-Unreleased
-===========
+Unreleased (will be 0.4.0)
+===========================
 
-Not released features
+### Added
+
+- async/.await support
+  - memcpy https://gitlab.com/termoshtt/accel/-/merge_requests/85
+  - kernel launch https://gitlab.com/termoshtt/accel/-/merge_requests/88
+- `ContextRef` struct https://gitlab.com/termoshtt/accel/-/merge_requests/83
+
+### Changed
+
+- memcpy uses unified addressing https://gitlab.com/termoshtt/accel/-/merge_requests/84
+- Kernel launch APIs changes, refactoring `Launchable` and `DeviceSend` traits
+  - reference support https://gitlab.com/termoshtt/accel/-/merge_requests/90
+  - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91
 
 0.3.1 - 2020-05-25
 -------------------

@@ -117,6 +117,20 @@ impl<T: Scalar> Allocatable for PageLockedMemory<T> {
     }
 }
 
+impl<'arg, T: Scalar> DeviceSend for &'arg PageLockedMemory<T> {
+    type Target = *const T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        &self.ptr as *const *mut T as *mut c_void
+    }
+}
+
+impl<'arg, T: Scalar> DeviceSend for &'arg mut PageLockedMemory<T> {
+    type Target = *mut T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        &self.ptr as *const *mut T as *mut c_void
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

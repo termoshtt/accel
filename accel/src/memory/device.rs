@@ -155,6 +155,20 @@ impl<T: Scalar> Allocatable for DeviceMemory<T> {
     }
 }
 
+impl<'arg, T: Scalar> DeviceSend for &'arg DeviceMemory<T> {
+    type Target = *const T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        &self.ptr as *const CUdeviceptr as *mut c_void
+    }
+}
+
+impl<'arg, T: Scalar> DeviceSend for &'arg mut DeviceMemory<T> {
+    type Target = *mut T;
+    fn as_kernel_parameter(&self) -> *mut c_void {
+        &self.ptr as *const CUdeviceptr as *mut c_void
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

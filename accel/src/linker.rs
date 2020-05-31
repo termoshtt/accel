@@ -1,7 +1,6 @@
 //! CUDA JIT compiler and Linkers
 
-use super::{device::*, module::*};
-use crate::{contexted_call, error::*};
+use crate::{contexted_call, device::*, error::*, module::*, *};
 use cuda::*;
 use std::{
     collections::HashMap,

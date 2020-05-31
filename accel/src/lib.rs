@@ -61,7 +61,7 @@
 //!     add(&ctx,
 //!         1 /* grid */,
 //!         n /* block */,
-//!         (&a.as_ptr(), &b.as_ptr(), &c.as_mut_ptr(), &n)
+//!         (a.as_ptr(), b.as_ptr(), c.as_mut_ptr(), n)
 //!     ).expect("Kernel call failed");
 //!
 //!     println!("c = {:?}", c.as_slice());
@@ -113,13 +113,22 @@ pub use accel_derive::kernel;
 
 pub mod device;
 pub mod error;
+pub mod execution;
 pub mod linker;
 pub mod memory;
 pub mod module;
 pub mod profiler;
 pub mod stream;
 
+mod block;
+mod grid;
+mod instruction;
+
+pub use block::Block;
 pub use device::*;
+pub use execution::*;
+pub use grid::Grid;
+pub use instruction::Instruction;
 pub use linker::*;
 pub use memory::*;
 pub use module::*;

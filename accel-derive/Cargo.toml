@@ -30,4 +30,4 @@ anyhow = "1.0.31"
 
 [dev-dependencies]
 trybuild = "1.0.27"
-accel = { version = "0.3.0", path = "../accel" }
+accel = { version = "0.4.0-alpha.0", path = "../accel" }

@@ -17,6 +17,10 @@ Unreleased (will be 0.4.0)
   - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91
 - `module` sub-module split https://gitlab.com/termoshtt/accel/-/merge_requests/89
 
+### Maintenance
+
+- Force write CHANGELOG on each merge requests https://gitlab.com/termoshtt/accel/-/merge_requests/95
+
 0.3.1 - 2020-05-25
 -------------------
 

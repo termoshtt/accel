@@ -63,6 +63,12 @@ bench:
       - $CI_COMMIT_MESSAGE =~ /\[bench\]/
       - $CI_RUN_BENCHMARK
 
+changelog:
+  stage: .post
+  script:
+    - test -n "$(git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} CHANGELOG.md)"
+  only: [merge_requests]
+
 package:
   stage: package
   script:

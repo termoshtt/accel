@@ -64,7 +64,11 @@ bench:
       - $CI_RUN_BENCHMARK
 
 changelog:
+  image: debian
   stage: .post
+  before_script:
+    - apt update
+    - apt install -y git
   script:
     - test -n "$(git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} CHANGELOG.md)"
   except:

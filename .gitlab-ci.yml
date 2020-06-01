@@ -15,9 +15,6 @@ test:cargo-clippy:
   stage: test
   script:
     - cargo clippy
-  cache:
-    paths:
-      - target/
 
 test:cargo-fmt:
   stage: test
@@ -62,6 +59,17 @@ bench:
     variables:
       - $CI_COMMIT_MESSAGE =~ /\[bench\]/
       - $CI_RUN_BENCHMARK
+
+changelog:
+  image: debian
+  stage: test
+  before_script:
+    - apt update
+    - apt install -y git
+  script:
+    - test -n "$(git diff origin/master CHANGELOG.md)"
+  except:
+    - master
 
 package:
   stage: package

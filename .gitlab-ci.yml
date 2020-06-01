@@ -67,7 +67,7 @@ changelog:
     - apt update
     - apt install -y git
   script:
-    - test -n "$(git diff master CHANGELOG.md)"
+    - test -n "$(git diff origin/master CHANGELOG.md)"
   except:
     - master
 

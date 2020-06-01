@@ -68,8 +68,9 @@ changelog:
     - apt install -y git
   script:
     - test -n "$(git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} CHANGELOG.md)"
-  except:
-    - master
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+      when: always
 
 package:
   stage: package

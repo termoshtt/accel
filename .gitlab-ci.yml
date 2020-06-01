@@ -62,15 +62,14 @@ bench:
 
 changelog:
   image: debian
-  stage: .post
+  stage: test
   before_script:
     - apt update
     - apt install -y git
   script:
-    - test -n "$(git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} CHANGELOG.md)"
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
-      when: always
+    - test -n "$(git diff master CHANGELOG.md)"
+  except:
+    - master
 
 package:
   stage: package

@@ -67,7 +67,8 @@ changelog:
   stage: .post
   script:
     - test -n "$(git diff ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} CHANGELOG.md)"
-  only: [merge_requests]
+  except:
+    - master
 
 package:
   stage: package

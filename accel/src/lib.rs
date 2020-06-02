@@ -134,3 +134,10 @@ pub use memory::*;
 pub use module::*;
 pub use profiler::*;
 pub use stream::*;
+
+#[cfg(test)]
+mod tests {
+    /// Test accel_derive::kernel can be used in accel crate itself
+    #[super::kernel]
+    fn f() {}
+}

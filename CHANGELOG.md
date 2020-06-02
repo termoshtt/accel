@@ -16,6 +16,7 @@ Unreleased (will be 0.4.0)
   - reference support https://gitlab.com/termoshtt/accel/-/merge_requests/90
   - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91
 - `module` sub-module split https://gitlab.com/termoshtt/accel/-/merge_requests/89
+- `#[kernel]` proc-macro works in accel crate https://gitlab.com/termoshtt/accel/-/merge_requests/97
 
 ### Maintenance
 

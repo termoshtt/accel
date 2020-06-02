@@ -47,7 +47,7 @@ impl MetaData {
                     kernel_attrs.package.insert("name", name.into());
                 }
                 _ => {
-                    bail!("Unsupported attribute: {}", path);
+                    continue;
                 }
             }
         }

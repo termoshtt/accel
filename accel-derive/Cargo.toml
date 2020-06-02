@@ -16,6 +16,7 @@ categories    = []
 proc-macro = true
 
 [dependencies]
+proc-macro-crate = "0.1"
 proc-macro2 = "1.0.18"
 quote = "1.0.6"
 syn = { version = "1.0.30", features = ["full", "extra-traits"] }

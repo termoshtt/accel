@@ -86,9 +86,7 @@ impl<T: Scalar> Memory for PageLockedMemory<T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::PageLocked
     }
-}
 
-impl<T: Scalar> Memset for PageLockedMemory<T> {
     fn set(&mut self, value: Self::Elem) {
         self.iter_mut().for_each(|v| *v = value);
     }

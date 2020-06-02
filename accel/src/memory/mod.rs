@@ -23,7 +23,6 @@
 //! |traits       |`[T]`|[RegisteredMemory]|[PageLockedMemory]|[DeviceMemory]|[Array]| Description                                |
 //! |:------------|:---:|:----------------:|:----------------:|:------------:|:-----:|:-------------------------------------------|
 //! |[Memory]     | ✓   | ✓                | ✓                | ✓            | ✓     | Has Unified address and element size       |
-//! |[Memset]     | -   | ✓                | ✓                | ✓            | ✓     | Set by a value                             |
 //! |[Contexted]  | -   | ✓                | ✓                | ✓            | ✓     | with CUDA Context                          |
 //! |[Continuous] | ✓   | ✓                | ✓                | ✓            | -     | Can be treated as a Rust slice             |
 //! |[Allocatable]| -   | -                | ✓                | ✓            | ✓     | Newly allocatable with its shape and value |
@@ -139,6 +138,52 @@ pub trait Memory {
 
     /// Get memory type, See [MemoryType](./enum.MemoryType.html) for detail.
     fn memory_type(&self) -> MemoryType;
+
+    /// Set all elements by `value`
+    ///
+    /// Examples
+    /// ---------
+    ///
+    /// - Set `i32`
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
+    /// mem.set(1234);
+    /// for &val in mem.as_slice() {
+    ///   assert_eq!(val, 1234);
+    /// }
+    /// ```
+    ///
+    /// - Set `f32`
+    ///   - Be sure that `f64` is not supported yet because CUDA does not support 64-bit memset.
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = DeviceMemory::<f32>::zeros(&ctx, 12);
+    /// mem.set(1.0);
+    /// for &val in mem.as_slice() {
+    ///   assert_eq!(val, 1.0);
+    /// }
+    /// ```
+    ///
+    /// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
+    ///
+    /// ```
+    /// # use accel::*;
+    /// # let device = Device::nth(0).unwrap();
+    /// # let ctx = device.create_context();
+    /// let mut mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
+    /// mem.set(1234);
+    /// for &val in mem.as_slice() {
+    ///   assert_eq!(val, 1234);
+    /// }
+    /// ```
+    fn set(&mut self, value: Self::Elem);
 }
 
 /// Copy data from one to another
@@ -279,56 +324,8 @@ pub trait Memcpy<Target: Memory<Elem = Self::Elem> + ?Sized>: Memory {
     fn copy_from_async<'a>(&'a mut self, src: &'a Target) -> BoxFuture<'a, ()>;
 }
 
-/// Set all elements by `value`
-///
-/// Examples
-/// ---------
-///
-/// - Set `i32`
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<i32>::zeros(&ctx, 12);
-/// mem.set(1234);
-/// for &val in mem.as_slice() {
-///   assert_eq!(val, 1234);
-/// }
-/// ```
-///
-/// - Set `f32`
-///   - Be sure that `f64` is not supported yet because CUDA does not support 64-bit memset.
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut mem = DeviceMemory::<f32>::zeros(&ctx, 12);
-/// mem.set(1.0);
-/// for &val in mem.as_slice() {
-///   assert_eq!(val, 1.0);
-/// }
-/// ```
-///
-/// - Set for host memory equals to `mem.iter_mut().for_each(|v| *v = value)`
-///
-/// ```
-/// # use accel::*;
-/// # let device = Device::nth(0).unwrap();
-/// # let ctx = device.create_context();
-/// let mut mem = PageLockedMemory::<i32>::zeros(&ctx, 12);
-/// mem.set(1234);
-/// for &val in mem.as_slice() {
-///   assert_eq!(val, 1234);
-/// }
-/// ```
-pub trait Memset: Memory {
-    fn set(&mut self, value: Self::Elem);
-}
-
 /// Allocatable memories with CUDA context
-pub trait Allocatable: Contexted + Memset + Sized {
+pub trait Allocatable: Contexted + Memory + Sized {
     /// Shape for initialization
     type Shape: Zero;
 

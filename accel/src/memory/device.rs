@@ -84,9 +84,7 @@ impl<T: Scalar> Memory for DeviceMemory<T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Device
     }
-}
 
-impl<T: Scalar> Memset for DeviceMemory<T> {
     fn set(&mut self, value: T) {
         match T::size_of() {
             1 => unsafe {

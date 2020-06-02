@@ -54,6 +54,12 @@ impl<T: Scalar, Dim: Dimension> Memory for Array<T, Dim> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Array
     }
+
+    fn set(&mut self, value: Self::Elem) {
+        // FIXME CUDA does not have memcpy for array. This is easy but too expensive alternative way
+        let src = PageLockedMemory::from_elem(&self.context, self.dim.len(), value);
+        self.copy_from(&src);
+    }
 }
 
 fn memcpy3d_param_h2a<T: Scalar, Dim: Dimension>(
@@ -171,14 +177,6 @@ macro_rules! impl_memcpy_array {
 impl_memcpy_array!(DeviceMemory::<T>);
 impl_memcpy_array!(PageLockedMemory::<T>);
 impl_memcpy_array!(RegisteredMemory::<'_, T>);
-
-impl<T: Scalar, Dim: Dimension> Memset for Array<T, Dim> {
-    fn set(&mut self, value: Self::Elem) {
-        // FIXME CUDA does not have memcpy for array. This is easy but too expensive alternative way
-        let src = PageLockedMemory::from_elem(&self.context, self.dim.len(), value);
-        self.copy_from(&src);
-    }
-}
 
 impl<T: Scalar, Dim: Dimension> Allocatable for Array<T, Dim> {
     type Shape = Dim;

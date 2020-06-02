@@ -91,9 +91,7 @@ impl<T: Scalar> Memory for RegisteredMemory<'_, T> {
     fn memory_type(&self) -> MemoryType {
         MemoryType::Host
     }
-}
 
-impl<T: Scalar> Memset for RegisteredMemory<'_, T> {
     fn set(&mut self, value: Self::Elem) {
         self.iter_mut().for_each(|v| *v = value);
     }

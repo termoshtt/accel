@@ -11,7 +11,9 @@ Unreleased (will be 0.4.0)
 
 ### Changed
 
-- memcpy uses unified addressing https://gitlab.com/termoshtt/accel/-/merge_requests/84
+- `Memory` trait update
+  - memcpy implementation uses unified addressing https://gitlab.com/termoshtt/accel/-/merge_requests/84
+  - `Memset` trait is merged into `Memory` trait https://gitlab.com/termoshtt/accel/-/merge_requests/96
 - Kernel launch APIs changes, refactoring `Launchable` and `DeviceSend` traits
   - reference support https://gitlab.com/termoshtt/accel/-/merge_requests/90
   - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91

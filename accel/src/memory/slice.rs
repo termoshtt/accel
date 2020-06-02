@@ -56,6 +56,12 @@ impl<T: Scalar> Memory for [T] {
     fn memory_type(&self) -> MemoryType {
         memory_type(self.as_ptr())
     }
+
+    fn set(&mut self, value: T) {
+        for val in self {
+            *val = value;
+        }
+    }
 }
 
 impl<T: Scalar> Memcpy<[T]> for [T] {

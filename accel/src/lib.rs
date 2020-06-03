@@ -119,6 +119,7 @@ pub mod memory;
 pub mod module;
 pub mod profiler;
 pub mod stream;
+pub mod texture;
 
 mod block;
 mod grid;
@@ -134,6 +135,7 @@ pub use memory::*;
 pub use module::*;
 pub use profiler::*;
 pub use stream::*;
+pub use texture::*;
 
 #[cfg(test)]
 mod tests {

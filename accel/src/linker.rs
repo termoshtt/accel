@@ -311,7 +311,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
+        let data = Instruction::ptx_file(Path::new("tests/ptx/add.ptx"))?;
         linker.add(&data)?;
         Ok(())
     }
@@ -321,8 +321,8 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
 
-        let data_add = Instruction::ptx_file(Path::new("tests/data/add.ptx"))?;
-        let data_sub = Instruction::ptx_file(Path::new("tests/data/sub.ptx"))?;
+        let data_add = Instruction::ptx_file(Path::new("tests/ptx/add.ptx"))?;
+        let data_sub = Instruction::ptx_file(Path::new("tests/ptx/sub.ptx"))?;
         let _module = Linker::create(&ctx, JITConfig::default())?
             .add(&data_add)?
             .add(&data_sub)?
@@ -336,7 +336,7 @@ mod tests {
         let device = Device::nth(0)?;
         let ctx = device.create_context();
         let linker = Linker::create(&ctx, JITConfig::default())?;
-        let data = Instruction::cubin_file(Path::new("tests/data/add.cubin"))?;
+        let data = Instruction::cubin_file(Path::new("tests/ptx/add.cubin"))?;
         linker.add(&data)?;
         Ok(())
     }

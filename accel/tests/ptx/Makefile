@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: add.ptx add.cubin sub.ptx sub.cubin
+all: add.ptx add.cubin sub.ptx sub.cubin texture.ptx texture.cubin
 
 clean:
 	rm *.ptx *.cubin

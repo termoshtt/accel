@@ -1,7 +1,7 @@
 default:
   image: docker:latest
   before_script:
-    - apt add make
+    - apk add make
     - make allgebra
   services:
     - docker:dind

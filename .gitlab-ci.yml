@@ -1,0 +1,24 @@
+default:
+  image: docker:latest
+  before_script:
+    - apk add make
+    - make allgebra
+  services:
+    - docker:dind
+  tags:
+    - docker
+    - gpu
+
+stages:
+  - test
+  - push
+
+docker_test:
+  stage: test
+  script:
+    - make test
+
+docker:
+  stage: push
+  script:
+    - make push

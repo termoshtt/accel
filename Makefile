@@ -1,4 +1,6 @@
 REGISTRY  := registry.ritc.jp/ricos/allgebra
+CI_COMMIT_REF_NAME ?= manual_deploy
+
 .PHONY: test allgebra 
 
 
@@ -12,14 +14,13 @@ else
 endif
 
 allgebra: Dockerfile
-	docker build -t $(REGISTRY) . -f Dockerfile
+	docker build -t $(REGISTRY):$(CI_COMMIT_REF_NAME) . -f Dockerfile
 
 push: login allgebra
-	docker push $(REGISTRY)
+	docker push $(REGISTRY):$(CI_COMMIT_REF_NAME)
 
 in:  
-	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY)
-	
+	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY):$(CI_COMMIT_REF_NAME)
+
 test:  
-	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY) \
-	/bin/bash -c "cd test; make; make test; make clean"
+	docker run --gpus all --privileged $(REGISTRY):$(CI_COMMIT_REF_NAME)

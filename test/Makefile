@@ -22,7 +22,7 @@ acc_cublas.out: acc_cublas.cpp
 acc_fortran.out: acc_fortran.f90
 	$(FC) $(ACC_FLAGS) $(FC_FLAGS) $< -o $@
 
-test:
+test: $(TARGET)
 	./acc_naked.out 1000000
 	./acc_cublas.out 1000000
 	nvprof ./acc_cublas.out 1000000

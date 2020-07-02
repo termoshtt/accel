@@ -37,7 +37,7 @@ Requirements
 curl -sSL https://gitlab.com/termoshtt/accel/raw/master/setup_nvptx_toolchain.sh | bash
 ```
 
-Or, you can use [docekr container](./docker)
+Or, you can use [docker container](./docker)
 
 Limitations
 ------------
@@ -48,9 +48,9 @@ This project is still in early stage. There are several limitations as following
   - [f64](https://gitlab.com/termoshtt/accel/-/issues/53) and [Complex number](https://gitlab.com/termoshtt/accel/-/issues/54) supports are missing
   - [Texture/Surface object handling](https://gitlab.com/termoshtt/accel/-/issues/40) is missing
   - Async features based on CUDA Stream and Events are disabled until [async/.await support](https://gitlab.com/termoshtt/accel/-/issues/4)
- 
-- For writting GPU kernel code
-  - [libstd cannot be used in writting kernel](https://gitlab.com/termoshtt/accel/-/issues/38)
+
+- For writing GPU kernel code
+  - [libstd cannot be used in writing kernel](https://gitlab.com/termoshtt/accel/-/issues/38)
   - [Rust slice cannot be used in writing kernel](https://gitlab.com/termoshtt/accel/-/issues/7)
   - [Shared memory](https://gitlab.com/termoshtt/accel/-/issues/39) cannot be used
 
@@ -75,4 +75,4 @@ Related Projects:
 
 - [rust-cuda/wg](https://github.com/rust-cuda/wg): Working group for Rust CUDA Team
 - [denzp/rust-ptx-builder](https://github.com/denzp/rust-ptx-builder): Another CUDA kernel builder from Rust crate
-- [bheisler/RustaCUDA](https://github.com/bheisler/RustaCUDA): Another CUDA-based Rust flamework
+- [bheisler/RustaCUDA](https://github.com/bheisler/RustaCUDA): Another CUDA-based Rust framework

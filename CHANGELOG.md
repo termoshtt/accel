@@ -19,6 +19,7 @@ Unreleased (will be 0.4.0)
   - Host slice to device pointer conversion https://gitlab.com/termoshtt/accel/-/merge_requests/91
 - `module` sub-module split https://gitlab.com/termoshtt/accel/-/merge_requests/89
 - `#[kernel]` proc-macro works in accel crate https://gitlab.com/termoshtt/accel/-/merge_requests/97
+- Fixed spelling issues in Readme https://gitlab.com/termoshtt/accel/-/merge_requests/99
 
 ### Maintenance
 

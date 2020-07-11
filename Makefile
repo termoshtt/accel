@@ -27,4 +27,4 @@ in:
 	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY):$(CI_COMMIT_REF_NAME)
 
 test:  
-	docker run --gpus all --privileged $(REGISTRY):$(CI_COMMIT_REF_NAME)
+	docker run --gpus all --privileged $(REGISTRY):$(CI_COMMIT_REF_NAME) bash -c "cd /test; make test"

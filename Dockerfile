@@ -21,5 +21,3 @@ ENV MONOLISH_DIR /lib/monolish
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MONOLISH_DIR/lib
 
 COPY test/ /test
-WORKDIR /test
-CMD ["make", "test"]

@@ -18,6 +18,10 @@ allgebra: Dockerfile
 
 push: login allgebra
 	docker push $(REGISTRY):$(CI_COMMIT_REF_NAME)
+ifeq ($(CI_COMMIT_REF_NAME),master)
+	docker build -t $(REGISTRY):latest . -f Dockerfile
+	docker push $(REGISTRY):latest
+endif
 
 in:  
 	docker run -it --gpus all --privileged --mount type=bind,src=$(PWD)/test,dst=/test $(REGISTRY):$(CI_COMMIT_REF_NAME)

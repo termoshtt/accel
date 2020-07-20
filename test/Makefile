@@ -1,14 +1,14 @@
 CXX=g++-9
 CXX_FLAGS=-O3 -std=c++11 
-ACC_FLAGS=-fopenacc -foffload=nvptx-none -lcuda
+ACC_FLAGS=-fopenacc -foffload=nvptx-none="-misa=sm_35" -lcuda
 
 FC=gfortran-9
 FC_FLAGS=-O3 -std=f2018
 
 TARGET=acc_naked.out acc_cublas.out acc_fortran.out
 
-ACC_INCLUDE=-I/usr/local/cuda-10.0/targets/x86_64-linux/include/ 
-ACC_LIB=-L/usr/local/cuda-10.0/targets/x86_64-linux/lib/ 
+ACC_INCLUDE=-I/usr/local/cuda-11.0/targets/x86_64-linux/include/ -I/usr/local/cuda-10.0/targets/x86_64-linux/include/ 
+ACC_LIB=-L/usr/local/cuda-11.0/targets/x86_64-linux/lib/ -L/usr/local/cuda-10.0/targets/x86_64-linux/lib/ 
 ACC_LIBS=-lcuda -lcublas -lcudart
 
 all: $(TARGET)

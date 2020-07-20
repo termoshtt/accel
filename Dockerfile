@@ -3,9 +3,9 @@ LABEL maintainer "Toshiaki Hishinuma <hishinuma.toshiaki@gmail.com>"
 
 RUN apt-get update \
 &&  apt-get install -y make cmake \
-&&  apt-get install -y gcc-9-offload-nvptx nvptx-tools g++-9 gfortran-9 \
+&&  apt-get install -y gcc-10-offload-nvptx nvptx-tools g++-10 gfortran-10 \
 &&  apt-get install -y libopenblas-openmp-dev \
-&&  apt-get install -y cuda-cudart-dev-11-0 cuda-compiler-11.0 cuda-nvprof-11-0 cuda-cublas-dev-10-0 cuda-cusolver-dev-10-0 cuda-cusparse-dev-10-0 
+&&  apt-get install -y cuda-cudart-dev-11-0 cuda-compiler-11.0 cuda-nvprof-11-0 cuda-cupti-11-0 cuda-cublas-dev-10-0 cuda-cusolver-dev-10-0 cuda-cusparse-dev-10-0 
 
 # Utils
 RUN apt-get install -y python3 python3-yaml python3-numpy \
@@ -14,7 +14,8 @@ RUN apt-get install -y python3 python3-yaml python3-numpy \
 RUN apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* \
 
-ENV MONOLISH_DIR /lib/monolish
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MONOLISH_DIR/lib
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/lib/monolish/
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-11.0/targets/x86_64-linux/lib/
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-10.0/targets/x86_64-linux/lib/
 
 COPY test/ /test

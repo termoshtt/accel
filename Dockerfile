@@ -13,9 +13,6 @@ RUN apt-get install -y python3 python3-yaml python3-numpy \
 
 RUN apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* \
-&&  cp /usr/bin/g++-9 /usr/bin/g++ \
-&&  cp /usr/bin/gcc-9 /usr/bin/gcc \
-&&  cp /usr/bin/gfortran-9 /usr/bin/gfortran
 
 ENV MONOLISH_DIR /lib/monolish
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MONOLISH_DIR/lib

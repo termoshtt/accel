@@ -1,8 +1,8 @@
-CXX=g++-8
+CXX=g++-9
 CXX_FLAGS=-O3 -std=c++11 
 ACC_FLAGS=-fopenacc -foffload=nvptx-none -lcuda
 
-FC=gfortran-8
+FC=gfortran-9
 FC_FLAGS=-O3 -std=f2018
 
 TARGET=acc_naked.out acc_cublas.out acc_fortran.out

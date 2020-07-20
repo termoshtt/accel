@@ -3,7 +3,7 @@ LABEL maintainer "Toshiaki Hishinuma <hishinuma.toshiaki@gmail.com>"
 
 RUN apt-get update \
 &&  apt-get install -y make cmake \
-&&  apt-get install -y gcc-10-offload-nvptx nvptx-tools g++-10 gfortran-10 \
+&&  apt-get install -y gcc-9-offload-nvptx nvptx-tools g++-9 gfortran-9 \
 &&  apt-get install -y libopenblas-openmp-dev \
 &&  apt-get install -y cuda-cudart-dev-11-0 cuda-compiler-11.0 cuda-nvprof-11-0 cuda-cupti-11-0 cuda-cublas-dev-10-0 cuda-cusolver-dev-10-0 cuda-cusparse-dev-10-0 
 

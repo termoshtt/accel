@@ -7,8 +7,10 @@ FC_FLAGS=-O3 -std=f2018
 
 TARGET=acc_naked.out acc_cublas.out acc_fortran.out
 
-ACC_INCLUDE=-I/usr/local/cuda-11.0/targets/x86_64-linux/include/ -I/usr/local/cuda-10.0/targets/x86_64-linux/include/ 
-ACC_LIB=-L/usr/local/cuda-11.0/targets/x86_64-linux/lib/ -L/usr/local/cuda-10.0/targets/x86_64-linux/lib/ 
+ACC_INCLUDE=-I/usr/local/cuda-11.0/targets/x86_64-linux/include/
+ACC_INCLUDE+=-I/usr/local/cuda-10.0/targets/x86_64-linux/include/ 
+ACC_LIB=-L/usr/local/cuda-11.0/targets/x86_64-linux/lib/
+ACC_LIB+=-L/usr/local/cuda-10.0/targets/x86_64-linux/lib/ 
 ACC_LIBS=-lcuda -lcublas -lcudart
 
 all: $(TARGET)

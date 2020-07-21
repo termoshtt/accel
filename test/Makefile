@@ -27,7 +27,7 @@ acc_fortran.out: acc_fortran.f90
 test: $(TARGET)
 	./acc_naked.out 1000000
 	./acc_cublas.out 1000000
-	nvprof ./acc_cublas.out 1000000
+	nsys nvprof ./acc_cublas.out 1000000
 	./acc_fortran.out 1000000
 
 clean:

@@ -15,7 +15,8 @@ RUN apt-get install -y python3 python3-yaml python3-numpy \
 RUN apt-get clean \
 &&  rm -rf /var/lib/apt/lists/* \
 
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/lib/monolish/
+ENV MONOLISH_DIR /lib/monolish
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MONOLISH_DIR/lib
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-11.0/targets/x86_64-linux/lib/
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-10.0/targets/x86_64-linux/lib/
 

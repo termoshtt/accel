@@ -19,5 +19,6 @@ ENV MONOLISH_DIR /lib/monolish
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MONOLISH_DIR/lib
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-11.0/targets/x86_64-linux/lib/
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-10.0/targets/x86_64-linux/lib/
+ENV MONOLISH_DIR /lib/monolish
 
 COPY test/ /test

@@ -116,7 +116,7 @@ impl<T: Scalar> Memory for DeviceMemory<T> {
                     self.num_elem()
                 )
             }
-            .expect("memset failed for 64-bit scalar"),
+            .expect("memset failed for 32-bit scalar"),
             _ => {
                 unimplemented!("memset for Device memory is only supported for 8/16/32-bit scalars")
             }
